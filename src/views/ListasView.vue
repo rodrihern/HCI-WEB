@@ -1,107 +1,84 @@
-<template>
-  <div class="listas-view">
-    <header class="page-header">
-      <h1>Mis Listas de Compras</h1>
-      <p class="page-description">Crea y gestiona tus listas de compras</p>
-    </header>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useListsStore } from '../stores/lists'
 
-    <div class="listas-container">
-      <div class="empty-state">
-        <div class="empty-icon">📝</div>
-        <h3>No tienes listas de compras aún</h3>
-        <p>Crea tu primera lista para comenzar a organizar tus compras</p>
-        <button class="btn-primary">
-          <span class="btn-icon">+</span>
-          Crear Nueva Lista
+const store = useListsStore()
+
+const sortedLists = computed(() => {
+  return [...store.lists].sort((a, b) => {
+    if (a.isFavorite && !b.isFavorite) return -1
+    if (!a.isFavorite && b.isFavorite) return 1
+    return b.createdAt.getTime() - a.createdAt.getTime()
+  })
+})
+
+const addNewList = () => {
+  const name = prompt('Nombre de la nueva lista:')
+  if (name) {
+    store.addList(name)
+  }
+}
+
+const deleteList = (id: string) => {
+  if (confirm('¿Estás seguro de eliminar esta lista?')) {
+    store.deleteList(id)
+  }
+}
+</script>
+
+<template>
+  <div class="py-6 px-6 relative min-h-full">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <h1 class="text-xl font-semibold text-gray-800">Mis listas</h1>
+        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
         </button>
       </div>
     </div>
+
+    <div class="space-y-3 pb-20">
+      <div
+        v-for="list in sortedLists"
+        :key="list.id"
+        class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h3 class="text-white font-semibold text-lg">{{ list.name }}</h3>
+            </div>
+            <p class="text-white text-sm opacity-90">Creada por Mamá</p>
+          </div>
+          <button
+            @click="store.toggleFavorite(list.id)"
+            class="text-2xl"
+            :class="list.isFavorite ? 'text-yellow-300' : 'text-white opacity-50'"
+          >
+            {{ list.isFavorite ? '⭐' : '☆' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="sortedLists.length === 0" class="text-center text-gray-500 mt-12">
+      <p class="text-lg">No tienes listas todavía</p>
+      <p class="text-sm">Haz clic en + para crear una</p>
+    </div>
+
+    <!-- Botón flotante abajo a la derecha -->
+    <button
+      @click="addNewList"
+      class="fixed bottom-8 right-8 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-14 h-14 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
+    >
+      +
+    </button>
   </div>
 </template>
-
-<script setup lang="ts">
-// Aquí se implementará la lógica para gestionar las listas de compras
-</script>
-
-<style scoped>
-.listas-view {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 32px;
-}
-
-.page-header h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.page-description {
-  color: #6b7280;
-  font-size: 1rem;
-  margin: 0;
-}
-
-.listas-container {
-  background: white;
-  border-radius: 12px;
-  padding: 48px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state {
-  text-align: center;
-  max-width: 400px;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  color: #6b7280;
-  margin: 0 0 24px 0;
-  line-height: 1.5;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-icon {
-  font-size: 1.2rem;
-  font-weight: 300;
-}
-</style>

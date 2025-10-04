@@ -1,284 +1,104 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useListsStore } from '../stores/lists'
+
+const store = useListsStore()
+
+const pantryWithProducts = computed(() => {
+  return store.pantry
+    .map((item) => {
+      const product = store.getProductById(item.productId)
+      return product ? { ...item, product } : null
+    })
+    .filter((item) => item !== null)
+})
+
+const addToPantry = () => {
+  const productName = prompt('Nombre del producto:')
+  if (!productName) return
+
+  const product = store.products.find((p) => p.name.toLowerCase() === productName.toLowerCase())
+  if (!product) {
+    alert('Producto no encontrado')
+    return
+  }
+
+  const quantity = parseInt(prompt('Cantidad:') || '0')
+  if (quantity > 0) {
+    store.addToPantry(product.id, quantity)
+  }
+}
+
+const updateQuantity = (productId: string, change: number) => {
+  if (change > 0) {
+    store.addToPantry(productId, change)
+  } else {
+    store.removeFromPantry(productId, Math.abs(change))
+  }
+}
+</script>
+
 <template>
-  <div class="despensa-view">
-    <header class="page-header">
-      <h1>Mi Despensa</h1>
-      <p class="page-description">Controla el inventario de productos en tu despensa</p>
-    </header>
-
-    <div class="despensa-stats">
-      <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <div class="stat-content">
-          <h3>0</h3>
-          <p>Productos totales</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">⚠️</div>
-        <div class="stat-content">
-          <h3>0</h3>
-          <p>Productos por agotar</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📅</div>
-        <div class="stat-content">
-          <h3>0</h3>
-          <p>Próximos a vencer</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="despensa-actions">
-      <div class="filter-container">
-        <select class="filter-select">
-          <option value="all">Todos los productos</option>
-          <option value="low-stock">Stock bajo</option>
-          <option value="expiring">Próximos a vencer</option>
-          <option value="expired">Vencidos</option>
-        </select>
-      </div>
-      <div class="search-container">
-        <input
-          type="text"
-          placeholder="Buscar en despensa..."
-          class="search-input"
-        >
-        <span class="search-icon">🔍</span>
-      </div>
-      <button class="btn-primary">
-        <span class="btn-icon">+</span>
-        Agregar a Despensa
-      </button>
-    </div>
-
-    <div class="despensa-container">
-      <div class="empty-state">
-        <div class="empty-icon">🏠</div>
-        <h3>Tu despensa está vacía</h3>
-        <p>Comienza a agregar productos para llevar un control de tu inventario doméstico</p>
-        <button class="btn-secondary">
-          <span class="btn-icon">+</span>
-          Agregar Primer Producto
+  <div class="py-6 px-6 relative min-h-full">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <h1 class="text-xl font-semibold text-gray-800">Despensa</h1>
+        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
         </button>
       </div>
     </div>
+
+    <div class="space-y-3 pb-20">
+      <div
+        v-for="item in pantryWithProducts"
+        :key="item.productId"
+        class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">{{ item.product.icon }}</span>
+            <span class="text-white font-medium">{{ item.product.name }}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              @click="updateQuantity(item.productId, -1)"
+              class="bg-white text-[#68AE6F] rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
+            >
+              -
+            </button>
+            <span class="text-white font-semibold text-lg min-w-[2rem] text-center">
+              {{ item.quantity }}
+            </span>
+            <button
+              @click="updateQuantity(item.productId, 1)"
+              class="bg-white text-[#68AE6F] rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="pantryWithProducts.length === 0" class="text-center text-gray-500 mt-12">
+      <p class="text-lg">Tu despensa está vacía</p>
+      <p class="text-sm">Haz clic en + para agregar productos</p>
+    </div>
+
+    <!-- Botón flotante abajo a la derecha -->
+    <button
+      @click="addToPantry"
+      class="fixed bottom-8 right-8 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-14 h-14 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
+    >
+      +
+    </button>
   </div>
 </template>
-
-<script setup lang="ts">
-// Aquí se implementará la lógica para gestionar la despensa
-</script>
-
-<style scoped>
-.despensa-view {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 32px;
-}
-
-.page-header h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.page-description {
-  color: #6b7280;
-  font-size: 1rem;
-  margin: 0;
-}
-
-.despensa-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stat-icon {
-  font-size: 2rem;
-  padding: 12px;
-  background: #f3f4f6;
-  border-radius: 8px;
-}
-
-.stat-content h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 4px 0;
-}
-
-.stat-content p {
-  color: #6b7280;
-  margin: 0;
-  font-size: 0.875rem;
-}
-
-.despensa-actions {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.filter-container {
-  min-width: 200px;
-}
-
-.filter-select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-  cursor: pointer;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-container {
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px 12px 44px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-}
-
-.despensa-container {
-  background: white;
-  border-radius: 12px;
-  padding: 48px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state {
-  text-align: center;
-  max-width: 400px;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  color: #6b7280;
-  margin: 0 0 24px 0;
-  line-height: 1.5;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-}
-
-.btn-icon {
-  font-size: 1.2rem;
-  font-weight: 300;
-}
-
-@media (max-width: 768px) {
-  .despensa-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-container,
-  .search-container {
-    max-width: none;
-  }
-
-  .despensa-stats {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

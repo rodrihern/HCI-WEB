@@ -1,190 +1,97 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useListsStore } from '../stores/lists'
+
+const store = useListsStore()
+
+const productsByCategory = computed(() => {
+  const grouped: Record<string, typeof store.products> = {}
+  store.products.forEach((product) => {
+    if (!grouped[product.category]) {
+      grouped[product.category] = []
+    }
+    grouped[product.category].push(product)
+  })
+  return grouped
+})
+
+const addNewProduct = () => {
+  const name = prompt('Nombre del producto:')
+  if (!name) return
+
+  const category = prompt('Categoría:')
+  if (!category) return
+
+  const icon = prompt('Emoji del producto:')
+  if (!icon) return
+
+  store.addProduct({ name, category, icon })
+}
+
+const deleteProduct = (id: string) => {
+  if (confirm('¿Estás seguro de eliminar este producto?')) {
+    store.deleteProduct(id)
+  }
+}
+</script>
+
 <template>
-  <div class="productos-view">
-    <header class="page-header">
-      <h1>Catálogo de Productos</h1>
-      <p class="page-description">Gestiona tu catálogo personal de productos</p>
-    </header>
-
-    <div class="productos-actions">
-      <div class="search-container">
-        <input
-          type="text"
-          placeholder="Buscar productos..."
-          class="search-input"
-        >
-        <span class="search-icon">🔍</span>
-      </div>
-      <button class="btn-primary">
-        <span class="btn-icon">+</span>
-        Agregar Producto
-      </button>
-    </div>
-
-    <div class="productos-container">
-      <div class="empty-state">
-        <div class="empty-icon">📦</div>
-        <h3>No tienes productos en tu catálogo</h3>
-        <p>Agrega productos para poder crear listas de compras más rápidamente</p>
-        <button class="btn-secondary">
-          <span class="btn-icon">+</span>
-          Agregar Primer Producto
+  <div class="py-6 px-6 relative min-h-full">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <h1 class="text-xl font-semibold text-gray-800">Productos</h1>
+        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
         </button>
       </div>
     </div>
+
+    <div class="space-y-6 pb-20">
+      <div v-for="(products, category) in productsByCategory" :key="category">
+        <h2 class="text-base font-medium text-gray-600 mb-3">{{ category }}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div
+            v-for="product in products"
+            :key="product.id"
+            class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between"
+          >
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">{{ product.icon }}</span>
+              <span class="text-white font-medium">{{ product.name }}</span>
+            </div>
+            <button class="p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="store.products.length === 0" class="text-center text-gray-500 mt-12">
+      <p class="text-lg">No tienes productos todavía</p>
+      <p class="text-sm">Haz clic en + para crear uno</p>
+    </div>
+
+    <!-- Botón flotante abajo a la derecha -->
+    <button
+      @click="addNewProduct"
+      class="fixed bottom-8 right-8 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-14 h-14 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
+    >
+      +
+    </button>
   </div>
 </template>
-
-<script setup lang="ts">
-// Aquí se implementará la lógica para gestionar el catálogo de productos
-</script>
-
-<style scoped>
-.productos-view {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 32px;
-}
-
-.page-header h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.page-description {
-  color: #6b7280;
-  font-size: 1rem;
-  margin: 0;
-}
-
-.productos-actions {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.search-container {
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px 12px 44px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-}
-
-.productos-container {
-  background: white;
-  border-radius: 12px;
-  padding: 48px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state {
-  text-align: center;
-  max-width: 400px;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  color: #6b7280;
-  margin: 0 0 24px 0;
-  line-height: 1.5;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-}
-
-.btn-icon {
-  font-size: 1.2rem;
-  font-weight: 300;
-}
-
-@media (max-width: 768px) {
-  .productos-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-container {
-    max-width: none;
-  }
-}
-</style>
