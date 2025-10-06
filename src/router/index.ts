@@ -3,13 +3,19 @@ import ListasView from '../views/ListasView.vue'
 import ProductosView from '../views/ProductosView.vue'
 import DespensaView from '../views/DespensaView.vue'
 import HistorialView from '../views/HistorialView.vue'
+import LoginView from '../views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/listas',
+      redirect: '/login',
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
     },
     {
       path: '/listas',

@@ -7,10 +7,9 @@ const store = useListsStore()
 const historyByStore = computed(() => {
   const grouped: Record<string, typeof store.history> = {}
   store.history.forEach((item) => {
-    if (!grouped[item.store]) {
-      grouped[item.store] = []
-    }
-    grouped[item.store].push(item)
+    const storeGroup = grouped[item.store] || []
+    storeGroup.push(item)
+    grouped[item.store] = storeGroup
   })
   return grouped
 })
@@ -47,10 +46,8 @@ const formatDate = (date: Date) => {
                 <p class="text-white text-sm opacity-90">{{ formatDate(item.date) }}</p>
               </div>
               <button class="text-white hover:text-gray-200 transition-colors p-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="5" r="2" />
-                  <circle cx="12" cy="12" r="2" />
-                  <circle cx="12" cy="19" r="2" />
+                <svg class="w-5 h-5" fill="currentColor">
+                  <use href="@/assets/sprite.svg#three-dots" />
                 </svg>
               </button>
             </div>
