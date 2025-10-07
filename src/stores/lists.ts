@@ -101,6 +101,15 @@ export const useListsStore = defineStore('lists', () => {
     })
   }
 
+  const bulkAddLists = (n: number) => {
+    for (let i = 0; i < n; i++) {
+      addList(`Demo ${i + 1}`)
+    }
+  }
+  const clearLists = () => {
+    lists.value = []
+  }
+
   const deleteList = (id: string) => {
     lists.value = lists.value.filter((list) => list.id !== id)
   }
@@ -161,3 +170,4 @@ export const useListsStore = defineStore('lists', () => {
     getProductById,
   }
 })
+

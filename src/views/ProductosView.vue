@@ -62,7 +62,7 @@ const deleteProduct = (id: string) => {
             </div>
             <button class="p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor">
-                <use href="@/assets/sprite.svg#add-to-list" />
+                <use href="@/assets/sprite.svg#add-sign" />
               </svg>
             </button>
           </div>
@@ -72,7 +72,12 @@ const deleteProduct = (id: string) => {
 
     <div v-if="store.products.length === 0" class="text-center text-gray-500 mt-12">
       <p class="text-lg">No tienes productos todavía</p>
-      <p class="text-sm">Haz clic en + para crear uno</p>
+      <p class="text-sm">Haz clic en 
+        <svg class="inline w-4 h-4 align-text-bottom" fill="none" stroke="currentColor">
+          <use href="@/assets/sprite.svg#add-sign" />
+        </svg>
+        para crear uno
+      </p>
     </div>
 
     <!-- Botón flotante abajo a la derecha -->
@@ -80,7 +85,9 @@ const deleteProduct = (id: string) => {
       @click="addNewProduct"
       class="fixed bottom-8 right-8 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-14 h-14 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
     >
-      +
+      <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor">
+        <use href="@/assets/sprite.svg#add-sign" />
+      </svg>
     </button>
   </div>
 </template>

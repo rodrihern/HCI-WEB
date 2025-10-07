@@ -15,14 +15,18 @@ const toggleSidebar = () => {
   <div v-if="route.path === '/login'" class="min-h-screen bg-[#FEFFF7]">
     <RouterView />
   </div>
-  <div v-else class="flex h-screen bg-[#FEFFF7]">
+  <div v-else class="flex h-screen bg-[#FEFFF7] relative">
     <!-- Navbar lateral -->
     <nav 
-      class="bg-[#FEFFF7] flex flex-col relative transition-all duration-300"
-      :class="isSidebarExpanded ? 'w-64' : 'w-24'"
+      class="bg-[#FEFFF7] flex flex-col relative transition-all duration-300 z-20"
+      :class="isSidebarExpanded ? 'w-64 shadow-xl border border-gray-200' : 'w-24'"
     >
       <!-- Burger menu -->
-      <div class="flex items-center px-4 border-b border-gray-200" style="height: 72px;">
+      <div
+        class="flex items-center px-4"
+        :class="isSidebarExpanded ? '' : 'border-b border-gray-200'"
+        style="height: 72px;"
+      >
         <button 
           @click="toggleSidebar"
           class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -31,6 +35,7 @@ const toggleSidebar = () => {
             <use href="@/assets/sprite.svg#hamburger-menu" />
           </svg>
         </button>
+        <img v-if="isSidebarExpanded" src="@/assets/menu-logo.svg" alt="Menu logo" class="h-30 ml-5" />
       </div>
 
       <!-- Menu items -->
@@ -39,13 +44,16 @@ const toggleSidebar = () => {
           to="/listas"
           class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
           :class="[
-            isSidebarExpanded ? 'pl-4 pr-4 py-3 gap-4' : 'w-16 h-16 justify-center',
+            'pl-4 pr-4 py-3 gap-4 h-16',
+            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
             route.path === '/listas' ? 'bg-[#68AE6F]/50' : ''
           ]"
         >
-          <svg class="w-8 h-8 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-            <use href="@/assets/sprite.svg#list-icon" />
-          </svg>
+          <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="@/assets/sprite.svg#list-icon" />
+            </svg>
+          </div>
           <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Listas</span>
         </RouterLink>
 
@@ -53,13 +61,16 @@ const toggleSidebar = () => {
           to="/productos"
           class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
           :class="[
-            isSidebarExpanded ? 'pl-4 pr-4 py-3 gap-4' : 'w-16 h-16 justify-center',
+            'pl-4 pr-4 py-3 gap-4 h-16',
+            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
             route.path === '/productos' ? 'bg-[#68AE6F]/50' : ''
           ]"
         >
-          <svg class="w-8 h-8 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-            <use href="@/assets/sprite.svg#shopping-bag" />
-          </svg>
+          <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="@/assets/sprite.svg#shopping-bag" />
+            </svg>
+          </div>
           <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Productos</span>
         </RouterLink>
 
@@ -67,13 +78,16 @@ const toggleSidebar = () => {
           to="/despensa"
           class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
           :class="[
-            isSidebarExpanded ? 'pl-4 pr-4 py-3 gap-4' : 'w-16 h-16 justify-center',
+            'pl-4 pr-4 py-3 gap-4 h-16',
+            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
             route.path === '/despensa' ? 'bg-[#68AE6F]/50' : ''
           ]"
         >
-          <svg class="w-8 h-8 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-            <use href="@/assets/sprite.svg#pantry-box" />
-          </svg>
+          <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="@/assets/sprite.svg#pantry-box" />
+            </svg>
+          </div>
           <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Despensa</span>
         </RouterLink>
 
@@ -81,20 +95,30 @@ const toggleSidebar = () => {
           to="/historial"
           class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
           :class="[
-            isSidebarExpanded ? 'pl-4 pr-4 py-3 gap-4' : 'w-16 h-16 justify-center',
+            'pl-4 pr-4 py-3 gap-4 h-16',
+            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
             route.path === '/historial' ? 'bg-[#68AE6F]/50' : ''
           ]"
         >
-          <svg class="w-8 h-8 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-            <use href="@/assets/sprite.svg#clock-history" />
-          </svg>
+          <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="@/assets/sprite.svg#clock-history" />
+            </svg>
+          </div>
           <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Historial</span>
         </RouterLink>
       </div>
     </nav>
 
+    <!-- Overlay when sidebar expanded -->
+    <div
+      v-if="isSidebarExpanded"
+      class="fixed inset-0 bg-black/30 backdrop-blur-[1px] z-10"
+      @click="toggleSidebar"
+    ></div>
+
     <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden relative z-0">
       <!-- Top bar -->
       <header class="bg-[#FEFFF7] border-b border-gray-200 px-6 flex items-center justify-end relative" style="height: 72px;">
         <!-- Search bar -->

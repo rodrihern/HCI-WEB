@@ -26,7 +26,17 @@ const deleteList = (id: string) => {
 }
 </script>
 
+
 <template>
+<div class="flex items-center gap-2">
+  <button class="px-2 py-1 text-xs bg-gray-200 rounded" @click="for (let i=0;i<50;i++) store.addList('Demo ' + (i+1))">
+    +50
+  </button>
+  <button class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded" @click="store.lists = []">
+    Clear
+  </button>
+</div>
+
   <div class="py-6 px-6 relative min-h-full">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
@@ -65,15 +75,22 @@ const deleteList = (id: string) => {
 
     <div v-if="sortedLists.length === 0" class="text-center text-gray-500 mt-12">
       <p class="text-lg">No tienes listas todavía</p>
-      <p class="text-sm">Haz clic en + para crear una</p>
+      <p class="text-sm">Haz clic en 
+        <svg class="inline w-4 h-4 align-text-bottom" fill="none" stroke="currentColor">
+          <use href="@/assets/sprite.svg#add-sign" />
+        </svg>
+        para crear una
+      </p>
     </div>
 
     <!-- Botón flotante abajo a la derecha -->
     <button
       @click="addNewList"
-      class="fixed bottom-8 right-8 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-14 h-14 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
+      class="fixed bottom-100 right-40 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-20 h-20 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
     >
-      +
+      <svg class="w-10 h-10 text-gray-800" fill="none" stroke="currentColor">
+        <use href="@/assets/sprite.svg#add-sign" />
+      </svg>
     </button>
   </div>
 </template>
