@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { RouterView, useRoute } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { ref } from 'vue'
 
 const route = useRoute()
+const router = useRouter()
 const isSidebarExpanded = ref(false)
 const searchQuery = ref('')
 
 const toggleSidebar = () => {
   isSidebarExpanded.value = !isSidebarExpanded.value
+}
+
+const goToSettings = () => {
+  router.push('/settings')
+}
+
+const goToProfile = () => {
+  router.push('/profile')
 }
 </script>
 
@@ -35,7 +44,7 @@ const toggleSidebar = () => {
             <use href="@/assets/sprite.svg#hamburger-menu" />
           </svg>
         </button>
-        <img v-if="isSidebarExpanded" src="@/assets/menu-logo.svg" alt="Menu logo" class="h-30 ml-5" />
+        <img v-if="isSidebarExpanded" src="@/assets/Listazo_verde_sin_titulo.png" alt="Menu logo" class="h-30 ml-5" />
       </div>
 
       <!-- Menu items -->
@@ -144,14 +153,14 @@ const toggleSidebar = () => {
           <span class="text-2xl font-bold text-[#68AE6F]">Listazo!</span>
 
           <!-- Settings -->
-          <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button @click="goToSettings" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor">
               <use href="@/assets/sprite.svg#settings" />
             </svg>
           </button>
 
           <!-- Profile -->
-          <button class="w-10 h-10 rounded-full bg-[#68AE6F] flex items-center justify-center hover:opacity-80 transition-opacity">
+          <button @click="goToProfile" class="w-10 h-10 rounded-full bg-[#68AE6F] flex items-center justify-center hover:opacity-80 transition-opacity">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor">
               <use href="@/assets/sprite.svg#user-profile" />
             </svg>
