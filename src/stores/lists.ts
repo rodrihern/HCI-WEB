@@ -27,6 +27,12 @@ export interface PantryItem {
   quantity: number
 }
 
+export interface PantrySection {
+  id: string
+  name: string
+  items: PantryItem[]
+}
+
 export interface HistoryItem {
   id: string
   listName: string
@@ -75,12 +81,24 @@ export const useListsStore = defineStore('lists', () => {
     },
   ])
 
-  // Pantry mock data
-  const pantry = ref<PantryItem[]>([
-    { productId: '1', quantity: 4 },
-    { productId: '2', quantity: 1 },
-    { productId: '3', quantity: 2 },
-    { productId: '4', quantity: 3 },
+  // Pantry mock data (now grouped into sections)
+  const pantrySections = ref<PantrySection[]>([
+    {
+      id: 'dry',
+      name: 'Despensa Seca',
+      items: [
+        { productId: '1', quantity: 4 },
+        { productId: '3', quantity: 2 },
+        { productId: '4', quantity: 3 },
+      ],
+    },
+    {
+      id: 'wet',
+      name: 'Despensa Húmeda',
+      items: [
+        { productId: '2', quantity: 1 },
+      ],
+    },
   ])
 
   // History mock data
@@ -132,23 +150,54 @@ export const useListsStore = defineStore('lists', () => {
     products.value = products.value.filter((p) => p.id !== id)
   }
 
-  const addToPantry = (productId: string, quantity: number) => {
-    const item = pantry.value.find((p) => p.productId === productId)
+  const addToPantryInSection = (sectionId: string, productId: string, quantity: number) => {
+    const section = pantrySections.value.find((s) => s.id === sectionId)
+    if (!section) return
+    const item = section.items.find((p) => p.productId === productId)
     if (item) {
       item.quantity += quantity
     } else {
-      pantry.value.push({ productId, quantity })
+      section.items.push({ productId, quantity })
     }
   }
 
-  const removeFromPantry = (productId: string, quantity: number) => {
-    const item = pantry.value.find((p) => p.productId === productId)
-    if (item) {
-      item.quantity -= quantity
-      if (item.quantity <= 0) {
-        pantry.value = pantry.value.filter((p) => p.productId !== productId)
-      }
+  // Back-compat helper: add to default section
+  const addToPantry = (productId: string, quantity: number) => {
+    addToPantryInSection('dry', productId, quantity)
+  }
+
+  const removeFromPantryInSection = (sectionId: string, productId: string, quantity: number) => {
+    const section = pantrySections.value.find((s) => s.id === sectionId)
+    if (!section) return
+    const item = section.items.find((p) => p.productId === productId)
+    if (!item) return
+    item.quantity -= quantity
+    if (item.quantity <= 0) {
+      section.items = section.items.filter((p) => p.productId !== productId)
     }
+  }
+
+  const setPantryQuantityInSection = (sectionId: string, productId: string, quantity: number) => {
+    const section = pantrySections.value.find((s) => s.id === sectionId)
+    if (!section) return
+    if (quantity <= 0) {
+      section.items = section.items.filter((p) => p.productId !== productId)
+      return
+    }
+    const item = section.items.find((p) => p.productId === productId)
+    if (item) item.quantity = quantity
+    else section.items.push({ productId, quantity })
+  }
+
+  const removeItemFromPantryInSection = (sectionId: string, productId: string) => {
+    const section = pantrySections.value.find((s) => s.id === sectionId)
+    if (!section) return
+    section.items = section.items.filter((p) => p.productId !== productId)
+  }
+
+  // Back-compat helper: remove from default section
+  const removeFromPantry = (productId: string, quantity: number) => {
+    removeFromPantryInSection('dry', productId, quantity)
   }
 
   const getProductById = (id: string) => {
@@ -158,7 +207,7 @@ export const useListsStore = defineStore('lists', () => {
   return {
     products,
     lists,
-    pantry,
+    pantrySections,
     history,
     addList,
     deleteList,
@@ -167,7 +216,12 @@ export const useListsStore = defineStore('lists', () => {
     deleteProduct,
     addToPantry,
     removeFromPantry,
+    addToPantryInSection,
+    removeFromPantryInSection,
+    setPantryQuantityInSection,
+    removeItemFromPantryInSection,
     getProductById,
   }
 })
+
 

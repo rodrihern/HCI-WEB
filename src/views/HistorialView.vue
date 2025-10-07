@@ -1,8 +1,55 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 
 const store = useListsStore()
+
+const openMenuForItemId = ref<string | null>(null)
+
+const toggleMenu = (id: string) => {
+  openMenuForItemId.value = openMenuForItemId.value === id ? null : id
+}
+
+const closeMenu = () => {
+  openMenuForItemId.value = null
+}
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') closeMenu()
+}
+
+onMounted(() => {
+  window.addEventListener('click', closeMenu)
+  window.addEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', closeMenu)
+  window.removeEventListener('keydown', onKeydown)
+})
+
+const onShare = (e: MouseEvent, id: string) => {
+  e.stopPropagation()
+  // Replace with real share logic
+  alert('Compartir ' + id)
+  closeMenu()
+}
+
+const onEdit = (e: MouseEvent, id: string) => {
+  e.stopPropagation()
+  // Replace with real edit logic
+  alert('Modificar ' + id)
+  closeMenu()
+}
+
+const onDelete = (e: MouseEvent, id: string) => {
+  e.stopPropagation()
+  if (confirm('¿Eliminar este elemento del historial?')) {
+    // Implement deletion in store if applicable
+    alert('Eliminar ' + id)
+  }
+  closeMenu()
+}
 
 const historyByStore = computed(() => {
   const grouped: Record<string, typeof store.history> = {}
@@ -38,17 +85,51 @@ const formatDate = (date: Date) => {
           <div
             v-for="item in items"
             :key="item.id"
-            class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+            class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
           >
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between" @click.stop>
               <div>
                 <h3 class="text-white font-semibold">{{ item.listName }}</h3>
                 <p class="text-white text-sm opacity-90">{{ formatDate(item.date) }}</p>
               </div>
-              <button class="text-white hover:text-gray-200 transition-colors p-2">
+              <button
+                class="text-white hover:text-gray-200 transition-colors p-2"
+                @click.stop="toggleMenu(item.id)"
+                aria-haspopup="menu"
+                :aria-expanded="openMenuForItemId === item.id"
+              >
                 <svg class="w-5 h-5" fill="currentColor">
                   <use href="@/assets/sprite.svg#three-dots" />
                 </svg>
+              </button>
+            </div>
+
+            <div
+              v-if="openMenuForItemId === item.id"
+              class="absolute right-2 top-12 z-20 w-40 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
+              role="menu"
+              @click.stop
+            >
+              <button
+                class="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-xl"
+                role="menuitem"
+                @click="onShare($event, item.id)"
+              >
+                Compartir
+              </button>
+              <button
+                class="w-full text-left px-4 py-2 hover:bg-gray-50"
+                role="menuitem"
+                @click="onEdit($event, item.id)"
+              >
+                Modificar
+              </button>
+              <button
+                class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 rounded-b-xl"
+                role="menuitem"
+                @click="onDelete($event, item.id)"
+              >
+                Eliminar
               </button>
             </div>
           </div>
