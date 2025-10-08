@@ -21,6 +21,10 @@ const selectedCategory = ref('')
 const categorySearch = ref('')
 const isCategoryOpen = ref(false)
 const newCategoryName = ref('')
+const selectedPantry = ref('')
+const pantrySearch = ref('')
+const isPantryOpen = ref(false)
+const newPantryName = ref('')
 const selectedFile = ref<File | null>(null)
 
 // Derive unique categories from existing products
@@ -36,14 +40,29 @@ const filteredCategories = computed(() => {
   return categories.value.filter((c) => c.toLowerCase().includes(term))
 })
 
+// Derive unique pantries from existing pantry sections
+const pantries = computed(() => {
+  return store.pantrySections.map((section) => section.name).sort((a, b) => a.localeCompare(b))
+})
+
+const filteredPantries = computed(() => {
+  const term = pantrySearch.value.trim().toLowerCase()
+  if (!term) return pantries.value
+  return pantries.value.filter((p) => p.toLowerCase().includes(term))
+})
+
 const openAddProductModal = () => {
   showModal.value = true
   productName.value = ''
   selectedCategory.value = ''
   categorySearch.value = ''
   newCategoryName.value = ''
+  selectedPantry.value = ''
+  pantrySearch.value = ''
+  newPantryName.value = ''
   selectedFile.value = null
   isCategoryOpen.value = false
+  isPantryOpen.value = false
 }
 
 const closeModal = () => {
@@ -85,12 +104,26 @@ const addNewCategory = () => {
   isCategoryOpen.value = false
 }
 
+const choosePantry = (p: string) => {
+  selectedPantry.value = p
+  isPantryOpen.value = false
+}
+
+const addNewPantry = () => {
+  const name = newPantryName.value.trim()
+  if (!name) return
+  selectedPantry.value = name
+  newPantryName.value = ''
+  isPantryOpen.value = false
+}
+
 const submitProduct = () => {
   const name = productName.value.trim()
   const category = selectedCategory.value.trim()
+  const pantry = selectedPantry.value.trim()
   if (!name || !category) return
   // For now we ignore the uploaded file in the data model and use a generic icon
-  store.addProduct({ name, category, icon: '🛒' })
+  store.addProduct({ name, category, pantry: pantry || undefined, icon: '🛒' })
   closeModal()
 }
 
@@ -127,7 +160,7 @@ const deleteProduct = (id: string) => {
               <span class="text-2xl">{{ product.icon }}</span>
               <span class="text-white font-medium">{{ product.name }}</span>
             </div>
-            <button class="p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors">
+            <button class="p-2 hover:bg-[#5C805E]/60 rounded-lg transition-colors">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor">
                 <use href="@/assets/sprite.svg#add-sign" />
               </svg>
@@ -254,6 +287,72 @@ const deleteProduct = (id: string) => {
                 class="flex-1 bg-transparent placeholder-white/90 text-white outline-none"
               />
               <button class="px-3 py-1 bg-white/20 rounded-lg hover:bg-white/30" @click="addNewCategory">Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pantry selector -->
+        <div class="relative mt-4">
+          <button
+            type="button"
+            class="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 text-gray-800"
+            @click="isPantryOpen = !isPantryOpen"
+          >
+            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor">
+              <use href="@/assets/sprite.svg#search" />
+            </svg>
+            <span class="flex-1 text-left">{{ selectedPantry || 'Despensa (opcional)' }}</span>
+            <button class="p-1 -mr-1" @click.stop="selectedPantry = ''" aria-label="clear">
+              <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor">
+                <use href="@/assets/sprite.svg#close" />
+              </svg>
+            </button>
+          </button>
+
+          <div
+            v-if="isPantryOpen"
+            class="absolute left-0 right-0 mt-1 bg-[#5F9A6C] text-white rounded-xl shadow-xl overflow-hidden z-10"
+            @click.stop
+          >
+            <div class="px-3 py-2 bg-white/10 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor">
+                <use href="@/assets/sprite.svg#search" />
+              </svg>
+              <input
+                v-model="pantrySearch"
+                type="text"
+                placeholder="Despensa"
+                class="flex-1 bg-transparent placeholder-white/90 text-white outline-none"
+              />
+              <button class="p-1" @click="pantrySearch = ''">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor">
+                  <use href="@/assets/sprite.svg#close" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="max-h-48 overflow-auto">
+              <button
+                v-for="p in filteredPantries"
+                :key="p"
+                class="w-full text-left px-5 py-2 hover:bg-white/10 border-t border-white/20 first:border-t-0"
+                @click="choosePantry(p)"
+              >
+                {{ p }}
+              </button>
+            </div>
+
+            <div class="border-t border-white/20 px-4 py-3 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor">
+                <use href="@/assets/sprite.svg#add-sign" />
+              </svg>
+              <input
+                v-model="newPantryName"
+                type="text"
+                placeholder="Nueva Despensa"
+                class="flex-1 bg-transparent placeholder-white/90 text-white outline-none"
+              />
+              <button class="px-3 py-1 bg-white/20 rounded-lg hover:bg-white/30" @click="addNewPantry">Agregar</button>
             </div>
           </div>
         </div>

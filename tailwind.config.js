@@ -10,6 +10,7 @@ export default {
         'verde-claro': '#8DAF7E',
         'fondo': '#FEFFF7',
         'verde-sidebar': '#68AE6F',
+        'verde_contraste': '#5C805E',
       },
     },
   },
