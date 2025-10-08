@@ -41,6 +41,11 @@ export interface HistoryItem {
 }
 
 export const useListsStore = defineStore('lists', () => {
+  // Modal state for creating new list
+  const isCreatingList = ref(false)
+  const newListName = ref('')
+  const newListProducts = ref<Array<{ name: string; quantity: number }>>([])
+
   // Products mock data
   const products = ref<Product[]>([
     { id: '1', name: 'Banana', category: 'Frutas', icon: '🍌' },
@@ -204,11 +209,46 @@ export const useListsStore = defineStore('lists', () => {
     return products.value.find((p) => p.id === id)
   }
 
+  // Modal management functions
+  const openCreateListModal = () => {
+    isCreatingList.value = true
+  }
+
+  const closeCreateListModal = () => {
+    isCreatingList.value = false
+    newListName.value = ''
+    newListProducts.value = []
+  }
+
+  const setNewListName = (name: string) => {
+    newListName.value = name
+  }
+
+  const addProductToNewList = (name: string) => {
+    if (name.trim()) {
+      newListProducts.value.push({ name: name.trim(), quantity: 1 })
+    }
+  }
+
+  const removeProductFromNewList = (index: number) => {
+    newListProducts.value.splice(index, 1)
+  }
+
+  const updateNewListProductQuantity = (index: number, quantity: number) => {
+    const product = newListProducts.value[index]
+    if (product && quantity > 0) {
+      product.quantity = quantity
+    }
+  }
+
   return {
     products,
     lists,
     pantrySections,
     history,
+    isCreatingList,
+    newListName,
+    newListProducts,
     addList,
     deleteList,
     toggleFavorite,
@@ -221,6 +261,12 @@ export const useListsStore = defineStore('lists', () => {
     setPantryQuantityInSection,
     removeItemFromPantryInSection,
     getProductById,
+    openCreateListModal,
+    closeCreateListModal,
+    setNewListName,
+    addProductToNewList,
+    removeProductFromNewList,
+    updateNewListProductQuantity,
   }
 })
 
