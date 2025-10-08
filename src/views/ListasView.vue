@@ -56,13 +56,23 @@ const toggleFavoriteWithAnimation = (id: string) => {
   <div class="py-6 px-6 relative min-h-full">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
-        <h1 class="text-xl font-semibold text-gray-800">Mis listas</h1>
+        <h1 class="text-3xl font-semibold text-gray-800">Mis listas</h1>
         <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor">
+          <svg class="w-7 h-7 text-gray-700" fill="none" stroke="currentColor">
             <use href="@/assets/sprite.svg#filter" />
           </svg>
         </button>
       </div>
+      
+      <!-- Botón de agregar lista -->
+      <button
+        @click="addNewList"
+        class="bg-gradient-to-br from-[#68AE6F] to-[#5a9860] hover:from-[#5a9860] hover:to-[#4d8251] text-white rounded-full w-14 h-14 flex items-center justify-center transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-110 add-list-btn"
+      >
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="3">
+          <use href="@/assets/sprite.svg#add-sign" />
+        </svg>
+      </button>
     </div>
 
     <div class="space-y-3 pb-20">
@@ -90,6 +100,7 @@ const toggleFavoriteWithAnimation = (id: string) => {
                 v-if="list.isFavorite"
                 class="w-7 h-7 text-yellow-300 transition-all duration-200"
                 :class="{ 'favorite-bounce': animatingFavorites.has(list.id) }"
+                stroke="currentColor"
                 fill="currentColor" 
                 viewBox="0 0 24 24"
               >
@@ -114,22 +125,7 @@ const toggleFavoriteWithAnimation = (id: string) => {
 
     <div v-if="sortedLists.length === 0" class="text-center text-gray-500 mt-12">
       <p class="text-lg">No tienes listas todavía</p>
-      <p class="text-sm">Haz clic en 
-        <svg class="inline w-4 h-4 align-text-bottom" fill="none" stroke="currentColor">
-          <use href="@/assets/sprite.svg#add-sign" />
-        </svg>
-        para crear una
-      </p>
+      <p class="text-sm">Haz clic en el botón + para crear una</p>
     </div>
-
-    <!-- Botón flotante abajo a la derecha -->
-    <button
-      @click="addNewList"
-      class="fixed bottom-100 right-40 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-20 h-20 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
-    >
-      <svg class="w-10 h-10 text-gray-800" fill="none" stroke="currentColor">
-        <use href="@/assets/sprite.svg#add-sign" />
-      </svg>
-    </button>
   </div>
 </template>

@@ -51,11 +51,11 @@ const goToProfile = () => {
       <div class="flex flex-col items-start py-8 space-y-6">
         <RouterLink
           to="/listas"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
+          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/listas' ? 'bg-[#68AE6F]/50' : ''
+            route.path === '/listas' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -68,11 +68,11 @@ const goToProfile = () => {
 
         <RouterLink
           to="/productos"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
+          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/productos' ? 'bg-[#68AE6F]/50' : ''
+            route.path === '/productos' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -85,11 +85,11 @@ const goToProfile = () => {
 
         <RouterLink
           to="/despensa"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
+          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/despensa' ? 'bg-[#68AE6F]/50' : ''
+            route.path === '/despensa' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -102,11 +102,11 @@ const goToProfile = () => {
 
         <RouterLink
           to="/historial"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full hover:bg-gray-200"
+          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/historial' ? 'bg-[#68AE6F]/50' : ''
+            route.path === '/historial' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
