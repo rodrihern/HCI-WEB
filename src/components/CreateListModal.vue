@@ -61,7 +61,6 @@ const createList = () => {
         <div class="p-8 overflow-y-auto flex-1">
           <!-- Input para el nombre de la lista -->
           <div class="mb-8">
-            <label class="block text-2xl font-bold text-gray-800 mb-3">Nombre</label>
             <input 
               v-model="store.newListName"
               type="text" 
@@ -124,7 +123,7 @@ const createList = () => {
           <button 
             @click="createList"
             :disabled="!store.newListName.trim()"
-            class="bg-verde-sidebar hover:bg-verde-contraste disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-xl px-16 py-4 rounded-full transition-colors shadow-lg hover:shadow-xl"
+            class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
           >
             Listo
           </button>

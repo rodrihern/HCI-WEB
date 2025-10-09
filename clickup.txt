@@ -1,9 +1,7 @@
 ------ listazo
 
-que los modals sean todos iguales como el de nueva lista
 
 pantalla de preview de listas
-
 
 sacar la despensa en crear productos
 

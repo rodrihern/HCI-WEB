@@ -65,14 +65,13 @@ Modal especializado para crear nuevas listas de compras. Usa `BaseModal` interna
 ---
 
 ## CreateProductModal.vue
-Modal ejemplo para crear nuevos productos. Demuestra cómo usar `BaseModal` para casos simples.
+Modal especializado para crear nuevos productos. Usa `BaseModal` internamente.
 
 **Uso:**
 ```vue
 <CreateProductModal 
   :show="showProductModal"
   @close="closeProductModal"
-  @submit="handleProductSubmit"
 />
 ```
 
@@ -81,7 +80,21 @@ Modal ejemplo para crear nuevos productos. Demuestra cómo usar `BaseModal` para
 
 **Eventos:**
 - `@close`: Emitido cuando se cierra el modal
-- `@submit`: Emitido con los datos del producto `{ name: string, category: string }`
+
+**Características:**
+- Input de nombre del producto
+- Área de carga de multimedia (imágenes)
+- Selector de categoría con:
+  - Búsqueda filtrada
+  - Lista de categorías existentes
+  - Opción de crear nueva categoría
+- Selector de despensa (opcional) con:
+  - Búsqueda filtrada
+  - Lista de despensas existentes
+  - Opción de crear nueva despensa
+- Validación de campos requeridos
+- Integración con el store de Pinia
+- Estilo verde consistente con el diseño de la app
 
 ---
 
