@@ -4,6 +4,7 @@ import { useListsStore } from '../stores/lists'
 import PageHeader from '@/components/PageHeader.vue'
 import CreateListModal from '@/components/CreateListModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import ListItem from '@/components/ListItem.vue'
 
 const store = useListsStore()
 const animatingFavorites = ref<Set<string>>(new Set())
@@ -73,23 +74,17 @@ const toggleFavoriteWithAnimation = (id: string) => {
 
     <div class="space-y-3 pb-20">
       <transition-group name="list-move">
-        <div
+        <ListItem
           v-for="list in sortedLists"
           :key="list.id"
-          class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200"
-          :class="{ 'scale-[1.02] shadow-lg': animatingFavorites.has(list.id) }"
+          :title="list.name"
+          subtitle="Creada por Mamá"
+          :is-animating="animatingFavorites.has(list.id)"
         >
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <h3 class="text-white font-semibold text-lg">{{ list.name }}</h3>
-              </div>
-              <p class="text-white text-sm opacity-90">Creada por Mamá</p>
-            </div>
+          <template #actions>
             <button
               @click="toggleFavoriteWithAnimation(list.id)"
-              class="relative p-2 hover:scale-110 transition-transform duration-200"
-              :class="{ 'favorite-pulse': animatingFavorites.has(list.id) }"
+              class="p-2 hover:scale-110 transition-transform duration-200"
             >
               <!-- Filled Star (Favorite) -->
               <svg 
@@ -114,8 +109,8 @@ const toggleFavoriteWithAnimation = (id: string) => {
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
             </button>
-          </div>
-        </div>
+          </template>
+        </ListItem>
       </transition-group>
     </div>
 

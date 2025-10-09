@@ -2,6 +2,111 @@
 
 Este directorio contiene componentes Vue reutilizables usados en toda la aplicación.
 
+## ContextMenu.vue
+Menú contextual desplegable con opciones personalizables. Se usa típicamente junto con un botón de tres puntos.
+
+**Props:**
+- `show` (boolean, requerido): Controla la visibilidad del menú
+- `items` (ContextMenuItem[], requerido): Array de opciones del menú
+
+**Interfaz ContextMenuItem:**
+```typescript
+interface ContextMenuItem {
+  label: string           // Texto del botón
+  onClick: () => void     // Función a ejecutar al hacer clic
+  variant?: 'default' | 'danger'  // Estilo del botón (default o rojo para acciones destructivas)
+}
+```
+
+**Uso:**
+```vue
+<script setup lang="ts">
+import ContextMenu, { type ContextMenuItem } from '@/components/ContextMenu.vue'
+
+const openMenuKey = ref<string | null>(null)
+
+const toggleMenu = (e: Event, id: string) => {
+  e.stopPropagation()
+  openMenuKey.value = openMenuKey.value === id ? null : id
+}
+</script>
+
+<template>
+  <button @click="toggleMenu($event, item.id)">
+    <svg><!-- Icono de tres puntos --></svg>
+  </button>
+  
+  <ContextMenu
+    :show="openMenuKey === item.id"
+    :items="[
+      { label: 'Modificar', onClick: () => edit(item.id) },
+      { label: 'Eliminar', onClick: () => delete(item.id), variant: 'danger' }
+    ]"
+  />
+</template>
+```
+
+---
+
+## ListItem.vue
+Componente genérico para mostrar elementos de lista con texto principal, subtítulo opcional, icono, controles de cantidad y acciones personalizadas mediante slots.
+
+**Props:**
+- `title` (string, requerido): Texto principal del item
+- `subtitle` (string, opcional): Texto secundario debajo del título
+- `icon` (string, opcional): Emoji o icono a mostrar a la izquierda
+- `showQuantityControls` (boolean, default: false): Mostrar botones +/- para cantidad
+- `quantity` (number, default: 0): Cantidad actual (si showQuantityControls es true)
+- `isAnimating` (boolean, default: false): Activar animación de escala
+
+**Events:**
+- `@quantity-change(change: number)`: Emitido cuando cambia la cantidad (+1 o -1)
+
+**Slots:**
+- `actions`: Contenido personalizado para el área de acciones (botones, menús, etc.)
+
+**Ejemplo 1 - ListasView (con botón de favorito):**
+```vue
+<ListItem
+  :title="list.name"
+  subtitle="Creada por Mamá"
+  :is-animating="animatingFavorites.has(list.id)"
+>
+  <template #actions>
+    <button @click="toggleFavorite(list.id)" class="p-2">
+      <svg v-if="list.isFavorite" class="w-7 h-7 text-yellow-300">...</svg>
+      <svg v-else class="w-7 h-7 text-white">...</svg>
+    </button>
+  </template>
+</ListItem>
+```
+
+**Ejemplo 2 - DespensaView (con controles de cantidad y ContextMenu):**
+```vue
+<ListItem
+  :title="product.name"
+  :icon="product.icon"
+  :show-quantity-controls="true"
+  :quantity="item.quantity"
+  @quantity-change="(change) => updateQuantity(change)"
+>
+  <template #actions>
+    <button @click="toggleMenu($event, item.id)">
+      <svg>...</svg> <!-- Icono de tres puntos -->
+    </button>
+    <ContextMenu
+      :show="openMenuKey === item.id"
+      :items="[
+        { label: 'Modificar', onClick: () => modify(item.id) },
+        { label: 'Eliminar', onClick: () => delete(item.id), variant: 'danger' }
+      ]"
+    />
+  </template>
+</ListItem>
+```
+
+---
+
 ## BaseModal.vue
 Modal base genérico que proporciona estructura y estilo consistente para todos los modales de la aplicación.
 

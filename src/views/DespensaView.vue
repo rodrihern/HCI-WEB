@@ -4,6 +4,9 @@ import { useListsStore } from '../stores/lists'
 import PageHeader from '@/components/PageHeader.vue'
 import CollapsibleSection from '@/components/CollapsibleSection.vue'
 import ProductCard from '@/components/ProductCard.vue'
+import ListItem from '@/components/ListItem.vue'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import ContextMenu, { type ContextMenuItem } from '@/components/ContextMenu.vue'
 
 const store = useListsStore()
 
@@ -21,9 +24,14 @@ const sectionsWithProducts = computed(() => {
 
 // Contextual menu state
 const openMenuKey = ref<string | null>(null)
-const toggleMenu = (key: string) => {
+const showDeleteConfirm = ref(false)
+const itemToDelete = ref<{ sectionId: string; productId: string } | null>(null)
+
+const toggleMenu = (e: Event, key: string) => {
+  e.stopPropagation()
   openMenuKey.value = openMenuKey.value === key ? null : key
 }
+
 const closeMenu = () => (openMenuKey.value = null)
 const onKeydown = (e: KeyboardEvent) => { if (e.key === 'Escape') closeMenu() }
 onMounted(() => { window.addEventListener('click', closeMenu); window.addEventListener('keydown', onKeydown) })
@@ -54,17 +62,6 @@ const updateQuantity = (sectionId: string, productId: string, change: number) =>
   else store.removeFromPantryInSection(sectionId, productId, Math.abs(change))
 }
 
-const shareItem = (sectionName: string, productName: string, quantity: number) => {
-  const text = `En ${sectionName}: ${productName} x${quantity}`
-  if (navigator.share) {
-    navigator.share({ title: 'Compartir producto', text }).catch(() => {})
-  } else {
-    navigator.clipboard.writeText(text)
-    alert('Información copiada al portapapeles')
-  }
-  closeMenu()
-}
-
 const modifyItem = (sectionId: string, productId: string, currentQty: number) => {
   const value = prompt('Nueva cantidad:', String(currentQty))
   if (value === null) return
@@ -74,11 +71,18 @@ const modifyItem = (sectionId: string, productId: string, currentQty: number) =>
   closeMenu()
 }
 
-const deleteItem = (sectionId: string, productId: string) => {
-  if (confirm('¿Eliminar producto de la despensa?')) {
-    store.removeItemFromPantryInSection(sectionId, productId)
-  }
+const confirmDeleteItem = (sectionId: string, productId: string) => {
+  itemToDelete.value = { sectionId, productId }
+  showDeleteConfirm.value = true
   closeMenu()
+}
+
+const deleteItem = () => {
+  if (itemToDelete.value) {
+    store.removeItemFromPantryInSection(itemToDelete.value.sectionId, itemToDelete.value.productId)
+  }
+  showDeleteConfirm.value = false
+  itemToDelete.value = null
 }
 </script>
 
@@ -100,56 +104,44 @@ const deleteItem = (sectionId: string, productId: string) => {
         :onAddClick="() => addToPantry(section.id)"
       >
         <div class="space-y-3">
-          <div
+          <ListItem
             v-for="item in section.items"
             :key="section.id + '-' + item.productId"
-            class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
+            :title="item.product.name"
+            :icon="item.product.icon"
+            :show-quantity-controls="true"
+            :quantity="item.quantity"
+            @quantity-change="(change) => updateQuantity(section.id, item.productId, change)"
           >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <span class="text-2xl">{{ item.product.icon }}</span>
-                <span class="text-white font-medium">{{ item.product.name }}</span>
-              </div>
-              <div class="flex items-center gap-3" @click.stop>
-                <button
-                  @click="updateQuantity(section.id, item.productId, -1)"
-                  class="bg-white text-verde-sidebar rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
-                >
-                  -
-                </button>
-                <span class="text-white font-semibold text-lg min-w-[2rem] text-center">
-                  {{ item.quantity }}
-                </span>
-                <button
-                  @click="updateQuantity(section.id, item.productId, 1)"
-                  class="bg-white text-verde-sidebar rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
-                >
-                  +
-                </button>
-                <button
-                  class="text-white hover:text-gray-200 transition-colors p-2"
-                  @click.stop="toggleMenu(section.id + '-' + item.productId)"
-                  aria-haspopup="menu"
-                  :aria-expanded="openMenuKey === section.id + '-' + item.productId"
-                >
-                  <svg class="w-5 h-5" fill="currentColor">
-                    <use href="@/assets/sprite.svg#three-dots" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <template #actions>
+              <button
+                class="text-white hover:text-gray-200 transition-colors p-2"
+                @click="toggleMenu($event, section.id + '-' + item.productId)"
+                aria-haspopup="menu"
+                :aria-expanded="openMenuKey === section.id + '-' + item.productId"
+              >
+                <svg class="w-5 h-5" fill="currentColor">
+                  <use href="@/assets/sprite.svg#three-dots" />
+                </svg>
+              </button>
 
-            <div
-              v-if="openMenuKey === section.id + '-' + item.productId"
-              class="absolute right-2 top-12 z-20 w-44 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
-              role="menu"
-              @click.stop
-            >
-              <button class="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-xl" role="menuitem" @click="shareItem(section.name, item.product.name, item.quantity)">Compartir</button>
-              <button class="w-full text-left px-4 py-2 hover:bg-gray-50" role="menuitem" @click="modifyItem(section.id, item.productId, item.quantity)">Modificar</button>
-              <button class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 rounded-b-xl" role="menuitem" @click="deleteItem(section.id, item.productId)">Eliminar</button>
-            </div>
-          </div>
+              <!-- Menú contextual -->
+              <ContextMenu
+                :show="openMenuKey === section.id + '-' + item.productId"
+                :items="[
+                  {
+                    label: 'Modificar',
+                    onClick: () => modifyItem(section.id, item.productId, item.quantity)
+                  },
+                  {
+                    label: 'Eliminar',
+                    onClick: () => confirmDeleteItem(section.id, item.productId),
+                    variant: 'danger'
+                  }
+                ]"
+              />
+            </template>
+          </ListItem>
         </div>
       </CollapsibleSection>
     </div>
@@ -158,5 +150,20 @@ const deleteItem = (sectionId: string, productId: string) => {
       <p class="text-lg">Tu despensa está vacía</p>
       <p class="text-sm">Haz clic en el botón + para agregar productos</p>
     </div>
+
+    <ConfirmationModal
+      :show="showDeleteConfirm"
+      title="Eliminar producto"
+      message="¿Estás seguro de que quieres eliminar este producto de la despensa?"
+      variant="danger"
+      @confirm="deleteItem"
+      @cancel="showDeleteConfirm = false"
+    >
+      <template #details>
+        <p class="text-sm text-gray-600 mt-2">
+          Esta acción no se puede deshacer.
+        </p>
+      </template>
+    </ConfirmationModal>
   </div>
 </template>

@@ -2,6 +2,7 @@
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
+import ContextMenu, { type ContextMenuItem } from '../components/ContextMenu.vue'
 
 const store = useListsStore()
 
@@ -9,7 +10,8 @@ const openMenuForItemId = ref<string | null>(null)
 const showDeleteConfirm = ref(false)
 const itemToDelete = ref<string | null>(null)
 
-const toggleMenu = (id: string) => {
+const toggleMenu = (e: Event, id: string) => {
+  e.stopPropagation()
   openMenuForItemId.value = openMenuForItemId.value === id ? null : id
 }
 
@@ -31,22 +33,13 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-const onShare = (e: MouseEvent, id: string) => {
-  e.stopPropagation()
-  // Replace with real share logic
-  alert('Compartir ' + id)
-  closeMenu()
-}
-
-const onEdit = (e: MouseEvent, id: string) => {
-  e.stopPropagation()
+const onEdit = (id: string) => {
   // Replace with real edit logic
   alert('Modificar ' + id)
   closeMenu()
 }
 
-const confirmDelete = (e: MouseEvent, id: string) => {
-  e.stopPropagation()
+const confirmDelete = (id: string) => {
   itemToDelete.value = id
   showDeleteConfirm.value = true
   closeMenu()
@@ -104,7 +97,7 @@ const formatDate = (date: Date) => {
               </div>
               <button
                 class="text-white hover:text-gray-200 transition-colors p-2"
-                @click.stop="toggleMenu(item.id)"
+                @click="toggleMenu($event, item.id)"
                 aria-haspopup="menu"
                 :aria-expanded="openMenuForItemId === item.id"
               >
@@ -114,27 +107,20 @@ const formatDate = (date: Date) => {
               </button>
             </div>
 
-            <div
-              v-if="openMenuForItemId === item.id"
-              class="absolute right-2 top-12 z-20 w-40 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
-              role="menu"
-              @click.stop
-            >
-              <button
-                class="w-full text-left px-4 py-2 hover:bg-gray-50"
-                role="menuitem"
-                @click="onEdit($event, item.id)"
-              >
-                Modificar
-              </button>
-              <button
-                class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 rounded-b-xl"
-                role="menuitem"
-                @click="confirmDelete($event, item.id)"
-              >
-                Eliminar
-              </button>
-            </div>
+            <ContextMenu
+              :show="openMenuForItemId === item.id"
+              :items="[
+                {
+                  label: 'Modificar',
+                  onClick: () => onEdit(item.id)
+                },
+                {
+                  label: 'Eliminar',
+                  onClick: () => confirmDelete(item.id),
+                  variant: 'danger'
+                }
+              ]"
+            />
           </div>
         </div>
       </div>
