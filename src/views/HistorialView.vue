@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
+import ConfirmationModal from '../components/ConfirmationModal.vue'
 
 const store = useListsStore()
 
 const openMenuForItemId = ref<string | null>(null)
+const showDeleteConfirm = ref(false)
+const itemToDelete = ref<string | null>(null)
 
 const toggleMenu = (id: string) => {
   openMenuForItemId.value = openMenuForItemId.value === id ? null : id
@@ -42,13 +45,20 @@ const onEdit = (e: MouseEvent, id: string) => {
   closeMenu()
 }
 
-const onDelete = (e: MouseEvent, id: string) => {
+const confirmDelete = (e: MouseEvent, id: string) => {
   e.stopPropagation()
-  if (confirm('¿Eliminar este elemento del historial?')) {
-    // Implement deletion in store if applicable
-    alert('Eliminar ' + id)
-  }
+  itemToDelete.value = id
+  showDeleteConfirm.value = true
   closeMenu()
+}
+
+const onDelete = () => {
+  if (itemToDelete.value) {
+    // Implement deletion in store if applicable
+    alert('Eliminar ' + itemToDelete.value)
+  }
+  showDeleteConfirm.value = false
+  itemToDelete.value = null
 }
 
 const historyByStore = computed(() => {
@@ -111,13 +121,6 @@ const formatDate = (date: Date) => {
               @click.stop
             >
               <button
-                class="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-xl"
-                role="menuitem"
-                @click="onShare($event, item.id)"
-              >
-                Compartir
-              </button>
-              <button
                 class="w-full text-left px-4 py-2 hover:bg-gray-50"
                 role="menuitem"
                 @click="onEdit($event, item.id)"
@@ -127,7 +130,7 @@ const formatDate = (date: Date) => {
               <button
                 class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 rounded-b-xl"
                 role="menuitem"
-                @click="onDelete($event, item.id)"
+                @click="confirmDelete($event, item.id)"
               >
                 Eliminar
               </button>
@@ -141,5 +144,20 @@ const formatDate = (date: Date) => {
       <p class="text-lg">No tienes historial todavía</p>
       <p class="text-sm">Tus compras aparecerán aquí</p>
     </div>
+
+    <ConfirmationModal
+      :show="showDeleteConfirm"
+      title="Eliminar compra del historial"
+      message="¿Estás seguro de que quieres eliminar esta compra del historial?"
+      variant="danger"
+      @confirm="onDelete"
+      @cancel="showDeleteConfirm = false"
+    >
+      <template #details>
+        <p class="text-sm text-gray-600 mt-2">
+          Esta acción no se puede deshacer.
+        </p>
+      </template>
+    </ConfirmationModal>
   </div>
 </template>

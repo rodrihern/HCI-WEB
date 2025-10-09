@@ -98,6 +98,99 @@ Modal especializado para crear nuevos productos. Usa `BaseModal` internamente.
 
 ---
 
+## ConfirmationModal.vue
+Modal genérico de confirmación para acciones que requieren aprobación del usuario. Usa `BaseModal` internamente.
+
+**Uso básico:**
+```vue
+<script setup>
+import { ref } from 'vue'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
+
+const showDeleteConfirm = ref(false)
+
+const handleDelete = () => {
+  // Acción de eliminación
+  console.log('Eliminado!')
+  showDeleteConfirm.value = false
+}
+</script>
+
+<template>
+  <ConfirmationModal
+    :show="showDeleteConfirm"
+    title="Eliminar producto"
+    message="¿Estás seguro de que quieres eliminar este producto?"
+    confirm-text="Eliminar"
+    cancel-text="Cancelar"
+    variant="danger"
+    @confirm="handleDelete"
+    @cancel="showDeleteConfirm = false"
+  />
+</template>
+```
+
+**Props:**
+- `show` (boolean, required): Controla la visibilidad
+- `title` (string, default: 'Confirmar acción'): Título del modal
+- `message` (string, required): Mensaje de confirmación
+- `confirmText` (string, default: 'Confirmar'): Texto del botón de confirmar
+- `cancelText` (string, default: 'Cancelar'): Texto del botón de cancelar
+- `variant` ('danger' | 'warning' | 'info', default: 'danger'): Estilo visual del modal
+
+**Eventos:**
+- `@confirm`: Emitido cuando el usuario confirma la acción
+- `@cancel`: Emitido cuando el usuario cancela (botón cancelar, ESC, o click fuera)
+
+**Slots:**
+- `details`: Contenido adicional debajo del mensaje principal
+- default: Contenido adicional antes de los botones
+
+**Variantes:**
+
+1. **danger** (rojo) - Para acciones destructivas:
+```vue
+<ConfirmationModal
+  variant="danger"
+  message="¿Estás seguro de que quieres eliminar esta lista?"
+/>
+```
+
+2. **warning** (amarillo) - Para advertencias:
+```vue
+<ConfirmationModal
+  variant="warning"
+  message="Esta acción no se puede deshacer"
+/>
+```
+
+3. **info** (verde) - Para confirmaciones generales:
+```vue
+<ConfirmationModal
+  variant="info"
+  message="¿Deseas guardar los cambios?"
+/>
+```
+
+**Ejemplo con contenido adicional:**
+```vue
+<ConfirmationModal
+  :show="showConfirm"
+  message="¿Eliminar esta lista?"
+  variant="danger"
+  @confirm="deleteList"
+  @cancel="showConfirm = false"
+>
+  <template #details>
+    <p class="text-sm text-gray-600 mt-2">
+      Se eliminarán también todos los productos asociados.
+    </p>
+  </template>
+</ConfirmationModal>
+```
+
+---
+
 ## PageHeader.vue
 Header consistente para todas las páginas con título, filtro opcional y botón de acción.
 

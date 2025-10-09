@@ -3,9 +3,14 @@ import { computed, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import PageHeader from '@/components/PageHeader.vue'
 import CreateListModal from '@/components/CreateListModal.vue'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 
 const store = useListsStore()
 const animatingFavorites = ref<Set<string>>(new Set())
+
+// Estado del modal de confirmación
+const showDeleteConfirm = ref(false)
+const listToDelete = ref<string | null>(null)
 
 const sortedLists = computed(() => {
   return [...store.lists].sort((a, b) => {
@@ -19,10 +24,17 @@ const addNewList = () => {
   store.openCreateListModal()
 }
 
-const deleteList = (id: string) => {
-  if (confirm('¿Estás seguro de eliminar esta lista?')) {
-    store.deleteList(id)
+const confirmDelete = (id: string) => {
+  listToDelete.value = id
+  showDeleteConfirm.value = true
+}
+
+const deleteList = () => {
+  if (listToDelete.value) {
+    store.deleteList(listToDelete.value)
+    listToDelete.value = null
   }
+  showDeleteConfirm.value = false
 }
 
 const toggleFavoriteWithAnimation = (id: string) => {
@@ -115,4 +127,22 @@ const toggleFavoriteWithAnimation = (id: string) => {
 
   <!-- Modal para crear nueva lista -->
   <CreateListModal @close="store.closeCreateListModal" />
+
+  <!-- Modal de confirmación para eliminar -->
+  <ConfirmationModal
+    :show="showDeleteConfirm"
+    title="Eliminar lista"
+    message="¿Estás seguro de que quieres eliminar esta lista?"
+    confirm-text="Eliminar"
+    cancel-text="Cancelar"
+    variant="danger"
+    @confirm="deleteList"
+    @cancel="showDeleteConfirm = false"
+  >
+    <template #details>
+      <p class="text-sm text-gray-600 mt-2">
+        Esta acción no se puede deshacer.
+      </p>
+    </template>
+  </ConfirmationModal>
 </template>

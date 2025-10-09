@@ -3,9 +3,6 @@
 
 pantalla de preview de listas
 
-sacar la despensa en crear productos
-
-restaurar y eliminar las opciones del historial
 
 hacer un confirmation modal
 
@@ -20,6 +17,4 @@ que los tamanios de texto sean at most 3
 ----- proximamente
 
 tarjeta de productos mas parecida a la de un super
-
-modularizar lo de colapsar (en un componente si se puede)
 
