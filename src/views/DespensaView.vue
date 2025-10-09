@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
+import PageHeader from '@/components/PageHeader.vue'
+import CollapsibleSection from '@/components/CollapsibleSection.vue'
+import ProductCard from '@/components/ProductCard.vue'
 
 const store = useListsStore()
 
@@ -81,29 +84,21 @@ const deleteItem = (sectionId: string, productId: string) => {
 
 <template>
   <div class="py-6 px-6 relative min-h-full">
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-4">
-        <h1 class="text-xl font-semibold text-gray-800">Despensa</h1>
-        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor">
-            <use href="@/assets/sprite.svg#filter" />
-          </svg>
-        </button>
-      </div>
-    </div>
+    <PageHeader 
+      title="Despensa" 
+      :onAddClick="() => addToPantry()"
+      :showFilter="true"
+    />
 
     <div class="space-y-8 pb-20">
-      <div v-for="section in sectionsWithProducts" :key="section.id">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-base font-medium text-gray-700">{{ section.name }}</h2>
-          <button
-            class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-full hover:bg-gray-50"
-            @click="addToPantry(section.id)"
-          >
-            Agregar
-          </button>
-        </div>
-
+      <CollapsibleSection
+        v-for="section in sectionsWithProducts" 
+        :key="section.id"
+        :title="section.name"
+        :showAddButton="true"
+        addButtonText="Agregar"
+        :onAddClick="() => addToPantry(section.id)"
+      >
         <div class="space-y-3">
           <div
             v-for="item in section.items"
@@ -156,27 +151,12 @@ const deleteItem = (sectionId: string, productId: string) => {
             </div>
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
     </div>
 
     <div v-if="sectionsWithProducts.every(s => s.items.length === 0)" class="text-center text-gray-500 mt-12">
       <p class="text-lg">Tu despensa está vacía</p>
-      <p class="text-sm">Haz clic en 
-        <svg class="inline w-4 h-4 align-text-bottom" fill="none" stroke="currentColor">
-          <use href="@/assets/sprite.svg#add-sign" />
-        </svg>
-        para agregar productos
-      </p>
+      <p class="text-sm">Haz clic en el botón + para agregar productos</p>
     </div>
-
-    <!-- Botón flotante abajo a la derecha -->
-    <button
-      @click="addToPantry()"
-      class="fixed bottom-8 right-8 bg-white border-2 border-gray-800 hover:bg-gray-50 text-gray-800 rounded-full w-14 h-14 flex items-center justify-center text-3xl transition-colors shadow-lg font-light"
-    >
-      <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor">
-        <use href="@/assets/sprite.svg#add-sign" />
-      </svg>
-    </button>
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
+import PageHeader from '@/components/PageHeader.vue'
 
 const store = useListsStore()
 const animatingFavorites = ref<Set<string>>(new Set())
@@ -90,26 +91,11 @@ const toggleFavoriteWithAnimation = (id: string) => {
 </div>
 
   <div class="py-6 px-6 relative min-h-full">
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-4">
-        <h1 class="text-3xl font-semibold text-gray-800">Mis listas</h1>
-        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <svg class="w-7 h-7 text-gray-700" fill="none" stroke="currentColor">
-            <use href="@/assets/sprite.svg#filter" />
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Botón de agregar lista -->
-      <button
-        @click="addNewList"
-        class="bg-gradient-to-br from-[#68AE6F] to-[#5a9860] hover:from-[#5a9860] hover:to-[#4d8251] text-white rounded-full w-14 h-14 flex items-center justify-center transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-110"
-      >
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="3">
-          <use href="@/assets/sprite.svg#add-sign" />
-        </svg>
-      </button>
-    </div>
+    <PageHeader 
+      title="Mis listas" 
+      :onAddClick="addNewList"
+      :showFilter="true"
+    />
 
     <div class="space-y-3 pb-20">
       <transition-group name="list-move">
