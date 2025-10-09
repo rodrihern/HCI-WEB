@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        'verde-claro': '#8DAF7E',
-        'fondo': '#FEFFF7',
-        'verde-sidebar': '#68AE6F',
-        'verde_contraste': '#5C805E',
+        verdeClaro: '#8DAF7E',
+        fondo: '#FEFFF7',
+        verdeSidebar: '#68AE6F',
+        verdeContraste: '#5C805E',
       },
     },
   },

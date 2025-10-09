@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+@theme {
+  --color-verde-claro: #8DAF7E;
+  --color-fondo: #FEFFF7;
+  --color-verde-sidebar: #68AE6F;
+  --color-verde-contraste: #5C805E;
+}

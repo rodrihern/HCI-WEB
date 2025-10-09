@@ -103,7 +103,7 @@ const deleteItem = (sectionId: string, productId: string) => {
           <div
             v-for="item in section.items"
             :key="section.id + '-' + item.productId"
-            class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
+            class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -113,7 +113,7 @@ const deleteItem = (sectionId: string, productId: string) => {
               <div class="flex items-center gap-3" @click.stop>
                 <button
                   @click="updateQuantity(section.id, item.productId, -1)"
-                  class="bg-white text-[#68AE6F] rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
+                  class="bg-white text-verde-sidebar rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
                 >
                   -
                 </button>
@@ -122,7 +122,7 @@ const deleteItem = (sectionId: string, productId: string) => {
                 </span>
                 <button
                   @click="updateQuantity(section.id, item.productId, 1)"
-                  class="bg-white text-[#68AE6F] rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
+                  class="bg-white text-verde-sidebar rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
                 >
                   +
                 </button>

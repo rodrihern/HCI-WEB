@@ -85,7 +85,7 @@ const formatDate = (date: Date) => {
           <div
             v-for="item in items"
             :key="item.id"
-            class="bg-[#8DAF7E] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
+            class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
           >
             <div class="flex items-center justify-between" @click.stop>
               <div>

@@ -214,11 +214,11 @@ const deleteProduct = (id: string) => {
               <use href="@/assets/sprite.svg#search" />
             </svg>
             <span class="flex-1 text-left">{{ selectedCategory || 'Categoría' }}</span>
-            <button class="p-1 -mr-1" @click.stop="selectedCategory = ''" aria-label="clear">
+            <span class="p-1 -mr-1 cursor-pointer" @click.stop="selectedCategory = ''" aria-label="clear">
               <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor">
                 <use href="@/assets/sprite.svg#close" />
               </svg>
-            </button>
+            </span>
           </button>
 
           <div
@@ -236,11 +236,11 @@ const deleteProduct = (id: string) => {
                 placeholder="Categoría"
                 class="flex-1 bg-transparent placeholder-white/90 text-white outline-none"
               />
-              <button class="p-1" @click="categorySearch = ''">
+              <span class="p-1 cursor-pointer" @click="categorySearch = ''">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor">
                   <use href="@/assets/sprite.svg#close" />
                 </svg>
-              </button>
+              </span>
             </div>
 
             <div class="max-h-48 overflow-auto">
@@ -280,11 +280,11 @@ const deleteProduct = (id: string) => {
               <use href="@/assets/sprite.svg#search" />
             </svg>
             <span class="flex-1 text-left">{{ selectedPantry || 'Despensa (opcional)' }}</span>
-            <button class="p-1 -mr-1" @click.stop="selectedPantry = ''" aria-label="clear">
+            <span class="p-1 -mr-1 cursor-pointer" @click.stop="selectedPantry = ''" aria-label="clear">
               <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor">
                 <use href="@/assets/sprite.svg#close" />
               </svg>
-            </button>
+            </span>
           </button>
 
           <div
@@ -302,11 +302,11 @@ const deleteProduct = (id: string) => {
                 placeholder="Despensa"
                 class="flex-1 bg-transparent placeholder-white/90 text-white outline-none"
               />
-              <button class="p-1" @click="pantrySearch = ''">
+              <span class="p-1 cursor-pointer" @click="pantrySearch = ''">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor">
                   <use href="@/assets/sprite.svg#close" />
                 </svg>
-              </button>
+              </span>
             </div>
 
             <div class="max-h-48 overflow-auto">

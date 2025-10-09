@@ -55,7 +55,7 @@ const goToProfile = () => {
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/listas' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
+            route.path === '/listas' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -72,7 +72,7 @@ const goToProfile = () => {
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/productos' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
+            route.path === '/productos' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -89,7 +89,7 @@ const goToProfile = () => {
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/despensa' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
+            route.path === '/despensa' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -106,7 +106,7 @@ const goToProfile = () => {
           :class="[
             'pl-4 pr-4 py-3 gap-4 h-16',
             isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/historial' ? 'bg-[#68AE6F]/50' : 'hover:bg-gray-200'
+            route.path === '/historial' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
           ]"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
@@ -137,7 +137,7 @@ const goToProfile = () => {
               v-model="searchQuery"
               type="text"
               placeholder="Hinted search text"
-              class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#68AE6F] focus:border-transparent bg-white"
+              class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent bg-white"
             />
             <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <svg class="w-5 h-5" fill="none" stroke="currentColor">
@@ -150,7 +150,7 @@ const goToProfile = () => {
         <!-- Right side: Logo, Settings, Profile -->
         <div class="flex items-center gap-4 ml-6">
           <!-- Logo -->
-          <span class="text-2xl font-bold text-[#68AE6F]">Listazo!</span>
+          <span class="text-2xl font-bold text-verde-sidebar">Listazo!</span>
 
           <!-- Settings -->
           <button @click="goToSettings" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -160,7 +160,7 @@ const goToProfile = () => {
           </button>
 
           <!-- Profile -->
-          <button @click="goToProfile" class="w-10 h-10 rounded-full bg-[#68AE6F] flex items-center justify-center hover:opacity-80 transition-opacity">
+          <button @click="goToProfile" class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor">
               <use href="@/assets/sprite.svg#user-profile" />
             </svg>

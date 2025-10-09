@@ -67,7 +67,7 @@ const shareProfile = () => {
         </div>
         <button 
           @click="triggerFileInput" 
-          class="text-[#68AE6F] text-lg font-semibold px-4 py-2 hover:opacity-70 transition-opacity"
+          class="text-verde-sidebar text-lg font-semibold px-4 py-2 hover:opacity-70 transition-opacity"
         >
           Cambiar foto de perfil
         </button>
@@ -88,7 +88,7 @@ const shareProfile = () => {
             <span class="text-lg text-gray-500">{{ profileData.name }}</span>
             <button 
               @click="startEditingName" 
-              class="text-[#68AE6F] p-1 hover:opacity-70 transition-opacity"
+              class="text-verde-sidebar p-1 hover:opacity-70 transition-opacity"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -99,14 +99,14 @@ const shareProfile = () => {
             <input 
               v-model="tempName" 
               type="text" 
-              class="w-full px-2 py-2 text-lg border-2 border-[#68AE6F] rounded-md outline-none"
+              class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none"
               @keyup.enter="saveName"
               @keyup.esc="cancelEditName"
             />
             <div class="flex gap-3 justify-end">
               <button 
                 @click="saveName" 
-                class="px-5 py-2 bg-[#68AE6F] text-white font-semibold rounded-md hover:opacity-80 transition-opacity"
+                class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity"
               >
                 Guardar
               </button>
@@ -133,7 +133,7 @@ const shareProfile = () => {
       <div class="flex justify-center mt-4">
         <button 
           @click="shareProfile" 
-          class="bg-[#68AE6F] text-white text-lg font-semibold px-12 py-4 rounded-full flex items-center shadow-lg hover:bg-[#5a9860] hover:-translate-y-0.5 transition-all"
+          class="bg-verde-sidebar text-white text-lg font-semibold px-12 py-4 rounded-full flex items-center shadow-lg hover:bg-verde-contraste hover:-translate-y-0.5 transition-all"
         >
           <span>Compartir</span>
           <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

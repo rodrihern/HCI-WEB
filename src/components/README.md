@@ -1,10 +1,91 @@
-# Componentes Reutilizables 🧩
+# Componentes Reutilizables
 
-Esta carpeta contiene componentes Vue reutilizables usados en toda la aplicación.
+Este directorio contiene componentes Vue reutilizables usados en toda la aplicación.
 
-## 📦 Componentes Disponibles
+## BaseModal.vue
+Modal base genérico que proporciona estructura y estilo consistente para todos los modales de la aplicación.
 
-### 1. **PageHeader.vue**
+**Uso:**
+```vue
+<BaseModal 
+  :show="showModal" 
+  title="Mi Modal"
+  max-width="lg"
+  height="auto"
+  @close="closeModal"
+>
+  <!-- Contenido personalizado aquí -->
+  <div class="p-8">
+    Tu contenido...
+  </div>
+</BaseModal>
+```
+
+**Props:**
+- `show` (boolean, required): Controla la visibilidad del modal
+- `title` (string, optional): Título del modal
+- `maxWidth` ('sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl', default: '6xl'): Ancho máximo del modal
+- `height` (string, default: '85vh'): Altura del modal
+
+**Eventos:**
+- `@close`: Emitido cuando se cierra el modal (ESC, click en X, o click fuera)
+
+**Slots:**
+- `title`: Personaliza el título del header
+- default: Contenido principal del modal
+
+**Características:**
+- ✅ Cierre con tecla ESC
+- ✅ Cierre al hacer click fuera del modal
+- ✅ Animaciones de entrada/salida
+- ✅ Backdrop blur
+- ✅ Botón de cerrar en el header
+- ✅ Estilos consistentes con el diseño de la app
+
+---
+
+## CreateListModal.vue
+Modal especializado para crear nuevas listas de compras. Usa `BaseModal` internamente.
+
+**Uso:**
+```vue
+<CreateListModal @close="handleClose" />
+```
+
+**Eventos:**
+- `@close`: Emitido cuando se cierra el modal
+
+**Características:**
+- Layout de dos columnas
+- Columna izquierda: Nombre de lista y productos agregados
+- Columna derecha: Buscador y agregar productos
+- Controles de cantidad integrados
+- Validación del nombre de lista
+
+---
+
+## CreateProductModal.vue
+Modal ejemplo para crear nuevos productos. Demuestra cómo usar `BaseModal` para casos simples.
+
+**Uso:**
+```vue
+<CreateProductModal 
+  :show="showProductModal"
+  @close="closeProductModal"
+  @submit="handleProductSubmit"
+/>
+```
+
+**Props:**
+- `show` (boolean, required): Controla la visibilidad
+
+**Eventos:**
+- `@close`: Emitido cuando se cierra el modal
+- `@submit`: Emitido con los datos del producto `{ name: string, category: string }`
+
+---
+
+## PageHeader.vue
 Header consistente para todas las páginas con título, filtro opcional y botón de acción.
 
 **Props:**
