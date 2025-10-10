@@ -1,20 +1,15 @@
 ------ listazo
 
 
-pantalla de preview de listas
-
-
-hacer un confirmation modal
-
-no agregar mas verdes
-
-que los tamanios de texto sean at most 3
+•⁠  ⁠Tarjeta de producto
+    - Agregarle botón de 3 puntitos (componente contextMenu)
+    - Animación de cuando se cierra la tarjeta de producto -> muy dura
+•⁠  ⁠Unificar lo del +- (que sea un componente)
+•⁠  ⁠Sidebar como google keep
+•⁠  ⁠Unificar tarjetas de historial y listas como un componente
 
 
 
 
 
------ proximamente
-
-tarjeta de productos mas parecida a la de un super
 
