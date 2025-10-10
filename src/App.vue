@@ -105,34 +105,16 @@ const goToProfile = () => {
     </div>
     <div
         v-else
-        class="flex h-screen bg-[#FEFFF7] relative"
+        class="flex flex-col h-screen bg-[#FEFFF7] relative"
     >
-        <!-- Navbar lateral - Fixed position para que se superponga -->
-        <nav
-            class="bg-[#FEFFF7] flex flex-col fixed left-0 top-0 h-full transition-all duration-300 z-20"
-            :class="[
-                isSidebarExpanded
-                    ? 'w-64'
-                    : isHoverExpanded
-                      ? 'w-64'
-                      : 'w-24',
-                'border-r border-transparent',
-                isHoverExpanded
-                    ? 'border-gray-200 shadow-lg'
-                    : '',
-            ]"
-            @mouseenter="
-                handleMenuHover
-            "
-            @mouseleave="
-                handleMenuLeave
-            "
+        <!-- Top Header - por encima de todo -->
+        <header
+            class="bg-[#FEFFF7] border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-30"
+            style="height: 72px"
         >
-            <!-- Burger menu section -->
+            <!-- Left side: Burger menu -->
             <div
-                class="flex items-center px-4 border-b border-gray-200"
-                style="height: 72px"
-                data-top-section
+                class="flex items-center gap-4"
             >
                 <button
                     @click="
@@ -153,262 +135,301 @@ const goToProfile = () => {
                 </button>
             </div>
 
-            <!-- Menu items -->
+            <!-- Center: Search bar -->
             <div
-                class="flex flex-col items-start py-8 space-y-6"
+                class="flex-1 max-w-2xl mx-auto px-4"
             >
-                <RouterLink
-                    to="/listas"
-                    class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
-                    :class="
-                        route.path ===
-                        '/listas'
-                            ? 'bg-verde-sidebar/50'
-                            : 'hover:bg-gray-200'
-                    "
-                >
-                    <div
-                        class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                    >
-                        <svg
-                            class="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#list-icon"
-                            />
-                        </svg>
-                    </div>
-                    <span
-                        class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
-                        :class="
-                            isSidebarExpanded
-                                ? 'opacity-100'
-                                : isHoverExpanded
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
+                <div class="relative">
+                    <input
+                        v-model="
+                            searchQuery
                         "
-                        >Listas</span
-                    >
-                </RouterLink>
-
-                <RouterLink
-                    to="/productos"
-                    class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
-                    :class="
-                        route.path ===
-                        '/productos'
-                            ? 'bg-verde-sidebar/50'
-                            : 'hover:bg-gray-200'
-                    "
-                >
-                    <div
-                        class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                    >
-                        <svg
-                            class="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#shopping-bag"
-                            />
-                        </svg>
-                    </div>
-                    <span
-                        class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
-                        :class="
-                            isSidebarExpanded
-                                ? 'opacity-100'
-                                : isHoverExpanded
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
+                        type="text"
+                        :placeholder="
+                            searchPlaceholder
                         "
-                        >Productos</span
-                    >
-                </RouterLink>
-
-                <RouterLink
-                    to="/despensa"
-                    class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
-                    :class="
-                        route.path ===
-                        '/despensa'
-                            ? 'bg-verde-sidebar/50'
-                            : 'hover:bg-gray-200'
-                    "
-                >
-                    <div
-                        class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                    >
-                        <svg
-                            class="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#pantry-box"
-                            />
-                        </svg>
-                    </div>
-                    <span
-                        class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
-                        :class="
-                            isSidebarExpanded
-                                ? 'opacity-100'
-                                : isHoverExpanded
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
-                        "
-                        >Despensa</span
-                    >
-                </RouterLink>
-
-                <RouterLink
-                    to="/historial"
-                    class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
-                    :class="
-                        route.path ===
-                        '/historial'
-                            ? 'bg-verde-sidebar/50'
-                            : 'hover:bg-gray-200'
-                    "
-                >
-                    <div
-                        class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                    >
-                        <svg
-                            class="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#clock-history"
-                            />
-                        </svg>
-                    </div>
-                    <span
-                        class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
-                        :class="
-                            isSidebarExpanded
-                                ? 'opacity-100'
-                                : isHoverExpanded
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
-                        "
-                        >Historial</span
-                    >
-                </RouterLink>
-            </div>
-
-            <!-- Logo section - visible when expanded or hovered -->
-            <div
-                class="mt-auto pl-10"
-                v-if="
-                    isSidebarExpanded ||
-                    isHoverExpanded
-                "
-            >
-                <img
-                    src="@/assets/Listazo_verde_sin_titulo.png"
-                    alt="Menu logo"
-                    class="h-40 w-40"
-                />
-            </div>
-        </nav>
-
-        <!-- Fixed search bar -->
-        <div
-            class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-30"
-            style="padding-top: 18px"
-        >
-            <div class="relative">
-                <input
-                    v-model="
-                        searchQuery
-                    "
-                    type="text"
-                    :placeholder="
-                        searchPlaceholder
-                    "
-                    class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent bg-white"
-                />
-                <button
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                >
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                    >
-                        <use
-                            href="@/assets/sprite.svg#search"
-                        />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Main content - Con padding-left para compensar la sidebar fija -->
-        <div
-            class="flex-1 flex flex-col overflow-hidden relative transition-all duration-300"
-            :style="{
-                paddingLeft:
-                    isSidebarExpanded
-                        ? '256px'
-                        : '96px',
-            }"
-        >
-            <!-- Top bar -->
-            <header
-                class="bg-[#FEFFF7] border-b border-gray-200 px-6 flex items-center justify-end relative"
-                style="height: 72px"
-            >
-                <!-- Right side: Logo, Profile -->
-                <div
-                    class="flex items-center gap-4 ml-6"
-                >
-                    <!-- Logo -->
-                    <span
-                        class="text-2xl font-bold text-verde-sidebar"
-                        >Listazo!</span
-                    >
-
-                    <!-- Profile -->
+                        class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent bg-white"
+                    />
                     <button
-                        @click="
-                            goToProfile
-                        "
-                        class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     >
                         <svg
-                            class="w-6 h-6 text-white"
+                            class="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                         >
                             <use
-                                href="@/assets/sprite.svg#user-profile"
+                                href="@/assets/sprite.svg#search"
                             />
                         </svg>
                     </button>
                 </div>
-            </header>
+            </div>
 
-            <!-- Page content -->
-            <main
-                class="flex-1 overflow-y-scroll"
+            <!-- Right side: Logo, Profile -->
+            <div
+                class="flex items-center gap-4"
             >
-                <div
-                    class="max-w-4xl mx-auto"
+                <!-- Logo -->
+                <span
+                    class="text-2xl font-bold text-verde-sidebar"
+                    >Listazo!</span
                 >
-                    <RouterView />
+
+                <!-- Profile -->
+                <button
+                    @click="goToProfile"
+                    class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity"
+                >
+                    <svg
+                        class="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                    >
+                        <use
+                            href="@/assets/sprite.svg#user-profile"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Contenedor para sidebar y contenido principal -->
+        <div
+            class="flex flex-1 overflow-hidden"
+            style="margin-top: 72px"
+        >
+            <!-- Navbar lateral - debajo del header -->
+            <nav
+                class="bg-[#FEFFF7] flex flex-col fixed left-0 z-10 overflow-hidden"
+                style="
+                    transition:
+                        width 300ms
+                            ease-in-out,
+                        border 300ms
+                            ease-in-out,
+                        box-shadow 300ms
+                            ease-in-out;
+                "
+                :class="[
+                    isSidebarExpanded
+                        ? 'w-64'
+                        : isHoverExpanded
+                          ? 'w-64'
+                          : 'w-24',
+                    isHoverExpanded &&
+                    !isSidebarExpanded
+                        ? 'border-r border-gray-200 shadow-lg'
+                        : '',
+                ]"
+                :style="{
+                    top: '72px',
+                    height: 'calc(100vh - 72px)',
+                }"
+                @mouseenter="
+                    handleMenuHover
+                "
+                @mouseleave="
+                    handleMenuLeave
+                "
+            >
+                <!-- Menu items -->
+                <div
+                    class="flex flex-col items-start py-8 space-y-6"
+                >
+                    <RouterLink
+                        to="/listas"
+                        class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+                        :class="
+                            route.path ===
+                            '/listas'
+                                ? 'bg-verde-sidebar/50'
+                                : 'hover:bg-gray-200'
+                        "
+                    >
+                        <div
+                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
+                        >
+                            <svg
+                                class="w-8 h-8"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <use
+                                    href="@/assets/sprite.svg#list-icon"
+                                />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+                            :class="
+                                isSidebarExpanded
+                                    ? 'opacity-100'
+                                    : isHoverExpanded
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                            "
+                            >Listas</span
+                        >
+                    </RouterLink>
+
+                    <RouterLink
+                        to="/productos"
+                        class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+                        :class="
+                            route.path ===
+                            '/productos'
+                                ? 'bg-verde-sidebar/50'
+                                : 'hover:bg-gray-200'
+                        "
+                    >
+                        <div
+                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
+                        >
+                            <svg
+                                class="w-8 h-8"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <use
+                                    href="@/assets/sprite.svg#shopping-bag"
+                                />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+                            :class="
+                                isSidebarExpanded
+                                    ? 'opacity-100'
+                                    : isHoverExpanded
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                            "
+                            >Productos</span
+                        >
+                    </RouterLink>
+
+                    <RouterLink
+                        to="/despensa"
+                        class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+                        :class="
+                            route.path ===
+                            '/despensa'
+                                ? 'bg-verde-sidebar/50'
+                                : 'hover:bg-gray-200'
+                        "
+                    >
+                        <div
+                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
+                        >
+                            <svg
+                                class="w-8 h-8"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <use
+                                    href="@/assets/sprite.svg#pantry-box"
+                                />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+                            :class="
+                                isSidebarExpanded
+                                    ? 'opacity-100'
+                                    : isHoverExpanded
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                            "
+                            >Despensa</span
+                        >
+                    </RouterLink>
+
+                    <RouterLink
+                        to="/historial"
+                        class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+                        :class="
+                            route.path ===
+                            '/historial'
+                                ? 'bg-verde-sidebar/50'
+                                : 'hover:bg-gray-200'
+                        "
+                    >
+                        <div
+                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
+                        >
+                            <svg
+                                class="w-8 h-8"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <use
+                                    href="@/assets/sprite.svg#clock-history"
+                                />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+                            :class="
+                                isSidebarExpanded
+                                    ? 'opacity-100'
+                                    : isHoverExpanded
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                            "
+                            >Historial</span
+                        >
+                    </RouterLink>
                 </div>
-            </main>
+
+                <!-- Logo section - visible when expanded or hovered -->
+                <div
+                    class="mt-auto pl-10 transition-opacity duration-300"
+                    :class="
+                        isSidebarExpanded ||
+                        isHoverExpanded
+                            ? 'opacity-100'
+                            : 'opacity-0 pointer-events-none'
+                    "
+                >
+                    <img
+                        src="@/assets/Listazo_verde_sin_titulo.png"
+                        alt="Menu logo"
+                        class="h-40 w-40"
+                    />
+                </div>
+            </nav>
+
+            <!-- Main content - Con padding-left para compensar la sidebar fija -->
+            <div
+                class="flex-1 flex flex-col overflow-hidden relative"
+                style="
+                    transition: padding-left
+                        300ms
+                        ease-in-out;
+                "
+                :style="{
+                    paddingLeft:
+                        isSidebarExpanded
+                            ? '256px'
+                            : '96px',
+                }"
+            >
+                <!-- Page content -->
+                <main
+                    class="flex-1 overflow-y-scroll"
+                >
+                    <div
+                        class="max-w-4xl mx-auto"
+                    >
+                        <RouterView />
+                    </div>
+                </main>
+            </div>
         </div>
     </div>
 </template>
