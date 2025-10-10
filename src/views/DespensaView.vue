@@ -12,6 +12,7 @@ import ProductCard from "@/components/ProductCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
+import QuantityControls from "@/components/QuantityControls.vue";
 
 const store = useListsStore();
 
@@ -95,6 +96,17 @@ const updateQuantity = (
     productId: string,
     change: number,
 ) => {
+    // Obtener la cantidad actual
+    const section = store.pantrySections.find(s => s.id === sectionId);
+    const item = section?.items.find(i => i.productId === productId);
+    const currentQuantity = item?.quantity || 0;
+    
+    // Si la cantidad resultante es 0 o menos, mostrar confirmación
+    if (currentQuantity + change <= 0) {
+        confirmDeleteItem(sectionId, productId);
+        return;
+    }
+    
     if (change > 0)
         store.addToPantryInSection(
             sectionId,
@@ -253,66 +265,81 @@ const shareSection = (
                 "
             >
                 <div class="space-y-3">
-                    <ListItem
+                    <div
                         v-for="item in section.items"
                         :key="
                             section.id +
                             '-' +
                             item.productId
                         "
-                        :title="
-                            item.product
-                                .name
-                        "
-                        :icon="
-                            item.product
-                                .icon
-                        "
-                        :show-quantity-controls="
-                            true
-                        "
-                        :quantity="
-                            item.quantity
-                        "
-                        @quantity-change="
-                            (change) =>
-                                updateQuantity(
-                                    section.id,
-                                    item.productId,
-                                    change,
-                                )
-                        "
+                        class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative"
                     >
-                        <template
-                            #actions
-                        >
-                            <ContextMenu
-                                :items="[
-                                    {
-                                        label: 'Modificar',
-                                        onClick:
-                                            () =>
-                                                modifyItem(
-                                                    section.id,
-                                                    item.productId,
-                                                    item.quantity,
-                                                ),
-                                    },
-                                    {
-                                        label: 'Eliminar',
-                                        onClick:
-                                            () =>
-                                                confirmDeleteItem(
-                                                    section.id,
-                                                    item.productId,
-                                                ),
-                                        variant:
-                                            'danger',
-                                    },
-                                ]"
-                            />
-                        </template>
-                    </ListItem>
+                        <div class="flex items-center justify-between">
+                            <!-- Lado izquierdo: Imagen/Icono y textos -->
+                            <div class="flex items-center gap-4 flex-1">
+                                <!-- Imagen del producto -->
+                                <div
+                                    class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-white/90 flex items-center justify-center"
+                                >
+                                    <img
+                                        v-if="item.product.image"
+                                        :src="item.product.image"
+                                        :alt="item.product.name"
+                                        class="w-full h-full object-cover"
+                                    />
+                                    <span
+                                        v-else
+                                        class="text-3xl"
+                                    >{{ item.product.icon }}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-white font-semibold text-lg">
+                                        {{ item.product.name }}
+                                    </h3>
+                                    <p class="text-white/80 text-sm">
+                                        {{ item.product.category }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Lado derecho: Controles -->
+                            <div class="flex items-center gap-3" @click.stop>
+                                <!-- Controles de cantidad (para DespensaView) -->
+                                <QuantityControls
+                                    :quantity="item.quantity"
+                                    @increment="updateQuantity(section.id, item.productId, 1)"
+                                    @decrement="updateQuantity(section.id, item.productId, -1)"
+                                />
+
+                                <!-- Slot para acciones personalizadas (estrella, menú contextual, etc) -->
+                                <ContextMenu
+                                    :items="[
+                                        {
+                                            label: 'Modificar',
+                                            onClick:
+                                                () =>
+                                                    modifyItem(
+                                                        section.id,
+                                                        item.productId,
+                                                        item.quantity,
+                                                    ),
+                                        },
+                                        {
+                                            label: 'Eliminar',
+                                            onClick:
+                                                () =>
+                                                    confirmDeleteItem(
+                                                        section.id,
+                                                        item.productId,
+                                                    ),
+                                            variant:
+                                                'danger',
+                                        },
+                                    ]"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </CollapsibleSection>
         </div>

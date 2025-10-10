@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import QuantityControls from './QuantityControls.vue'
+
 interface Props {
   /** Texto principal del item */
   title: string
@@ -56,23 +59,12 @@ const handleQuantityChange = (change: number) => {
       <!-- Lado derecho: Controles -->
       <div class="flex items-center gap-3" @click.stop>
         <!-- Controles de cantidad (para DespensaView) -->
-        <template v-if="showQuantityControls">
-          <button
-            @click="handleQuantityChange(-1)"
-            class="bg-white text-verde-sidebar rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
-          >
-            -
-          </button>
-          <span class="text-white font-semibold text-lg min-w-[2rem] text-center">
-            {{ quantity }}
-          </span>
-          <button
-            @click="handleQuantityChange(1)"
-            class="bg-white text-verde-sidebar rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold"
-          >
-            +
-          </button>
-        </template>
+        <QuantityControls
+          v-if="showQuantityControls"
+          :quantity="quantity"
+          @increment="handleQuantityChange(1)"
+          @decrement="handleQuantityChange(-1)"
+        />
 
         <!-- Slot para acciones personalizadas (estrella, menú contextual, etc) -->
         <slot name="actions" />

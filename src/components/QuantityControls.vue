@@ -1,0 +1,52 @@
+<script setup lang="ts">
+interface Props {
+  /** Cantidad actual */
+  quantity: number
+  /** Clases adicionales para el contenedor */
+  class?: string
+  /** Mostrar fondo gris */
+  showBackground?: boolean
+  /** Clases para los botones */
+  buttonClass?: string
+  /** Clases para el texto de cantidad */
+  quantityClass?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  class: '',
+  showBackground: true,
+  buttonClass: 'text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center',
+  quantityClass: 'text-gray-800 font-bold min-w-[3rem] text-center text-lg'
+})
+
+const emit = defineEmits<{
+  increment: []
+  decrement: []
+}>()
+
+const handleIncrement = () => {
+  emit('increment')
+}
+
+const handleDecrement = () => {
+  emit('decrement')
+}
+</script>
+
+<template>
+  <div class="flex items-center gap-3" :class="[props.class, { 'bg-gray-100 rounded-xl px-3 py-2': showBackground }]">
+    <button
+      @click="handleDecrement"
+      :class="buttonClass"
+    >
+      −
+    </button>
+    <span :class="quantityClass">{{ quantity }}</span>
+    <button
+      @click="handleIncrement"
+      :class="buttonClass"
+    >
+      +
+    </button>
+  </div>
+</template>

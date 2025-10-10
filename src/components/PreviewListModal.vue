@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useListsStore } from '@/stores/lists'
 import BaseModal from './BaseModal.vue'
+import QuantityControls from './QuantityControls.vue'
 
 const store = useListsStore()
 const searchProduct = ref('')
@@ -227,22 +228,11 @@ const addProductFromList = () => {
                   </div>
                 </div>
                 
-                <!-- Controles de cantidad -->
-                <div class="flex items-center gap-3 bg-gray-100 rounded-xl px-3 py-2">
-                  <button 
-                    @click="decrementQuantity(item.productId)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
-                  >
-                    −
-                  </button>
-                  <span class="text-gray-800 font-bold min-w-[3rem] text-center text-lg">{{ item.quantity }} {{ item.unit }}</span>
-                  <button 
-                    @click="incrementQuantity(item.productId)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
-                  >
-                    +
-                  </button>
-                </div>
+                <QuantityControls
+                  :quantity="item.quantity"
+                  @increment="incrementQuantity(item.productId)"
+                  @decrement="decrementQuantity(item.productId)"
+                />
 
                 <!-- Botón eliminar producto -->
                 <button 

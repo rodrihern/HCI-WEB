@@ -36,10 +36,10 @@ const goToProfile = () => {
     <RouterView />
   </div>
   <div v-else class="flex h-screen bg-[#FEFFF7] relative">
-    <!-- Navbar lateral -->
+    <!-- Navbar lateral - Fixed position para que se superponga -->
     <nav 
-      class="bg-[#FEFFF7] flex flex-col relative transition-all duration-300 z-20"
-      :class="isSidebarExpanded ? 'w-64 shadow-xl border border-gray-200' : 'w-24'"
+      class="bg-[#FEFFF7] flex flex-col fixed left-0 top-0 h-full transition-all duration-300 z-20 shadow-lg border-r border-gray-200"
+      :class="isSidebarExpanded ? 'w-64' : 'w-24'"
     >
       <!-- Burger menu -->
       <div
@@ -130,15 +130,8 @@ const goToProfile = () => {
       </div>
     </nav>
 
-    <!-- Overlay when sidebar expanded -->
-    <div
-      v-if="isSidebarExpanded"
-      class="fixed inset-0 bg-black/30 backdrop-blur-[1px] z-10"
-      @click="toggleSidebar"
-    ></div>
-
-    <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-hidden relative z-0">
+    <!-- Main content - Con padding-left para compensar la sidebar fija -->
+    <div class="flex-1 flex flex-col overflow-hidden relative transition-all duration-300" :style="{ paddingLeft: '96px' }">
       <!-- Top bar -->
       <header class="bg-[#FEFFF7] border-b border-gray-200 px-6 flex items-center justify-end relative" style="height: 72px;">
         <!-- Search bar -->
