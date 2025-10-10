@@ -5,6 +5,8 @@ import { ref, computed } from 'vue'
 const route = useRoute()
 const router = useRouter()
 const isSidebarExpanded = ref(false)
+const isHoverExpanded = ref(false)
+const hoverTimeout = ref<number | null>(null)
 const searchQuery = ref('')
 
 const searchPlaceholder = computed(() => {
@@ -26,6 +28,42 @@ const toggleSidebar = () => {
   isSidebarExpanded.value = !isSidebarExpanded.value
 }
 
+const handleMenuHover = (event: MouseEvent) => {
+  if (isSidebarExpanded.value) return // Don't hover expand if already expanded
+  
+  // Check if the hover is on the top section (burger menu area)
+  const target = event.target as HTMLElement
+  const topSection = target.closest('[data-top-section]')
+  if (topSection) return // Don't expand if hovering on top section
+  
+  // Check if the hover is in the top 72px of the sidebar (same height as top section)
+  const navElement = target.closest('nav')
+  if (navElement) {
+    const rect = navElement.getBoundingClientRect()
+    const relativeY = event.clientY - rect.top
+    if (relativeY <= 72) return // Don't expand if hovering in top 72px
+  }
+  
+  if (hoverTimeout.value) {
+    clearTimeout(hoverTimeout.value)
+  }
+  
+  hoverTimeout.value = setTimeout(() => {
+    isHoverExpanded.value = true
+  }, 300) // 300ms delay
+}
+
+const handleMenuLeave = () => {
+  if (hoverTimeout.value) {
+    clearTimeout(hoverTimeout.value)
+    hoverTimeout.value = null
+  }
+  
+  setTimeout(() => {
+    isHoverExpanded.value = false
+  }, 100) // Small delay before hiding
+}
+
 const goToProfile = () => {
   router.push('/profile')
 }
@@ -38,14 +76,20 @@ const goToProfile = () => {
   <div v-else class="flex h-screen bg-[#FEFFF7] relative">
     <!-- Navbar lateral - Fixed position para que se superponga -->
     <nav 
-      class="bg-[#FEFFF7] flex flex-col fixed left-0 top-0 h-full transition-all duration-300 z-20 shadow-lg border-r border-gray-200"
-      :class="isSidebarExpanded ? 'w-64' : 'w-24'"
+      class="bg-[#FEFFF7] flex flex-col fixed left-0 top-0 h-full transition-all duration-300 z-20"
+      :class="[
+        isSidebarExpanded ? 'w-64' : (isHoverExpanded ? 'w-64' : 'w-24'),
+        'border-r border-transparent',
+        isHoverExpanded ? 'border-gray-200 shadow-lg' : ''
+      ]"
+      @mouseenter="handleMenuHover"
+      @mouseleave="handleMenuLeave"
     >
-      <!-- Burger menu -->
+      <!-- Burger menu section -->
       <div
-        class="flex items-center px-4"
-        :class="isSidebarExpanded ? '' : 'border-b border-gray-200'"
+        class="flex items-center px-4 border-b border-gray-200"
         style="height: 72px;"
+        data-top-section
       >
         <button 
           @click="toggleSidebar"
@@ -55,102 +99,110 @@ const goToProfile = () => {
             <use href="@/assets/sprite.svg#hamburger-menu" />
           </svg>
         </button>
-        <img v-if="isSidebarExpanded" src="@/assets/Listazo_verde_sin_titulo.png" alt="Menu logo" class="h-30 ml-5" />
       </div>
+      
 
       <!-- Menu items -->
       <div class="flex flex-col items-start py-8 space-y-6">
         <RouterLink
           to="/listas"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
-          :class="[
-            'pl-4 pr-4 py-3 gap-4 h-16',
-            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/listas' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
-          ]"
+          class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+          :class="route.path === '/listas' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
               <use href="@/assets/sprite.svg#list-icon" />
             </svg>
           </div>
-          <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Listas</span>
+          <span 
+            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+            :class="isSidebarExpanded ? 'opacity-100' : (isHoverExpanded ? 'opacity-100' : 'opacity-0')"
+          >Listas</span>
         </RouterLink>
 
         <RouterLink
           to="/productos"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
-          :class="[
-            'pl-4 pr-4 py-3 gap-4 h-16',
-            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/productos' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
-          ]"
+          class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+          :class="route.path === '/productos' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
               <use href="@/assets/sprite.svg#shopping-bag" />
             </svg>
           </div>
-          <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Productos</span>
+          <span 
+            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+            :class="isSidebarExpanded ? 'opacity-100' : (isHoverExpanded ? 'opacity-100' : 'opacity-0')"
+          >Productos</span>
         </RouterLink>
 
         <RouterLink
           to="/despensa"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
-          :class="[
-            'pl-4 pr-4 py-3 gap-4 h-16',
-            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/despensa' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
-          ]"
+          class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+          :class="route.path === '/despensa' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
               <use href="@/assets/sprite.svg#pantry-box" />
             </svg>
           </div>
-          <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Despensa</span>
+          <span 
+            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+            :class="isSidebarExpanded ? 'opacity-100' : (isHoverExpanded ? 'opacity-100' : 'opacity-0')"
+          >Despensa</span>
         </RouterLink>
 
         <RouterLink
           to="/historial"
-          class="relative flex items-center w-full transition-all duration-200 rounded-r-full"
-          :class="[
-            'pl-4 pr-4 py-3 gap-4 h-16',
-            isSidebarExpanded ? 'pl-4 pr-4' : 'w-16 px-0 justify-center',
-            route.path === '/historial' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'
-          ]"
+          class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
+          :class="route.path === '/historial' ? 'bg-verde-sidebar/50' : 'hover:bg-gray-200'"
         >
           <div class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2">
               <use href="@/assets/sprite.svg#clock-history" />
             </svg>
           </div>
-          <span v-if="isSidebarExpanded" class="text-gray-700 font-medium">Historial</span>
+          <span 
+            class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
+            :class="isSidebarExpanded ? 'opacity-100' : (isHoverExpanded ? 'opacity-100' : 'opacity-0')"
+          >Historial</span>
         </RouterLink>
+      </div>
+      
+      <!-- Logo section - visible when expanded or hovered -->
+      <div class="mt-auto pl-10 " v-if="isSidebarExpanded || isHoverExpanded">
+        <img 
+          src="@/assets/Listazo_verde_sin_titulo.png" 
+          alt="Menu logo" 
+          class="h-40 w-40"
+        />
       </div>
     </nav>
 
+    <!-- Fixed search bar -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-30" style="padding-top: 18px;">
+      <div class="relative">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="searchPlaceholder"
+          class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent bg-white"
+        />
+        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor">
+            <use href="@/assets/sprite.svg#search" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <!-- Main content - Con padding-left para compensar la sidebar fija -->
-    <div class="flex-1 flex flex-col overflow-hidden relative transition-all duration-300" :style="{ paddingLeft: '96px' }">
+    <div 
+      class="flex-1 flex flex-col overflow-hidden relative transition-all duration-300" 
+      :style="{ paddingLeft: isSidebarExpanded ? '256px' : '96px' }"
+    >
       <!-- Top bar -->
       <header class="bg-[#FEFFF7] border-b border-gray-200 px-6 flex items-center justify-end relative" style="height: 72px;">
-        <!-- Search bar -->
-        <div class="absolute left-1/2 -translate-x-1/2 w-full max-w-2xl">
-          <div class="relative">
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="searchPlaceholder"
-              class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent bg-white"
-            />
-            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor">
-                <use href="@/assets/sprite.svg#search" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
         <!-- Right side: Logo, Profile -->
         <div class="flex items-center gap-4 ml-6">
           <!-- Logo -->
