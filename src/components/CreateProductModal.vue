@@ -143,7 +143,7 @@ const submitProduct = async () => {
           v-model="productName"
           type="text"
           placeholder="Nombre del producto"
-          class="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
+          class="w-full px-5 py-4 border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
         />
       </div>
 
@@ -157,7 +157,7 @@ const submitProduct = async () => {
           <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor">
             <use href="@/assets/sprite.svg#search" />
           </svg>
-          <span class="flex-1 text-left text-lg">{{ selectedCategory || 'Categoría' }}</span>
+          <span class="flex-1 text-left">{{ selectedCategory || 'Categoría' }}</span>
           <span 
             v-if="selectedCategory"
             class="p-1 -mr-1 cursor-pointer hover:bg-gray-100 rounded transition-colors" 
@@ -205,7 +205,7 @@ const submitProduct = async () => {
             >
               {{ c }}
             </button>
-            <div v-if="filteredCategories.length === 0 && categorySearch" class="px-5 py-4 text-center text-gray-500 text-sm">
+            <div v-if="filteredCategories.length === 0 && categorySearch" class="px-5 py-4 text-center text-gray-500 t-caption">
               No se encontraron categorías
             </div>
           </div>
@@ -240,10 +240,10 @@ const submitProduct = async () => {
             v-model="productDescription"
             maxlength="200"
             placeholder="Descripción del producto (opcional)"
-            class="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white resize-none"
+            class="w-full px-5 py-4 border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white resize-none"
             rows="3"
           ></textarea>
-          <div class="absolute bottom-3 right-4 text-sm text-gray-400">
+          <div class="absolute bottom-3 right-4 t-caption text-gray-400">
             {{ productDescription.length }}/200
           </div>
         </div>
@@ -255,8 +255,8 @@ const submitProduct = async () => {
           <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor">
             <use href="@/assets/sprite.svg#image" />
           </svg>
-          <span class="text-sm font-medium">Añadir Multimedia</span>
-          <span v-if="selectedFile" class="text-xs mt-1 text-verde-sidebar">{{ selectedFile.name }}</span>
+          <span class="t-caption font-medium">Añadir Multimedia</span>
+          <span v-if="selectedFile" class="t-caption mt-1 text-verde-sidebar">{{ selectedFile.name }}</span>
         </div>
         <input type="file" class="hidden" @change="onFileChange" accept="image/*" />
       </label>

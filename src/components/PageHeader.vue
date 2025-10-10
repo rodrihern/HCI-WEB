@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-4">
-      <h1 class="text-3xl font-semibold text-gray-800">{{ title }}</h1>
+      <h1 class="t-heading font-semibold text-gray-800">{{ title }}</h1>
       <button 
         v-if="showFilter"
         class="p-2 hover:bg-gray-100 rounded-lg transition-colors"

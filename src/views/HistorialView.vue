@@ -83,13 +83,13 @@ const formatDate = (dateString: string) => {
   <div class="py-6 px-6">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
-        <h1 class="text-xl font-semibold text-gray-800">Mis compras</h1>
+        <h1 class="t-heading font-semibold text-gray-800">Mis compras</h1>
       </div>
     </div>
 
     <div class="space-y-6">
       <div v-for="(items, storeName) in historyByStore" :key="storeName">
-        <h3 class="text-base font-medium text-gray-600 mb-3">{{ storeName }}</h3>
+        <h3 class="t-body font-medium text-gray-600 mb-3">{{ storeName }}</h3>
         <div class="space-y-3">
           <div
             v-for="item in items"
@@ -100,8 +100,8 @@ const formatDate = (dateString: string) => {
             <div class="flex items-center justify-between" @click.stop>
               <div>
                 <h3 class="text-white font-semibold">{{ item.list.name }}</h3>
-                <p class="text-white text-sm opacity-90">{{ formatDate(item.list.lastPurchasedAt) }}</p>
-                <p class="text-white text-xs opacity-75">{{ item.listItemArray.length }} productos</p>
+                <p class="text-white t-caption opacity-90">{{ formatDate(item.list.lastPurchasedAt) }}</p>
+                <p class="text-white t-caption opacity-75">{{ item.listItemArray.length }} productos</p>
               </div>
               <button
                 class="text-white hover:text-gray-200 transition-colors p-2"
@@ -135,8 +135,8 @@ const formatDate = (dateString: string) => {
     </div>
 
     <div v-if="store.history.length === 0" class="text-center text-gray-500 mt-12">
-      <p class="text-lg">No tienes historial todavía</p>
-      <p class="text-sm">Tus compras aparecerán aquí</p>
+      <p class="t-body">No tienes historial todavía</p>
+      <p class="t-caption">Tus compras aparecerán aquí</p>
     </div>
 
     <!-- Modal para vista previa de historial -->
@@ -151,7 +151,7 @@ const formatDate = (dateString: string) => {
       @cancel="showDeleteConfirm = false"
     >
       <template #details>
-        <p class="text-sm text-gray-600 mt-2">
+        <p class="t-caption text-gray-600 mt-2">
           Esta acción no se puede deshacer.
         </p>
       </template>

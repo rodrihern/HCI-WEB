@@ -43,13 +43,13 @@ const toggleCollapse = () => {
             <path d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <h2 class="text-base font-medium text-gray-700">{{ title }}</h2>
+        <h2 class="t-body font-medium text-gray-700">{{ title }}</h2>
       </div>
       
       <div v-if="(showAddButton && onAddClick) || (showShareButton && onShareClick)" class="flex items-center gap-2">
         <button
           v-if="showAddButton && onAddClick"
-          class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-verde-sidebar text-white rounded-xl hover:bg-verde-contraste transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+          class="flex items-center gap-2 px-4 py-2 t-caption font-medium bg-verde-sidebar text-white rounded-xl hover:bg-verde-contraste transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
           @click="onAddClick"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

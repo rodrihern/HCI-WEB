@@ -110,7 +110,7 @@ const changePassword = () => {
         </div>
         <button 
           @click="triggerFileInput" 
-          class="text-verde-sidebar text-lg font-semibold px-4 py-2 hover:opacity-70 transition-opacity"
+          class="text-verde-sidebar t-body font-semibold px-4 py-2 hover:opacity-70 transition-opacity"
         >
           Cambiar foto de perfil
         </button>
@@ -125,10 +125,10 @@ const changePassword = () => {
 
       <!-- Name Section -->
       <div class="flex flex-col gap-2">
-        <label class="text-2xl font-bold text-gray-900">Nombre</label>
+        <label class="t-heading font-bold text-gray-900">Nombre</label>
         <div class="bg-white rounded-lg p-4 shadow-sm">
           <div v-if="!isEditingName" class="flex items-center justify-between">
-            <span class="text-lg text-gray-500">{{ profileData.name }}</span>
+            <span class="t-body text-gray-500">{{ profileData.name }}</span>
             <button 
               @click="startEditingName" 
               class="text-verde-sidebar p-1 hover:opacity-70 transition-opacity"
@@ -142,7 +142,7 @@ const changePassword = () => {
             <input 
               v-model="tempName" 
               type="text" 
-              class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none"
+              class="w-full px-2 py-2 border-2 border-verde-sidebar rounded-md outline-none"
               @keyup.enter="saveName"
               @keyup.esc="cancelEditName"
             />
@@ -166,10 +166,10 @@ const changePassword = () => {
 
       <!-- Surname Section -->
       <div class="flex flex-col gap-2">
-        <label class="text-2xl font-bold text-gray-900">Apellido</label>
+        <label class="t-heading font-bold text-gray-900">Apellido</label>
         <div class="bg-white rounded-lg p-4 shadow-sm">
           <div v-if="!isEditingSurname" class="flex items-center justify-between">
-            <span class="text-lg text-gray-500">{{ profileData.surname }}</span>
+            <span class="t-body text-gray-500">{{ profileData.surname }}</span>
             <button 
               @click="startEditingSurname" 
               class="text-verde-sidebar p-1 hover:opacity-70 transition-opacity"
@@ -183,7 +183,7 @@ const changePassword = () => {
             <input 
               v-model="tempSurname" 
               type="text" 
-              class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none"
+              class="w-full px-2 py-2 border-2 border-verde-sidebar rounded-md outline-none"
               @keyup.enter="saveSurname"
               @keyup.esc="cancelEditSurname"
             />
@@ -207,9 +207,9 @@ const changePassword = () => {
 
       <!-- Email Section -->
       <div class="flex flex-col gap-2">
-        <label class="text-2xl font-bold text-gray-900">Mail</label>
+        <label class="t-heading font-bold text-gray-900">Mail</label>
         <div class="bg-white rounded-lg p-4 shadow-sm">
-          <span class="text-lg text-gray-500">{{ profileData.email }}</span>
+          <span class="t-body text-gray-500">{{ profileData.email }}</span>
         </div>
       </div>
 
@@ -217,7 +217,7 @@ const changePassword = () => {
       <div class="flex justify-center">
         <button 
           @click="changePassword" 
-          class="bg-verde-sidebar text-white text-lg font-semibold px-8 py-3 rounded-xl flex items-center shadow-lg hover:bg-verde-contraste hover:-translate-y-0.5 transition-all"
+          class="bg-verde-sidebar text-white t-body font-semibold px-8 py-3 rounded-xl flex items-center shadow-lg hover:bg-verde-contraste hover:-translate-y-0.5 transition-all"
         >
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />

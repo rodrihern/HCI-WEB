@@ -94,8 +94,8 @@ const closeModal = () => {
     </div>
 
     <div v-if="store.products.length === 0" class="text-center text-gray-500 mt-12">
-      <p class="text-lg">No tienes productos todavía</p>
-      <p class="text-sm">Haz clic en el botón + para crear uno</p>
+      <p class="t-body">No tienes productos todavía</p>
+      <p class="t-caption">Haz clic en el botón + para crear uno</p>
     </div>
 
     <!-- Modal Add Product -->

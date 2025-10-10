@@ -85,7 +85,7 @@ const variantStyles = {
 
         <!-- Mensaje -->
         <div class="flex-1 pt-1">
-          <p class="text-gray-800 text-lg leading-relaxed">{{ message }}</p>
+          <p class="text-gray-800 t-body leading-relaxed">{{ message }}</p>
           <slot name="details"></slot>
         </div>
       </div>

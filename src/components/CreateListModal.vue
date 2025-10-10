@@ -65,17 +65,17 @@ const createList = () => {
               v-model="store.newListName"
               type="text" 
               placeholder="Nombre de la lista"
-              class="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
+              class="w-full px-5 py-4 border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
             />
           </div>
 
           <!-- Productos en la lista -->
           <div>
-            <label class="block text-2xl font-bold text-gray-800 mb-4">Productos</label>
+            <label class="block t-heading font-bold text-gray-800 mb-4">Productos</label>
             
             <div v-if="store.newListProducts.length === 0" class="text-center text-gray-400 py-12">
-              <p class="text-lg">No hay productos en la lista</p>
-              <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
+              <p class="t-body">No hay productos en la lista</p>
+              <p class="t-caption mt-2">Busca y agrega productos desde la derecha</p>
             </div>
 
             <!-- Lista de productos agregados -->
@@ -85,20 +85,20 @@ const createList = () => {
                 :key="index"
                 class="flex items-center gap-3 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
               >
-                <span class="flex-1 text-gray-800 font-semibold text-lg">{{ product.name }}</span>
+                <span class="flex-1 text-gray-800 font-semibold t-body">{{ product.name }}</span>
                 
                 <!-- Controles de cantidad -->
                 <div class="flex items-center gap-3 bg-gray-100 rounded-xl px-3 py-2">
                   <button 
                     @click="decrementQuantity(index)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
+                    class="text-gray-600 hover:text-verde-sidebar font-bold t-heading w-8 h-8 flex items-center justify-center"
                   >
                     −
                   </button>
-                  <span class="text-gray-800 font-bold min-w-[3rem] text-center text-lg">{{ product.quantity }}</span>
+                  <span class="text-gray-800 font-bold min-w-[3rem] text-center t-body">{{ product.quantity }}</span>
                   <button 
                     @click="incrementQuantity(index)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
+                    class="text-gray-600 hover:text-verde-sidebar font-bold t-heading w-8 h-8 flex items-center justify-center"
                   >
                     +
                   </button>
@@ -143,7 +143,7 @@ const createList = () => {
                 v-model="searchProduct"
                 type="text" 
                 placeholder="Buscar Productos"
-                class="w-full pl-12 pr-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
+                class="w-full pl-12 pr-5 py-4 border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
                 @keyup.enter="addProduct"
               />
             </div>
@@ -159,7 +159,7 @@ const createList = () => {
           <!-- Tag de producto actual con X y + -->
           <div v-if="searchProduct.trim()" class="flex items-center gap-3 mb-6">
             <div class="flex items-center gap-2 bg-gray-100 rounded-2xl px-5 py-3 flex-1 border-2 border-gray-300">
-              <span class="text-gray-800 font-semibold text-lg flex-1">{{ searchProduct }}</span>
+              <span class="text-gray-800 font-semibold t-body flex-1">{{ searchProduct }}</span>
               <button 
                 @click="searchProduct = ''"
                 class="text-gray-500 hover:text-gray-700"
@@ -183,7 +183,7 @@ const createList = () => {
         <!-- Lista de productos disponibles (scroll) -->
         <div class="flex-1 overflow-y-auto px-8 pb-8">
           <div class="text-gray-400 text-center py-12">
-            <p class="text-lg">Busca productos para agregarlos a tu lista</p>
+            <p class="t-body">Busca productos para agregarlos a tu lista</p>
           </div>
         </div>
       </div>

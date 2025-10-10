@@ -113,8 +113,8 @@ const toggleFavoriteWithAnimation = (id: string) => {
     </div>
 
     <div v-if="sortedLists.length === 0" class="text-center text-gray-500 mt-12">
-      <p class="text-lg">No tienes listas todavía</p>
-      <p class="text-sm">Haz clic en el botón + para crear una</p>
+      <p class="t-body">No tienes listas todavía</p>
+      <p class="t-caption">Haz clic en el botón + para crear una</p>
     </div>
   </div>
 
@@ -136,7 +136,7 @@ const toggleFavoriteWithAnimation = (id: string) => {
     @cancel="showDeleteConfirm = false"
   >
     <template #details>
-      <p class="text-sm text-gray-600 mt-2">
+      <p class="t-caption text-gray-600 mt-2">
         Esta acción no se puede deshacer.
       </p>
     </template>

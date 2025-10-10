@@ -79,13 +79,13 @@ const productsByMonth = computed(() => {
       <!-- Header con información básica -->
       <div class="p-6 border-b border-gray-200 bg-gray-50">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xl font-bold text-gray-800">{{ currentHistorial?.list.name }}</h3>
-          <div class="flex items-center gap-4 text-sm text-gray-500">
+          <h3 class="t-heading font-bold text-gray-800">{{ currentHistorial?.list.name }}</h3>
+          <div class="flex items-center gap-4 t-caption text-gray-500">
             <span>{{ currentHistorial?.listItemArray.length }} productos</span>
             <span>{{ currentHistorial?.listItemArray.filter(i => i.purchased).length }} comprados</span>
           </div>
         </div>
-        <p v-if="currentHistorial?.list.description" class="text-gray-600 text-sm">
+        <p v-if="currentHistorial?.list.description" class="text-gray-600 t-caption">
           {{ currentHistorial.list.description }}
         </p>
       </div>
@@ -93,7 +93,7 @@ const productsByMonth = computed(() => {
       <!-- Contenido principal - Productos agrupados por mes -->
       <div class="flex-1 overflow-y-auto p-6">
         <div v-if="!currentHistorial?.listItemArray.length" class="text-center text-gray-400 py-12">
-          <p class="text-lg">No hay productos en esta compra</p>
+          <p class="t-body">No hay productos en esta compra</p>
         </div>
 
         <!-- Productos agrupados por mes -->
@@ -101,9 +101,9 @@ const productsByMonth = computed(() => {
           <div v-for="(items, month) in productsByMonth" :key="month" class="space-y-3">
             <!-- Header del mes -->
             <div class="flex items-center gap-3 mb-4">
-              <h4 class="text-lg font-semibold text-gray-700">{{ month }}</h4>
+              <h4 class="t-body font-semibold text-gray-700">{{ month }}</h4>
               <div class="flex-1 h-px bg-gray-200"></div>
-              <span class="text-sm text-gray-500">{{ items.length }} productos</span>
+              <span class="t-caption text-gray-500">{{ items.length }} productos</span>
             </div>
 
             <!-- Lista de productos del mes -->
@@ -114,7 +114,7 @@ const productsByMonth = computed(() => {
                 class="flex items-center gap-3 bg-white rounded-xl p-3 border border-gray-200 hover:border-gray-300 transition-colors"
               >
                 <!-- Icono del producto -->
-                <span class="text-lg">{{ getProductIcon(item.product.category.name) }}</span>
+                <span class="t-body">{{ getProductIcon(item.product.category.name) }}</span>
 
                 <!-- Información del producto -->
                 <div class="flex-1">
@@ -123,15 +123,15 @@ const productsByMonth = computed(() => {
                       {{ item.product.name }}
                     </span>
                     <div class="relative group">
-                      <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full cursor-help">{{ item.unit }}</span>
+                      <span class="t-caption text-gray-500 bg-gray-100 px-2 py-1 rounded-full cursor-help">{{ item.unit }}</span>
                       <!-- Tooltip -->
-                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white t-caption rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                         unidad
                         <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                       </div>
                     </div>
                   </div>
-                  <div class="text-xs text-gray-500">{{ item.product.category.name }}</div>
+                  <div class="t-caption text-gray-500">{{ item.product.category.name }}</div>
                 </div>
                 
                 <!-- Cantidad -->
@@ -140,7 +140,7 @@ const productsByMonth = computed(() => {
                 </div>
 
                 <!-- Fecha específica -->
-                <div class="text-xs text-gray-500 text-right min-w-[80px]">
+                <div class="t-caption text-gray-500 text-right min-w-[80px]">
                   {{ formatDate(item.lastPurchasedAt || item.createdAt) }}
                 </div>
               </div>

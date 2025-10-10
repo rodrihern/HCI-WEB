@@ -32,7 +32,7 @@ const goToProfile = () => {
 </script>
 
 <template>
-  <div v-if="route.path === '/login'" class="min-h-screen bg-[#FEFFF7]">
+  <div v-if="route.path === '/login' || route.path === '/register'" class="min-h-screen bg-[#FEFFF7]">
     <RouterView />
   </div>
   <div v-else class="flex h-screen bg-[#FEFFF7] relative">
@@ -161,7 +161,7 @@ const goToProfile = () => {
         <!-- Right side: Logo, Profile -->
         <div class="flex items-center gap-4 ml-6">
           <!-- Logo -->
-          <span class="text-2xl font-bold text-verde-sidebar">Listazo!</span>
+          <span class="t-heading font-bold text-verde-sidebar">Listazo!</span>
 
           <!-- Profile -->
           <button @click="goToProfile" class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity">

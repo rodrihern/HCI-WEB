@@ -45,11 +45,11 @@ const handleQuantityChange = (change: number) => {
         <span v-if="icon" class="text-2xl">{{ icon }}</span>
         <div class="flex-1">
           <div class="flex items-center gap-2">
-            <h3 class="text-white font-semibold" :class="subtitle ? 'text-lg' : 'text-base'">
+            <h3 class="text-white font-semibold" :class="subtitle ? 't-body' : 't-body'">
               {{ title }}
             </h3>
           </div>
-          <p v-if="subtitle" class="text-white text-sm opacity-90">{{ subtitle }}</p>
+          <p v-if="subtitle" class="text-white t-caption opacity-90">{{ subtitle }}</p>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ const handleQuantityChange = (change: number) => {
           >
             -
           </button>
-          <span class="text-white font-semibold text-lg min-w-[2rem] text-center">
+          <span class="text-white font-semibold t-body min-w-[2rem] text-center">
             {{ quantity }}
           </span>
           <button

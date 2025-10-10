@@ -173,23 +173,23 @@ const addProductFromList = () => {
           <!-- Información de la lista -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-gray-800">{{ currentList?.name }}</h3>
+              <h3 class="t-heading font-bold text-gray-800">{{ currentList?.name }}</h3>
               <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">{{ currentList?.items.length }} productos</span>
+                <span class="t-caption text-gray-500">{{ currentList?.items.length }} productos</span>
               </div>
             </div>
             
             <!-- Usuarios de la lista -->
             <div class="mb-6">
-              <h4 class="text-lg font-semibold text-gray-700 mb-3">Colaboradores</h4>
+              <h4 class="t-body font-semibold text-gray-700 mb-3">Colaboradores</h4>
               <div class="flex items-center gap-2">
                 <div 
                   v-for="user in listUsers" 
                   :key="user.id"
                   class="flex items-center gap-2 bg-white rounded-full px-3 py-2 border border-gray-200"
                 >
-                  <span class="text-lg">{{ user.avatar }}</span>
-                  <span class="text-sm font-medium text-gray-700">{{ user.name }}</span>
+                  <span class="t-body">{{ user.avatar }}</span>
+                  <span class="t-caption font-medium text-gray-700">{{ user.name }}</span>
                 </div>
                 <button class="flex items-center justify-center w-8 h-8 bg-verde-sidebar text-white rounded-full hover:bg-verde-contraste transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,11 +202,11 @@ const addProductFromList = () => {
 
           <!-- Productos en la lista -->
           <div>
-            <label class="block text-2xl font-bold text-gray-800 mb-4">Productos</label>
+            <label class="block t-heading font-bold text-gray-800 mb-4">Productos</label>
             
             <div v-if="!currentList?.items.length" class="text-center text-gray-400 py-12">
-              <p class="text-lg">No hay productos en la lista</p>
-              <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
+              <p class="t-body">No hay productos en la lista</p>
+              <p class="t-caption mt-2">Busca y agrega productos desde la derecha</p>
             </div>
 
             <!-- Lista de productos -->
@@ -219,11 +219,11 @@ const addProductFromList = () => {
                 <!-- Producto info -->
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
-                    <span class="text-lg">{{ store.getProductById(item.productId)?.icon }}</span>
-                    <span class="text-gray-800 font-semibold text-lg">
+                    <span class="t-body">{{ store.getProductById(item.productId)?.icon }}</span>
+                    <span class="text-gray-800 font-semibold t-body">
                       {{ store.getProductById(item.productId)?.name }}
                     </span>
-                    <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ item.unit }}</span>
+                    <span class="t-caption text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ item.unit }}</span>
                   </div>
                 </div>
                 
@@ -231,14 +231,14 @@ const addProductFromList = () => {
                 <div class="flex items-center gap-3 bg-gray-100 rounded-xl px-3 py-2">
                   <button 
                     @click="decrementQuantity(item.productId)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
+                    class="text-gray-600 hover:text-verde-sidebar font-bold t-heading w-8 h-8 flex items-center justify-center"
                   >
                     −
                   </button>
-                  <span class="text-gray-800 font-bold min-w-[3rem] text-center text-lg">{{ item.quantity }} {{ item.unit }}</span>
+                  <span class="text-gray-800 font-bold min-w-[3rem] text-center t-body">{{ item.quantity }} {{ item.unit }}</span>
                   <button 
                     @click="incrementQuantity(item.productId)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
+                    class="text-gray-600 hover:text-verde-sidebar font-bold t-heading w-8 h-8 flex items-center justify-center"
                   >
                     +
                   </button>
@@ -282,7 +282,7 @@ const addProductFromList = () => {
                 v-model="searchProduct"
                 type="text" 
                 placeholder="Buscar Productos"
-                class="w-full pl-12 pr-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
+                class="w-full pl-12 pr-5 py-4 border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
                 @keyup.enter="addProduct"
               />
             </div>
@@ -298,7 +298,7 @@ const addProductFromList = () => {
           <!-- Tag de producto actual con X y + -->
           <div v-if="searchProduct.trim()" class="flex items-center gap-3 mb-6">
             <div class="flex items-center gap-2 bg-gray-100 rounded-2xl px-5 py-3 flex-1 border-2 border-gray-300">
-              <span class="text-gray-800 font-semibold text-lg flex-1">{{ searchProduct }}</span>
+              <span class="text-gray-800 font-semibold t-body flex-1">{{ searchProduct }}</span>
               <button 
                 @click="searchProduct = ''"
                 class="text-gray-500 hover:text-gray-700"
@@ -322,8 +322,8 @@ const addProductFromList = () => {
         <!-- Lista de productos disponibles (scroll) -->
         <div class="flex-1 overflow-y-auto px-8 pb-8">
           <div v-if="filteredProducts.length === 0" class="text-gray-400 text-center py-12">
-            <p class="text-lg">No se encontraron productos</p>
-            <p class="text-sm mt-2">Intenta con otro término de búsqueda</p>
+            <p class="t-body">No se encontraron productos</p>
+            <p class="t-caption mt-2">Intenta con otro término de búsqueda</p>
           </div>
           
           <div v-else class="space-y-3">
@@ -335,9 +335,9 @@ const addProductFromList = () => {
               <span class="text-2xl">{{ product.icon }}</span>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-gray-800 font-semibold text-lg">{{ product.name }}</span>
+                  <span class="text-gray-800 font-semibold t-body">{{ product.name }}</span>
                 </div>
-                <p class="text-sm text-gray-500">{{ product.category }}</p>
+                <p class="t-caption text-gray-500">{{ product.category }}</p>
               </div>
               <button 
                 @click="openAddProductModal(product)"
@@ -367,30 +367,30 @@ const addProductFromList = () => {
         <div class="flex items-center gap-3 bg-gray-50 rounded-2xl p-4">
           <span class="text-3xl">{{ selectedProduct.icon }}</span>
           <div>
-            <h3 class="text-xl font-semibold text-gray-800">{{ selectedProduct.name }}</h3>
-            <p class="text-sm text-gray-500">{{ selectedProduct.category }}</p>
+            <h3 class="t-heading font-semibold text-gray-800">{{ selectedProduct.name }}</h3>
+            <p class="t-caption text-gray-500">{{ selectedProduct.category }}</p>
           </div>
         </div>
 
         <!-- Cantidad -->
         <div>
-          <label class="block text-lg font-semibold text-gray-700 mb-2">Cantidad</label>
+          <label class="block t-body font-semibold text-gray-700 mb-2">Cantidad</label>
           <input 
             v-model.number="productQuantity"
             type="number" 
             min="1"
-            class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors"
             placeholder="Cantidad"
           />
         </div>
 
         <!-- Unidad -->
         <div class="relative">
-          <label class="block text-lg font-semibold text-gray-700 mb-2">Unidad</label>
+          <label class="block t-body font-semibold text-gray-700 mb-2">Unidad</label>
           <div class="relative unit-dropdown-container">
             <button 
               @click="toggleUnitDropdown"
-              class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors bg-white text-left flex items-center justify-between hover:border-gray-400"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors bg-white text-left flex items-center justify-between hover:border-gray-400"
               :class="{ 'border-verde-sidebar': showUnitDropdown }"
             >
               <span :class="{ 'text-gray-400': !productUnit }">
@@ -425,7 +425,7 @@ const addProductFromList = () => {
                     v-for="unit in availableUnits"
                     :key="unit"
                     @click="selectUnit(unit)"
-                    class="w-full px-4 py-3 text-left text-lg hover:bg-gray-50 transition-colors flex items-center justify-between"
+                    class="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
                     :class="{ 'bg-verde-sidebar/10 text-verde-sidebar': productUnit === unit }"
                   >
                     <span>{{ unit }}</span>

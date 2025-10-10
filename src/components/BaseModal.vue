@@ -76,7 +76,7 @@ const maxWidthClasses = {
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <h2 class="text-2xl font-bold text-gray-800">
+          <h2 class="t-heading font-bold text-gray-800">
             <slot name="title">{{ title }}</slot>
           </h2>
         </div>

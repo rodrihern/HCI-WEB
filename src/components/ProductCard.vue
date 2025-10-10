@@ -49,8 +49,8 @@ const toggleExpanded = () => {
         
         <!-- Nombre y categoría -->
         <div class="flex-1 min-w-0">
-          <h3 class="text-white font-semibold text-lg">{{ name }}</h3>
-          <p class="text-white/80 text-sm">{{ category }}</p>
+          <h3 class="text-white font-semibold t-body">{{ name }}</h3>
+          <p class="text-white/80 t-caption">{{ category }}</p>
         </div>
         
         <!-- Botón de acción (si existe) -->
@@ -92,10 +92,10 @@ const toggleExpanded = () => {
       >
         <div v-if="isExpanded" class="border-t border-white/20 px-4 pb-4 pt-3">
           <div v-if="description" class="bg-white/10 rounded-lg p-3">
-            <p class="text-sm font-medium text-white/90 mb-1">Descripción:</p>
-            <p class="text-white/80 text-sm leading-relaxed">{{ description }}</p>
+            <p class="t-caption font-medium text-white/90 mb-1">Descripción:</p>
+            <p class="text-white/80 t-caption leading-relaxed">{{ description }}</p>
           </div>
-          <div v-else class="text-white/60 text-sm italic">
+          <div v-else class="text-white/60 t-caption italic">
             Sin descripción
           </div>
         </div>

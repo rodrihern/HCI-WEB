@@ -186,8 +186,8 @@ const shareSection = (sectionId: string) => {
     </div>
 
     <div v-if="sectionsWithProducts.every(s => s.items.length === 0)" class="text-center text-gray-500 mt-12">
-      <p class="text-lg">Tu despensa está vacía</p>
-      <p class="text-sm">Haz clic en el botón + para agregar productos</p>
+      <p class="t-body">Tu despensa está vacía</p>
+      <p class="t-caption">Haz clic en el botón + para agregar productos</p>
     </div>
 
     <ConfirmationModal
@@ -199,7 +199,7 @@ const shareSection = (sectionId: string) => {
       @cancel="showDeleteConfirm = false"
     >
       <template #details>
-        <p class="text-sm text-gray-600 mt-2">
+        <p class="t-caption text-gray-600 mt-2">
           Esta acción no se puede deshacer.
         </p>
       </template>
