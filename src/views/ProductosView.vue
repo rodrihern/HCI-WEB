@@ -6,6 +6,7 @@ import CollapsibleSection from '@/components/CollapsibleSection.vue'
 import ProductCard from '@/components/ProductCard.vue'
 import CreateProductModal from '@/components/CreateProductModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import AddToListModal from '@/components/AddToListModal.vue'
 
 const store = useListsStore()
 
@@ -38,8 +39,10 @@ const distributeInColumns = (products: typeof store.products) => {
 // Modal state
 const showModal = ref(false)
 const showDeleteConfirmation = ref(false)
+const showAddToListModal = ref(false)
 const productToDelete = ref<string | null>(null)
 const productToEdit = ref<typeof store.products[0] | null>(null)
+const productToAddToList = ref<{ id: string; name: string } | null>(null)
 
 const openAddProductModal = () => {
   productToEdit.value = null
@@ -79,8 +82,16 @@ const handleEditProduct = (productId: string) => {
 }
 
 const handleAddToList = (productId: string) => {
-  // TODO: Abrir selector de listas
-  alert('Funcionalidad de añadir a lista próximamente')
+  const product = store.getProductById(productId)
+  if (product) {
+    productToAddToList.value = { id: product.id, name: product.name }
+    showAddToListModal.value = true
+  }
+}
+
+const closeAddToListModal = () => {
+  showAddToListModal.value = false
+  productToAddToList.value = null
 }
 </script>
 
@@ -159,6 +170,15 @@ const handleAddToList = (productId: string) => {
       variant="danger"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
+    />
+
+    <!-- Modal Añadir a Lista -->
+    <AddToListModal
+      v-if="productToAddToList"
+      :show="showAddToListModal"
+      :product-id="productToAddToList.id"
+      :product-name="productToAddToList.name"
+      @close="closeAddToListModal"
     />
   </div>
 </template>

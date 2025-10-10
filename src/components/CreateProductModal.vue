@@ -24,15 +24,15 @@ const selectedCategory = ref('')
 const categorySearch = ref('')
 const isCategoryOpen = ref(false)
 const newCategoryName = ref('')
-const selectedPantry = ref('')
-const pantrySearch = ref('')
-const isPantryOpen = ref(false)
-const newPantryName = ref('')
 const selectedFile = ref<File | null>(null)
 const existingImage = ref<string | undefined>(undefined)
+const imagePreview = ref<string | undefined>(undefined)
 
 // Modo edición
 const isEditMode = computed(() => !!props.productToEdit)
+
+// Imagen a mostrar (preview de nueva imagen o imagen existente)
+const displayImage = computed(() => imagePreview.value || existingImage.value)
 
 // Cargar datos del producto cuando se abre en modo edición
 watch(() => props.productToEdit, (product) => {
@@ -40,9 +40,9 @@ watch(() => props.productToEdit, (product) => {
     productName.value = product.name
     productDescription.value = product.description || ''
     selectedCategory.value = product.category
-    selectedPantry.value = product.pantry || ''
     existingImage.value = product.image
     selectedFile.value = null
+    imagePreview.value = undefined // Limpiar preview al cargar producto existente
   }
 }, { immediate: true })
 
@@ -59,36 +59,33 @@ const filteredCategories = computed(() => {
   return categories.value.filter((c) => c.toLowerCase().includes(term))
 })
 
-// Derive unique pantries from existing pantry sections
-const pantries = computed(() => {
-  return store.pantrySections.map((section) => section.name).sort((a, b) => a.localeCompare(b))
-})
-
-const filteredPantries = computed(() => {
-  const term = pantrySearch.value.trim().toLowerCase()
-  if (!term) return pantries.value
-  return pantries.value.filter((p) => p.toLowerCase().includes(term))
-})
-
 const closeModal = () => {
   productName.value = ''
   productDescription.value = ''
   selectedCategory.value = ''
   categorySearch.value = ''
   newCategoryName.value = ''
-  selectedPantry.value = ''
-  pantrySearch.value = ''
-  newPantryName.value = ''
   selectedFile.value = null
   existingImage.value = undefined
+  imagePreview.value = undefined
   isCategoryOpen.value = false
-  isPantryOpen.value = false
   emit('close')
 }
 
 const onFileChange = (e: Event) => {
   const files = (e.target as HTMLInputElement).files
-  selectedFile.value = files && files[0] ? files[0] : null
+  if (files && files[0]) {
+    selectedFile.value = files[0]
+    // Crear preview de la imagen
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      imagePreview.value = event.target?.result as string
+    }
+    reader.readAsDataURL(files[0])
+  } else {
+    selectedFile.value = null
+    imagePreview.value = undefined
+  }
 }
 
 const chooseCategory = (c: string) => {
@@ -104,23 +101,9 @@ const addNewCategory = () => {
   isCategoryOpen.value = false
 }
 
-const choosePantry = (p: string) => {
-  selectedPantry.value = p
-  isPantryOpen.value = false
-}
-
-const addNewPantry = () => {
-  const name = newPantryName.value.trim()
-  if (!name) return
-  selectedPantry.value = name
-  newPantryName.value = ''
-  isPantryOpen.value = false
-}
-
 const submitProduct = async () => {
   const name = productName.value.trim()
   const category = selectedCategory.value.trim()
-  const pantry = selectedPantry.value.trim()
   const description = productDescription.value.trim()
   if (!name || !category) return
   
@@ -139,8 +122,7 @@ const submitProduct = async () => {
     store.deleteProduct(props.productToEdit.id)
     store.addProduct({ 
       name, 
-      category, 
-      pantry: pantry || undefined, 
+      category,
       icon: props.productToEdit.icon,
       description: description || undefined,
       image: imageBase64
@@ -149,8 +131,7 @@ const submitProduct = async () => {
     // Modo creación - crear nuevo producto
     store.addProduct({ 
       name, 
-      category, 
-      pantry: pantry || undefined, 
+      category,
       icon: '🛒',
       description: description || undefined,
       image: imageBase64
@@ -285,12 +266,33 @@ const submitProduct = async () => {
 
       <!-- Media drop area -->
       <label class="block">
-        <div class="w-full h-40 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:border-verde-sidebar hover:text-verde-sidebar transition-colors bg-white">
-          <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor">
-            <use href="@/assets/sprite.svg#image" />
-          </svg>
-          <span class="text-sm font-medium">Añadir Multimedia</span>
-          <span v-if="selectedFile" class="text-xs mt-1 text-verde-sidebar">{{ selectedFile.name }}</span>
+        <div class="w-full h-40 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-verde-sidebar transition-colors bg-white overflow-hidden relative group">
+          <!-- Preview de la imagen -->
+          <div v-if="displayImage" class="absolute inset-0 flex items-center justify-center p-2">
+            <img 
+              :src="displayImage" 
+              alt="Preview"
+              class="max-w-full max-h-full object-contain"
+            />
+            <!-- Overlay al hover para cambiar imagen -->
+            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div class="text-white text-center">
+                <svg class="w-10 h-10 mb-2 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-sm font-medium">Cambiar imagen</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Estado vacío (sin imagen) -->
+          <div v-else class="text-gray-500 flex flex-col items-center group-hover:text-verde-sidebar transition-colors">
+            <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="text-sm font-medium">Añadir Multimedia</span>
+            <span v-if="selectedFile" class="text-xs mt-1 text-verde-sidebar">{{ selectedFile.name }}</span>
+          </div>
         </div>
         <input type="file" class="hidden" @change="onFileChange" accept="image/*" />
       </label>
