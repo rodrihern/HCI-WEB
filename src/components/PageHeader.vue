@@ -25,8 +25,8 @@ defineProps<{
       @click="onAddClick"
       class="bg-gradient-to-br from-[#68AE6F] to-[#5a9860] hover:from-[#5a9860] hover:to-[#4d8251] text-white rounded-full w-14 h-14 flex items-center justify-center transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-110"
     >
-      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="3">
-        <use href="@/assets/sprite.svg#add-sign" />
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
       </svg>
     </button>
   </div>

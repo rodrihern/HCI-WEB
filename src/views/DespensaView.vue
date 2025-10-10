@@ -84,6 +84,42 @@ const deleteItem = () => {
   showDeleteConfirm.value = false
   itemToDelete.value = null
 }
+
+const shareSection = (sectionId: string) => {
+  const section = store.pantrySections.find(s => s.id === sectionId)
+  if (!section) return
+  
+  const items = section.items
+    .map((item) => {
+      const product = store.getProductById(item.productId)
+      return product ? `${product.name} (${item.quantity})` : null
+    })
+    .filter((item) => item !== null)
+    .join('\n')
+  
+  const shareText = `Mi despensa - ${section.name}:\n${items}`
+  
+  if (navigator.share) {
+    navigator.share({
+      title: `Despensa - ${section.name}`,
+      text: shareText
+    }).catch(console.error)
+  } else {
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert('Lista copiada al portapapeles')
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = shareText
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('Lista copiada al portapapeles')
+    })
+  }
+}
 </script>
 
 <template>
@@ -102,6 +138,9 @@ const deleteItem = () => {
         :showAddButton="true"
         addButtonText="Agregar"
         :onAddClick="() => addToPantry(section.id)"
+        :showShareButton="true"
+        shareButtonText="Compartir"
+        :onShareClick="() => shareSection(section.id)"
       >
         <div class="space-y-3">
           <ListItem

@@ -4,7 +4,6 @@ import ProductosView from '../views/ProductosView.vue'
 import DespensaView from '../views/DespensaView.vue'
 import HistorialView from '../views/HistorialView.vue'
 import LoginView from '../views/LoginView.vue'
-import SettingsView from '../views/SettingsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 
 const router = createRouter({
@@ -38,11 +37,6 @@ const router = createRouter({
       path: '/historial',
       name: 'historial',
       component: HistorialView,
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: SettingsView,
     },
     {
       path: '/profile',

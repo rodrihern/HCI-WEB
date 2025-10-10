@@ -203,8 +203,8 @@ const submitProduct = () => {
           </div>
 
           <div class="border-t-2 border-gray-200 px-4 py-3 flex items-center gap-2 bg-gray-50">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor">
-              <use href="@/assets/sprite.svg#add-sign" />
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
             </svg>
             <input
               v-model="newCategoryName"

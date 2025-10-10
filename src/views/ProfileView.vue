@@ -2,13 +2,18 @@
 import { ref } from 'vue'
 
 const profileData = ref({
-  name: 'John Doe',
-  email: 'johnDoe@gmail.com',
+  name: 'John',
+  surname: 'Doe',
+  email: 'johndoe@email.com',
+  password: '1234567890',
+  metadata: {},
   avatar: null as string | null
 })
 
 const isEditingName = ref(false)
+const isEditingSurname = ref(false)
 const tempName = ref(profileData.value.name)
+const tempSurname = ref(profileData.value.surname)
 
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -43,9 +48,47 @@ const cancelEditName = () => {
   tempName.value = profileData.value.name
 }
 
-const shareProfile = () => {
-  alert('Funcionalidad de compartir perfil')
+const startEditingSurname = () => {
+  isEditingSurname.value = true
+  tempSurname.value = profileData.value.surname
 }
+
+const saveSurname = () => {
+  if (tempSurname.value.trim()) {
+    profileData.value.surname = tempSurname.value.trim()
+    isEditingSurname.value = false
+  }
+}
+
+const cancelEditSurname = () => {
+  isEditingSurname.value = false
+  tempSurname.value = profileData.value.surname
+}
+
+const changePassword = () => {
+  const currentPassword = prompt('Contraseña actual:')
+  if (!currentPassword) return
+  
+  if (currentPassword !== profileData.value.password) {
+    alert('Contraseña actual incorrecta')
+    return
+  }
+  
+  const newPassword = prompt('Nueva contraseña:')
+  if (!newPassword) return
+  
+  const confirmPassword = prompt('Confirmar nueva contraseña:')
+  if (!confirmPassword) return
+  
+  if (newPassword !== confirmPassword) {
+    alert('Las contraseñas no coinciden')
+    return
+  }
+  
+  profileData.value.password = newPassword
+  alert('Contraseña cambiada exitosamente')
+}
+
 </script>
 
 <template>
@@ -121,6 +164,47 @@ const shareProfile = () => {
         </div>
       </div>
 
+      <!-- Surname Section -->
+      <div class="flex flex-col gap-2">
+        <label class="text-2xl font-bold text-gray-900">Apellido</label>
+        <div class="bg-white rounded-lg p-4 shadow-sm">
+          <div v-if="!isEditingSurname" class="flex items-center justify-between">
+            <span class="text-lg text-gray-500">{{ profileData.surname }}</span>
+            <button 
+              @click="startEditingSurname" 
+              class="text-verde-sidebar p-1 hover:opacity-70 transition-opacity"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+          </div>
+          <div v-else class="flex flex-col gap-4">
+            <input 
+              v-model="tempSurname" 
+              type="text" 
+              class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none"
+              @keyup.enter="saveSurname"
+              @keyup.esc="cancelEditSurname"
+            />
+            <div class="flex gap-3 justify-end">
+              <button 
+                @click="saveSurname" 
+                class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity"
+              >
+                Guardar
+              </button>
+              <button 
+                @click="cancelEditSurname" 
+                class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Email Section -->
       <div class="flex flex-col gap-2">
         <label class="text-2xl font-bold text-gray-900">Mail</label>
@@ -129,18 +213,19 @@ const shareProfile = () => {
         </div>
       </div>
 
-      <!-- Share Button -->
-      <div class="flex justify-center mt-4">
+      <!-- Change Password Button -->
+      <div class="flex justify-center">
         <button 
-          @click="shareProfile" 
-          class="bg-verde-sidebar text-white text-lg font-semibold px-12 py-4 rounded-full flex items-center shadow-lg hover:bg-verde-contraste hover:-translate-y-0.5 transition-all"
+          @click="changePassword" 
+          class="bg-verde-sidebar text-white text-lg font-semibold px-8 py-3 rounded-xl flex items-center shadow-lg hover:bg-verde-contraste hover:-translate-y-0.5 transition-all"
         >
-          <span>Compartir</span>
-          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
           </svg>
+          Cambiar contraseña
         </button>
       </div>
+
     </div>
   </div>
 </template>

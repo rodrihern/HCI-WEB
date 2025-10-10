@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import PageHeader from '@/components/PageHeader.vue'
 import CreateListModal from '@/components/CreateListModal.vue'
+import PreviewListModal from '@/components/PreviewListModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import ListItem from '@/components/ListItem.vue'
 
@@ -23,6 +24,10 @@ const sortedLists = computed(() => {
 
 const addNewList = () => {
   store.openCreateListModal()
+}
+
+const openPreviewList = (listId: string) => {
+  store.openPreviewListModal(listId)
 }
 
 const confirmDelete = (id: string) => {
@@ -56,15 +61,6 @@ const toggleFavoriteWithAnimation = (id: string) => {
 
 
 <template>
-<div class="flex items-center gap-2">
-  <button class="px-2 py-1 text-xs bg-gray-200 rounded" @click="for (let i=0;i<50;i++) store.addList('Demo ' + (i+1))">
-    +50
-  </button>
-  <button class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded" @click="store.lists = []">
-    Clear
-  </button>
-</div>
-
   <div class="py-6 px-6 relative min-h-full">
     <PageHeader 
       title="Mis listas" 
@@ -80,10 +76,12 @@ const toggleFavoriteWithAnimation = (id: string) => {
           :title="list.name"
           subtitle="Creada por Mamá"
           :is-animating="animatingFavorites.has(list.id)"
+          @click="openPreviewList(list.id)"
+          class="cursor-pointer hover:scale-[1.02] transition-transform"
         >
           <template #actions>
             <button
-              @click="toggleFavoriteWithAnimation(list.id)"
+              @click.stop="toggleFavoriteWithAnimation(list.id)"
               class="p-2 hover:scale-110 transition-transform duration-200"
             >
               <!-- Filled Star (Favorite) -->
@@ -122,6 +120,9 @@ const toggleFavoriteWithAnimation = (id: string) => {
 
   <!-- Modal para crear nueva lista -->
   <CreateListModal @close="store.closeCreateListModal" />
+
+  <!-- Modal para vista previa de lista -->
+  <PreviewListModal @close="store.closePreviewListModal" />
 
   <!-- Modal de confirmación para eliminar -->
   <ConfirmationModal

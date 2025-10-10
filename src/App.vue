@@ -1,18 +1,29 @@
 <script setup lang="ts">
 import { RouterView, useRoute, useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
 const isSidebarExpanded = ref(false)
 const searchQuery = ref('')
 
+const searchPlaceholder = computed(() => {
+  switch (route.path) {
+    case '/listas':
+      return 'Busca tus listas'
+    case '/despensa':
+      return 'Busca en tu despensa'
+    case '/productos':
+      return 'Busca productos'
+    case '/historial':
+      return 'Busca en tu historial'
+    default:
+      return 'Buscar...'
+  }
+})
+
 const toggleSidebar = () => {
   isSidebarExpanded.value = !isSidebarExpanded.value
-}
-
-const goToSettings = () => {
-  router.push('/settings')
 }
 
 const goToProfile = () => {
@@ -136,7 +147,7 @@ const goToProfile = () => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Hinted search text"
+              :placeholder="searchPlaceholder"
               class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent bg-white"
             />
             <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -147,17 +158,10 @@ const goToProfile = () => {
           </div>
         </div>
 
-        <!-- Right side: Logo, Settings, Profile -->
+        <!-- Right side: Logo, Profile -->
         <div class="flex items-center gap-4 ml-6">
           <!-- Logo -->
           <span class="text-2xl font-bold text-verde-sidebar">Listazo!</span>
-
-          <!-- Settings -->
-          <button @click="goToSettings" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor">
-              <use href="@/assets/sprite.svg#settings" />
-            </svg>
-          </button>
 
           <!-- Profile -->
           <button @click="goToProfile" class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity">

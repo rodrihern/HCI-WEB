@@ -12,7 +12,9 @@ export interface Product {
 export interface ListItem {
   productId: string
   quantity: number
+  unit: string
   checked: boolean
+  metadata: Record<string, any>
 }
 
 export interface ShoppingList {
@@ -47,6 +49,10 @@ export const useListsStore = defineStore('lists', () => {
   const newListName = ref('')
   const newListProducts = ref<Array<{ name: string; quantity: number }>>([])
 
+  // Modal state for previewing list
+  const isPreviewingList = ref(false)
+  const previewingListId = ref<string | null>(null)
+
   // Products mock data
   const products = ref<Product[]>([
     { id: '1', name: 'Banana', category: 'Frutas', icon: '🍌' },
@@ -62,8 +68,8 @@ export const useListsStore = defineStore('lists', () => {
       id: '1',
       name: 'Compra Marzo',
       items: [
-        { productId: '1', quantity: 6, checked: false },
-        { productId: '2', quantity: 2, checked: false },
+        { productId: '1', quantity: 6, unit: 'kg', checked: false, metadata: {} },
+        { productId: '2', quantity: 2, unit: 'l', checked: false, metadata: {} },
       ],
       createdAt: new Date('2025-03-15'),
       isFavorite: true,
@@ -72,8 +78,8 @@ export const useListsStore = defineStore('lists', () => {
       id: '2',
       name: 'Verduleria',
       items: [
-        { productId: '1', quantity: 3, checked: false },
-        { productId: '5', quantity: 2, checked: false },
+        { productId: '1', quantity: 3, unit: 'kg', checked: false, metadata: {} },
+        { productId: '5', quantity: 2, unit: 'kg', checked: false, metadata: {} },
       ],
       createdAt: new Date('2025-03-18'),
       isFavorite: false,
@@ -125,14 +131,6 @@ export const useListsStore = defineStore('lists', () => {
     })
   }
 
-  const bulkAddLists = (n: number) => {
-    for (let i = 0; i < n; i++) {
-      addList(`Demo ${i + 1}`)
-    }
-  }
-  const clearLists = () => {
-    lists.value = []
-  }
 
   const deleteList = (id: string) => {
     lists.value = lists.value.filter((list) => list.id !== id)
@@ -242,6 +240,65 @@ export const useListsStore = defineStore('lists', () => {
     }
   }
 
+  // Preview modal functions
+  const openPreviewListModal = (listId: string) => {
+    previewingListId.value = listId
+    isPreviewingList.value = true
+  }
+
+  const closePreviewListModal = () => {
+    isPreviewingList.value = false
+    previewingListId.value = null
+  }
+
+  const updateListItemQuantity = (listId: string, productId: string, quantity: number) => {
+    const list = lists.value.find(l => l.id === listId)
+    if (!list) return
+    
+    const item = list.items.find(i => i.productId === productId)
+    if (item) {
+      if (quantity <= 0) {
+        list.items = list.items.filter(i => i.productId !== productId)
+      } else {
+        item.quantity = quantity
+      }
+    }
+  }
+
+  const toggleListItemChecked = (listId: string, productId: string) => {
+    const list = lists.value.find(l => l.id === listId)
+    if (!list) return
+    
+    const item = list.items.find(i => i.productId === productId)
+    if (item) {
+      item.checked = !item.checked
+    }
+  }
+
+  const addItemToList = (listId: string, productId: string, quantity: number = 1, unit: string = 'unidad') => {
+    const list = lists.value.find(l => l.id === listId)
+    if (!list) return
+    
+    const existingItem = list.items.find(i => i.productId === productId)
+    if (existingItem) {
+      existingItem.quantity += quantity
+    } else {
+      list.items.push({ productId, quantity, unit, checked: false, metadata: {} })
+    }
+  }
+
+  const removeItemFromList = (listId: string, productId: string) => {
+    const list = lists.value.find(l => l.id === listId)
+    if (!list) return
+    
+    list.items = list.items.filter(i => i.productId !== productId)
+  }
+
+  const getPreviewingList = () => {
+    if (!previewingListId.value) return null
+    return lists.value.find(l => l.id === previewingListId.value)
+  }
+
   return {
     products,
     lists,
@@ -250,6 +307,8 @@ export const useListsStore = defineStore('lists', () => {
     isCreatingList,
     newListName,
     newListProducts,
+    isPreviewingList,
+    previewingListId,
     addList,
     deleteList,
     toggleFavorite,
@@ -268,6 +327,13 @@ export const useListsStore = defineStore('lists', () => {
     addProductToNewList,
     removeProductFromNewList,
     updateNewListProductQuantity,
+    openPreviewListModal,
+    closePreviewListModal,
+    updateListItemQuantity,
+    toggleListItemChecked,
+    addItemToList,
+    removeItemFromList,
+    getPreviewingList,
   }
 })
 

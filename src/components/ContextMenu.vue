@@ -22,7 +22,7 @@ const handleItemClick = (item: ContextMenuItem) => {
 <template>
   <div
     v-if="show"
-    class="absolute right-2 top-12 z-20 w-44 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
+    class="absolute right-2 top-12 z-50 w-44 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
     role="menu"
     @click.stop
   >
