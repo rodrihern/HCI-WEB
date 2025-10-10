@@ -4,6 +4,7 @@ import ProductosView from '../views/ProductosView.vue'
 import DespensaView from '../views/DespensaView.vue'
 import HistorialView from '../views/HistorialView.vue'
 import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
 import ProfileView from '../views/ProfileView.vue'
 
 const router = createRouter({
@@ -17,6 +18,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
     },
     {
       path: '/listas',

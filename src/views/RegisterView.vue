@@ -7,8 +7,8 @@ const goToMain = () => {
   router.push('/listas')
 }
 
-const goToRegister = () => {
-  router.push('/register')
+const goToLogin = () => {
+  router.push('/login')
 }
 </script>
 
@@ -34,14 +34,24 @@ const goToRegister = () => {
         </div>
       </div>
 
-      <!-- Right side - Login form -->
+      <!-- Right side - Register form -->
       <div class="w-full lg:w-1/2 bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6 lg:py-0">
         <div class="w-full max-w-md">
           <div class="text-center mb-6 lg:mb-8">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Bienvenido</h1>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Crear Cuenta</h1>
           </div>
 
           <div class="space-y-3 sm:space-y-4">
+            <input
+              type="text"
+              placeholder="Nombre"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+            />
+            <input
+              type="text"
+              placeholder="Apellido"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+            />
             <input
               type="email"
               placeholder="Email"
@@ -52,25 +62,17 @@ const goToRegister = () => {
               placeholder="Contraseña"
               class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
             />
-            
-            <div class="flex items-center justify-between text-sm">
-              <label class="flex items-center">
-                <input type="checkbox" class="mr-2 rounded">
-                <span class="text-gray-700">Recordarme</span>
-              </label>
-              <a href="#" class="font-semibold text-gray-900 hover:text-verde-sidebar">Recuperar Contraseña</a>
-            </div>
 
             <button
               @click="goToMain"
               class="w-full bg-verde-sidebar hover:bg-verde-contraste text-white font-semibold py-2.5 sm:py-3 lg:py-3.5 rounded-full transition-colors"
             >
-              Iniciar Sesión
+              Registrarse
             </button>
 
             <div class="text-center text-sm pt-1">
-              <span class="text-gray-700">¿No tenés una cuenta? </span>
-              <a @click="goToRegister" class="font-bold text-gray-900 hover:text-verde-sidebar cursor-pointer">Regístrate</a>
+              <span class="text-gray-700">¿Ya tenés una cuenta? </span>
+              <a @click="goToLogin" class="font-bold text-gray-900 hover:text-verde-sidebar cursor-pointer">Iniciá Sesión</a>
             </div>
           </div>
         </div>

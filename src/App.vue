@@ -32,7 +32,7 @@ const goToProfile = () => {
 </script>
 
 <template>
-  <div v-if="route.path === '/login'" class="min-h-screen bg-[#FEFFF7]">
+  <div v-if="route.path === '/login' || route.path === '/register'" class="min-h-screen bg-[#FEFFF7]">
     <RouterView />
   </div>
   <div v-else class="flex h-screen bg-[#FEFFF7] relative">
