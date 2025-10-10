@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-    onMounted,
-    onBeforeUnmount,
-    ref,
-    computed,
-} from "vue";
+import { ref } from "vue";
 import { useListsStore } from "../stores/lists";
 import ConfirmationModal from "../components/ConfirmationModal.vue";
 import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
@@ -13,56 +8,36 @@ import ListItem from "../components/ListItem.vue";
 
 const store = useListsStore();
 
-const openMenuForItemId = ref<
-    number | null
->(null);
 const showDeleteConfirm = ref(false);
 const itemToDelete = ref<number | null>(
     null,
 );
 
-const toggleMenu = (
-    e: Event,
-    id: number,
+const openMenuForItemId = ref<
+    number | null
+>(null);
+
+const handleMenuStateChange = (
+    itemId: number,
+    isOpen: boolean,
 ) => {
-    e.stopPropagation();
-    openMenuForItemId.value =
-        openMenuForItemId.value === id
-            ? null
-            : id;
+    openMenuForItemId.value = isOpen
+        ? itemId
+        : null;
 };
 
-const closeMenu = () => {
-    openMenuForItemId.value = null;
-};
-
-const onKeydown = (
-    e: KeyboardEvent,
+const getItemClass = (
+    itemId: number,
 ) => {
-    if (e.key === "Escape") closeMenu();
+    const baseClasses =
+        "cursor-pointer hover:scale-[1.02] transition-transform";
+    const activeClasses =
+        openMenuForItemId.value ===
+        itemId
+            ? " relative z-50"
+            : "";
+    return baseClasses + activeClasses;
 };
-
-onMounted(() => {
-    window.addEventListener(
-        "click",
-        closeMenu,
-    );
-    window.addEventListener(
-        "keydown",
-        onKeydown,
-    );
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener(
-        "click",
-        closeMenu,
-    );
-    window.removeEventListener(
-        "keydown",
-        onKeydown,
-    );
-});
 
 const openPreviewHistorial = (
     id: number,
@@ -73,13 +48,11 @@ const openPreviewHistorial = (
 const onRestore = (id: number) => {
     // Implementar lógica de restaurar
     alert("Restaurar " + id);
-    closeMenu();
 };
 
 const confirmDelete = (id: number) => {
     itemToDelete.value = id;
     showDeleteConfirm.value = true;
-    closeMenu();
 };
 
 const onDelete = () => {
@@ -104,19 +77,6 @@ const formatDate = (
         month: "short",
         year: "numeric",
     });
-};
-
-const getItemClass = (
-    itemId: number,
-) => {
-    const baseClasses =
-        "cursor-pointer hover:scale-[1.02] transition-transform";
-    const activeClasses =
-        openMenuForItemId.value ===
-        itemId
-            ? " relative z-50"
-            : "";
-    return baseClasses + activeClasses;
 };
 </script>
 
@@ -154,35 +114,7 @@ const getItemClass = (
                 "
             >
                 <template #actions>
-                    <button
-                        class="text-white hover:text-gray-200 transition-colors p-2"
-                        @click="
-                            toggleMenu(
-                                $event,
-                                item.id,
-                            )
-                        "
-                        aria-haspopup="menu"
-                        :aria-expanded="
-                            openMenuForItemId ===
-                            item.id
-                        "
-                    >
-                        <svg
-                            class="w-5 h-5"
-                            fill="currentColor"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#three-dots"
-                            />
-                        </svg>
-                    </button>
-
                     <ContextMenu
-                        :show="
-                            openMenuForItemId ===
-                            item.id
-                        "
                         :items="[
                             {
                                 label: 'Restaurar',
@@ -203,6 +135,13 @@ const getItemClass = (
                                     'danger',
                             },
                         ]"
+                        @menu-state-change="
+                            (isOpen) =>
+                                handleMenuStateChange(
+                                    item.id,
+                                    isOpen,
+                                )
+                        "
                     />
                 </template>
             </ListItem>
