@@ -17,6 +17,7 @@ const store = useListsStore()
 
 // Modal state
 const productName = ref('')
+const productDescription = ref('')
 const selectedCategory = ref('')
 const categorySearch = ref('')
 const isCategoryOpen = ref(false)
@@ -53,6 +54,7 @@ const filteredPantries = computed(() => {
 
 const closeModal = () => {
   productName.value = ''
+  productDescription.value = ''
   selectedCategory.value = ''
   categorySearch.value = ''
   newCategoryName.value = ''
@@ -96,13 +98,31 @@ const addNewPantry = () => {
   isPantryOpen.value = false
 }
 
-const submitProduct = () => {
+const submitProduct = async () => {
   const name = productName.value.trim()
   const category = selectedCategory.value.trim()
   const pantry = selectedPantry.value.trim()
+  const description = productDescription.value.trim()
   if (!name || !category) return
-  // For now we ignore the uploaded file in the data model and use a generic icon
-  store.addProduct({ name, category, pantry: pantry || undefined, icon: '🛒' })
+  
+  let imageBase64 = undefined
+  if (selectedFile.value) {
+    // Convert image to base64
+    const reader = new FileReader()
+    imageBase64 = await new Promise<string>((resolve) => {
+      reader.onload = (e) => resolve(e.target?.result as string)
+      reader.readAsDataURL(selectedFile.value!)
+    })
+  }
+  
+  store.addProduct({ 
+    name, 
+    category, 
+    pantry: pantry || undefined, 
+    icon: '🛒',
+    description: description || undefined,
+    image: imageBase64
+  })
   closeModal()
 }
 </script>
@@ -111,7 +131,7 @@ const submitProduct = () => {
   <BaseModal 
     :show="show" 
     title="Nuevo Producto"
-    max-width="md"
+    max-width="3xl"
     height="auto"
     @close="closeModal"
   >
@@ -127,19 +147,7 @@ const submitProduct = () => {
         />
       </div>
 
-      <!-- Media drop area -->
-      <label class="block">
-        <div class="w-full h-40 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:border-verde-sidebar hover:text-verde-sidebar transition-colors bg-white">
-          <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor">
-            <use href="@/assets/sprite.svg#image" />
-          </svg>
-          <span class="text-sm font-medium">Añadir Multimedia</span>
-          <span v-if="selectedFile" class="text-xs mt-1 text-verde-sidebar">{{ selectedFile.name }}</span>
-        </div>
-        <input type="file" class="hidden" @change="onFileChange" accept="image/*" />
-      </label>
-
-      <!-- Category selector -->
+       <!-- Category selector -->
       <div class="relative">
         <button
           type="button"
@@ -223,6 +231,35 @@ const submitProduct = () => {
           </div>
         </div>
       </div>
+
+
+      <!-- Description input -->
+      <div>
+        <div class="relative">
+          <textarea
+            v-model="productDescription"
+            maxlength="200"
+            placeholder="Descripción del producto (opcional)"
+            class="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white resize-none"
+            rows="3"
+          ></textarea>
+          <div class="absolute bottom-3 right-4 text-sm text-gray-400">
+            {{ productDescription.length }}/200
+          </div>
+        </div>
+      </div>
+
+      <!-- Media drop area -->
+      <label class="block">
+        <div class="w-full h-40 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:border-verde-sidebar hover:text-verde-sidebar transition-colors bg-white">
+          <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor">
+            <use href="@/assets/sprite.svg#image" />
+          </svg>
+          <span class="text-sm font-medium">Añadir Multimedia</span>
+          <span v-if="selectedFile" class="text-xs mt-1 text-verde-sidebar">{{ selectedFile.name }}</span>
+        </div>
+        <input type="file" class="hidden" @change="onFileChange" accept="image/*" />
+      </label>
 
 
       <!-- Botones de acción -->

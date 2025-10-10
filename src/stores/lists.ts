@@ -7,6 +7,8 @@ export interface Product {
   category: string
   pantry?: string
   icon: string
+  description?: string
+  image?: string
 }
 
 export interface ListItem {

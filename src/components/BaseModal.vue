@@ -6,11 +6,13 @@ interface Props {
   title?: string
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl'
   height?: string
+  closeOnClickOutside?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxWidth: '6xl',
-  height: '85vh'
+  height: '85vh',
+  closeOnClickOutside: false
 })
 
 const emit = defineEmits<{
@@ -19,6 +21,12 @@ const emit = defineEmits<{
 
 const closeModal = () => {
   emit('close')
+}
+
+const handleBackdropClick = () => {
+  if (props.closeOnClickOutside) {
+    closeModal()
+  }
 }
 
 const onKeydown = (e: KeyboardEvent) => {
@@ -51,7 +59,7 @@ const maxWidthClasses = {
     <div 
       v-if="show" 
       class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="closeModal"
+      @click.self="handleBackdropClick"
     >
       <div 
         :class="[maxWidthClasses[maxWidth], 'w-full overflow-hidden flex flex-col']"

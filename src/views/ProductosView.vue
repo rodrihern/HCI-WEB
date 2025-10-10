@@ -18,6 +18,22 @@ const productsByCategory = computed(() => {
   return grouped
 })
 
+// Distribuir productos en dos columnas
+const distributeInColumns = (products: typeof store.products) => {
+  const column1: typeof store.products = []
+  const column2: typeof store.products = []
+  
+  products.forEach((product, index) => {
+    if (index % 2 === 0) {
+      column1.push(product)
+    } else {
+      column2.push(product)
+    }
+  })
+  
+  return { column1, column2 }
+}
+
 // Modal state
 const showModal = ref(false)
 
@@ -44,14 +60,35 @@ const closeModal = () => {
         :key="category"
         :title="category"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <ProductCard
-            v-for="product in products"
-            :key="product.id"
-            :icon="product.icon"
-            :name="product.name"
-            :onActionClick="() => {}"
-          />
+        <!-- Dos columnas independientes -->
+        <div class="flex flex-col md:flex-row gap-3">
+          <!-- Columna 1 -->
+          <div class="flex-1 space-y-3">
+            <ProductCard
+              v-for="product in distributeInColumns(products).column1"
+              :key="product.id"
+              :icon="product.icon"
+              :name="product.name"
+              :category="product.category"
+              :description="product.description"
+              :image="product.image"
+              :onActionClick="() => {}"
+            />
+          </div>
+          
+          <!-- Columna 2 -->
+          <div class="flex-1 space-y-3">
+            <ProductCard
+              v-for="product in distributeInColumns(products).column2"
+              :key="product.id"
+              :icon="product.icon"
+              :name="product.name"
+              :category="product.category"
+              :description="product.description"
+              :image="product.image"
+              :onActionClick="() => {}"
+            />
+          </div>
         </div>
       </CollapsibleSection>
     </div>
