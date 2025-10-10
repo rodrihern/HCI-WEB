@@ -2,15 +2,16 @@
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
+import PreviewHistorialModal from '../components/PreviewHistorialModal.vue'
 import ContextMenu, { type ContextMenuItem } from '../components/ContextMenu.vue'
 
 const store = useListsStore()
 
-const openMenuForItemId = ref<string | null>(null)
+const openMenuForItemId = ref<number | null>(null)
 const showDeleteConfirm = ref(false)
-const itemToDelete = ref<string | null>(null)
+const itemToDelete = ref<number | null>(null)
 
-const toggleMenu = (e: Event, id: string) => {
+const toggleMenu = (e: Event, id: number) => {
   e.stopPropagation()
   openMenuForItemId.value = openMenuForItemId.value === id ? null : id
 }
@@ -33,13 +34,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-const onEdit = (id: string) => {
+const openPreviewHistorial = (id: number) => {
+  store.openPreviewHistorialModal(id)
+}
+
+const onEdit = (id: number) => {
   // Replace with real edit logic
   alert('Modificar ' + id)
   closeMenu()
 }
 
-const confirmDelete = (id: string) => {
+const confirmDelete = (id: number) => {
   itemToDelete.value = id
   showDeleteConfirm.value = true
   closeMenu()
@@ -57,15 +62,16 @@ const onDelete = () => {
 const historyByStore = computed(() => {
   const grouped: Record<string, typeof store.history> = {}
   store.history.forEach((item) => {
-    const storeGroup = grouped[item.store] || []
+    const storeName = item.list.name // Use list name as store name
+    const storeGroup = grouped[storeName] || []
     storeGroup.push(item)
-    grouped[item.store] = storeGroup
+    grouped[storeName] = storeGroup
   })
   return grouped
 })
 
-const formatDate = (date: Date) => {
-  return new Date(date).toLocaleDateString('es-ES', {
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('es-ES', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -88,12 +94,14 @@ const formatDate = (date: Date) => {
           <div
             v-for="item in items"
             :key="item.id"
-            class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
+            class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative cursor-pointer hover:scale-[1.02]"
+            @click="openPreviewHistorial(item.id)"
           >
             <div class="flex items-center justify-between" @click.stop>
               <div>
-                <h3 class="text-white font-semibold">{{ item.listName }}</h3>
-                <p class="text-white text-sm opacity-90">{{ formatDate(item.date) }}</p>
+                <h3 class="text-white font-semibold">{{ item.list.name }}</h3>
+                <p class="text-white text-sm opacity-90">{{ formatDate(item.list.lastPurchasedAt) }}</p>
+                <p class="text-white text-xs opacity-75">{{ item.listItemArray.length }} productos</p>
               </div>
               <button
                 class="text-white hover:text-gray-200 transition-colors p-2"
@@ -130,6 +138,9 @@ const formatDate = (date: Date) => {
       <p class="text-lg">No tienes historial todavía</p>
       <p class="text-sm">Tus compras aparecerán aquí</p>
     </div>
+
+    <!-- Modal para vista previa de historial -->
+    <PreviewHistorialModal @close="store.closePreviewHistorialModal" />
 
     <ConfirmationModal
       :show="showDeleteConfirm"

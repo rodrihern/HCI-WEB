@@ -39,10 +39,62 @@ export interface PantrySection {
 }
 
 export interface HistoryItem {
-  id: string
-  listName: string
-  date: Date
-  store: string
+  id: number
+  metadata: Record<string, any>
+  owner: {
+    id: number
+    name: string
+    surname: string
+    email: string
+    metadata: Record<string, any>
+    createdAt: string
+    updatedAt: string
+  }
+  list: {
+    id: number
+    name: string
+    description: string
+    recurring: boolean
+    metadata: Record<string, any>
+    owner: {
+      id: number
+      name: string
+      surname: string
+      email: string
+      metadata: Record<string, any>
+      createdAt: string
+      updatedAt: string
+    }
+    sharedWith: any[]
+    lastPurchasedAt: string
+    createdAt: string
+    updatedAt: string
+  }
+  listItemArray: Array<{
+    id: number
+    quantity: number
+    unit: string
+    metadata: Record<string, any>
+    purchased: boolean
+    lastPurchasedAt: string | null
+    createdAt: string
+    updatedAt: string
+    product: {
+      id: number
+      name: string
+      metadata: Record<string, any>
+      createdAt: string
+      updatedAt: string
+      category: {
+        id: number
+        name: string
+        metadata: Record<string, any>
+        createdAt: string
+        updatedAt: string
+      }
+      pantry: any
+    }
+  }>
 }
 
 export const useListsStore = defineStore('lists', () => {
@@ -54,6 +106,10 @@ export const useListsStore = defineStore('lists', () => {
   // Modal state for previewing list
   const isPreviewingList = ref(false)
   const previewingListId = ref<string | null>(null)
+
+  // Modal state for previewing historial
+  const isPreviewingHistorial = ref(false)
+  const previewingHistorialId = ref<number | null>(null)
 
   // Products mock data
   const products = ref<Product[]>([
@@ -117,9 +173,128 @@ export const useListsStore = defineStore('lists', () => {
 
   // History mock data
   const history = ref<HistoryItem[]>([
-    { id: '1', listName: 'Compra Marzo', date: new Date('2025-03-01'), store: 'Marzo' },
-    { id: '2', listName: 'Verduleria', date: new Date('2025-02-28'), store: 'Febrero' },
-    { id: '3', listName: 'Carniceria', date: new Date('2025-02-25'), store: 'Febrero' },
+    {
+      id: 1,
+      metadata: {},
+      owner: {
+        id: 2,
+        name: "Juan",
+        surname: "Doe",
+        email: "juan@example.com",
+        metadata: {},
+        createdAt: "2023-10-09 08:30:00",
+        updatedAt: "2023-10-10 14:00:00"
+      },
+      list: {
+        id: 1,
+        name: "Supermarket",
+        description: "Monthly groceries",
+        recurring: true,
+        metadata: {},
+        owner: {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "johndoe@email.com",
+          metadata: {},
+          createdAt: "2025-10-09 09:15:00",
+          updatedAt: "2025-10-10 15:30:00"
+        },
+        sharedWith: [],
+        lastPurchasedAt: "2025-09-05 18:00:00",
+        createdAt: "2025-09-01 10:30:00",
+        updatedAt: "2025-09-05 14:45:00"
+      },
+      listItemArray: [
+        {
+          id: 2,
+          quantity: 4,
+          unit: "l",
+          metadata: {},
+          purchased: false,
+          lastPurchasedAt: null,
+          createdAt: "2025-09-16 11:00:00",
+          updatedAt: "2025-09-16 11:00:00",
+          product: {
+            id: 2,
+            name: "Milk",
+            metadata: {
+              barcode: "2222222222"
+            },
+            createdAt: "2025-09-11 10:30:00",
+            updatedAt: "2025-09-11 10:30:00",
+            category: {
+              id: 2,
+              name: "Bakery",
+              metadata: {},
+              createdAt: "2025-09-08 09:00:00",
+              updatedAt: "2025-09-08 09:00:00"
+            },
+            pantry: null
+          }
+        }
+      ]
+    },
+    {
+      id: 2,
+      metadata: {},
+      owner: {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "johndoe@email.com",
+        metadata: {},
+        createdAt: "2023-10-09 08:30:00",
+        updatedAt: "2023-10-10 14:00:00"
+      },
+      list: {
+        id: 2,
+        name: "Verduleria",
+        description: "Fresh vegetables and fruits",
+        recurring: false,
+        metadata: {},
+        owner: {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "johndoe@email.com",
+          metadata: {},
+          createdAt: "2025-10-09 09:15:00",
+          updatedAt: "2025-10-10 15:30:00"
+        },
+        sharedWith: [],
+        lastPurchasedAt: "2025-02-28 16:30:00",
+        createdAt: "2025-02-25 10:00:00",
+        updatedAt: "2025-02-28 16:30:00"
+      },
+      listItemArray: [
+        {
+          id: 3,
+          quantity: 2,
+          unit: "kg",
+          metadata: {},
+          purchased: true,
+          lastPurchasedAt: "2025-02-28 16:30:00",
+          createdAt: "2025-02-25 11:00:00",
+          updatedAt: "2025-02-28 16:30:00",
+          product: {
+            id: 1,
+            name: "Banana",
+            metadata: {},
+            createdAt: "2025-02-20 10:30:00",
+            updatedAt: "2025-02-20 10:30:00",
+            category: {
+              id: 1,
+              name: "Frutas",
+              metadata: {},
+              createdAt: "2025-02-15 09:00:00",
+              updatedAt: "2025-02-15 09:00:00"
+            },
+            pantry: null
+          }
+        }
+      ]
+    }
   ])
 
   // Actions
@@ -301,6 +476,22 @@ export const useListsStore = defineStore('lists', () => {
     return lists.value.find(l => l.id === previewingListId.value)
   }
 
+  // Preview historial modal functions
+  const openPreviewHistorialModal = (historialId: number) => {
+    previewingHistorialId.value = historialId
+    isPreviewingHistorial.value = true
+  }
+
+  const closePreviewHistorialModal = () => {
+    isPreviewingHistorial.value = false
+    previewingHistorialId.value = null
+  }
+
+  const getPreviewingHistorial = () => {
+    if (!previewingHistorialId.value) return null
+    return history.value.find(h => h.id === previewingHistorialId.value)
+  }
+
   return {
     products,
     lists,
@@ -311,6 +502,8 @@ export const useListsStore = defineStore('lists', () => {
     newListProducts,
     isPreviewingList,
     previewingListId,
+    isPreviewingHistorial,
+    previewingHistorialId,
     addList,
     deleteList,
     toggleFavorite,
@@ -336,6 +529,9 @@ export const useListsStore = defineStore('lists', () => {
     addItemToList,
     removeItemFromList,
     getPreviewingList,
+    openPreviewHistorialModal,
+    closePreviewHistorialModal,
+    getPreviewingHistorial,
   }
 })
 
