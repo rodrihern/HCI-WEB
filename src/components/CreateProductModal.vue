@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useListsStore } from '@/stores/lists'
 import BaseModal from './BaseModal.vue'
+import type { Product } from '@/stores/lists'
 
 interface Props {
   show: boolean
+  productToEdit?: Product | null
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   close: []
@@ -27,6 +29,22 @@ const pantrySearch = ref('')
 const isPantryOpen = ref(false)
 const newPantryName = ref('')
 const selectedFile = ref<File | null>(null)
+const existingImage = ref<string | undefined>(undefined)
+
+// Modo edición
+const isEditMode = computed(() => !!props.productToEdit)
+
+// Cargar datos del producto cuando se abre en modo edición
+watch(() => props.productToEdit, (product) => {
+  if (product) {
+    productName.value = product.name
+    productDescription.value = product.description || ''
+    selectedCategory.value = product.category
+    selectedPantry.value = product.pantry || ''
+    existingImage.value = product.image
+    selectedFile.value = null
+  }
+}, { immediate: true })
 
 // Derive unique categories from existing products
 const categories = computed(() => {
@@ -62,6 +80,7 @@ const closeModal = () => {
   pantrySearch.value = ''
   newPantryName.value = ''
   selectedFile.value = null
+  existingImage.value = undefined
   isCategoryOpen.value = false
   isPantryOpen.value = false
   emit('close')
@@ -105,9 +124,9 @@ const submitProduct = async () => {
   const description = productDescription.value.trim()
   if (!name || !category) return
   
-  let imageBase64 = undefined
+  let imageBase64 = existingImage.value
   if (selectedFile.value) {
-    // Convert image to base64
+    // Convert new image to base64
     const reader = new FileReader()
     imageBase64 = await new Promise<string>((resolve) => {
       reader.onload = (e) => resolve(e.target?.result as string)
@@ -115,14 +134,29 @@ const submitProduct = async () => {
     })
   }
   
-  store.addProduct({ 
-    name, 
-    category, 
-    pantry: pantry || undefined, 
-    icon: '🛒',
-    description: description || undefined,
-    image: imageBase64
-  })
+  if (isEditMode.value && props.productToEdit) {
+    // Modo edición - eliminar el viejo y crear uno nuevo
+    store.deleteProduct(props.productToEdit.id)
+    store.addProduct({ 
+      name, 
+      category, 
+      pantry: pantry || undefined, 
+      icon: props.productToEdit.icon,
+      description: description || undefined,
+      image: imageBase64
+    })
+  } else {
+    // Modo creación - crear nuevo producto
+    store.addProduct({ 
+      name, 
+      category, 
+      pantry: pantry || undefined, 
+      icon: '🛒',
+      description: description || undefined,
+      image: imageBase64
+    })
+  }
+  
   closeModal()
 }
 </script>
@@ -130,7 +164,7 @@ const submitProduct = async () => {
 <template>
   <BaseModal 
     :show="show" 
-    title="Nuevo Producto"
+    :title="isEditMode ? 'Editar Producto' : 'Nuevo Producto'"
     max-width="3xl"
     height="auto"
     @close="closeModal"
