@@ -13,6 +13,8 @@ import ListItem from "@/components/ListItem.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import QuantityControls from "@/components/QuantityControls.vue";
+import CreatePantrySectionModal from "@/components/CreatePantrySectionModal.vue";
+import AddToPantryModal from "@/components/AddToPantryModal.vue";
 
 const store = useListsStore();
 
@@ -54,41 +56,54 @@ const itemToDelete = ref<{
     productId: string;
 } | null>(null);
 
-const addToPantry = (
+const showCreateSectionModal =
+    ref(false);
+const showAddProductModal = ref(false);
+const addProductToSection = ref<
+    string | undefined
+>(undefined);
+
+const openCreateSectionModal = () => {
+    showCreateSectionModal.value = true;
+};
+
+const openAddProductModal = (
     sectionId?: string,
 ) => {
-    const productName = prompt(
-        "Nombre del producto:",
-    );
-    if (!productName) return;
+    addProductToSection.value =
+        sectionId;
+    showAddProductModal.value = true;
+};
 
-    const product = store.products.find(
-        (p) =>
-            p.name.toLowerCase() ===
-            productName.toLowerCase(),
-    );
-    if (!product) {
-        alert("Producto no encontrado");
-        return;
-    }
+const handleCreateSection = (
+    name: string,
+) => {
+    // Aquí deberías tener un método en el store para crear una nueva sección
+    // store.createPantrySection(name);
+    console.log("Crear sección:", name);
+    showCreateSectionModal.value = false;
+};
 
-    const quantity = parseInt(
-        prompt("Cantidad:") || "0",
-    );
-    if (quantity > 0) {
-        if (sectionId) {
-            store.addToPantryInSection(
-                sectionId,
-                product.id,
-                quantity,
-            );
-        } else {
-            store.addToPantry(
-                product.id,
-                quantity,
-            );
-        }
+const handleAddProduct = (
+    productId: string,
+    quantity: number,
+    sectionId?: string,
+) => {
+    if (sectionId) {
+        store.addToPantryInSection(
+            sectionId,
+            productId,
+            quantity,
+        );
+    } else {
+        store.addToPantry(
+            productId,
+            quantity,
+        );
     }
+    showAddProductModal.value = false;
+    addProductToSection.value =
+        undefined;
 };
 
 const updateQuantity = (
@@ -97,16 +112,26 @@ const updateQuantity = (
     change: number,
 ) => {
     // Obtener la cantidad actual
-    const section = store.pantrySections.find(s => s.id === sectionId);
-    const item = section?.items.find(i => i.productId === productId);
-    const currentQuantity = item?.quantity || 0;
-    
+    const section =
+        store.pantrySections.find(
+            (s) => s.id === sectionId,
+        );
+    const item = section?.items.find(
+        (i) =>
+            i.productId === productId,
+    );
+    const currentQuantity =
+        item?.quantity || 0;
+
     // Si la cantidad resultante es 0 o menos, mostrar confirmación
     if (currentQuantity + change <= 0) {
-        confirmDeleteItem(sectionId, productId);
+        confirmDeleteItem(
+            sectionId,
+            productId,
+        );
         return;
     }
-    
+
     if (change > 0)
         store.addToPantryInSection(
             sectionId,
@@ -237,7 +262,7 @@ const shareSection = (
         <PageHeader
             title="Despensa"
             :onAddClick="
-                () => addToPantry()
+                openCreateSectionModal
             "
             :showFilter="true"
         />
@@ -251,7 +276,7 @@ const shareSection = (
                 addButtonText="Agregar"
                 :onAddClick="
                     () =>
-                        addToPantry(
+                        openAddProductModal(
                             section.id,
                         )
                 "
@@ -274,41 +299,93 @@ const shareSection = (
                         "
                         class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative"
                     >
-                        <div class="flex items-center justify-between">
+                        <div
+                            class="flex items-center justify-between"
+                        >
                             <!-- Lado izquierdo: Imagen/Icono y textos -->
-                            <div class="flex items-center gap-4 flex-1">
+                            <div
+                                class="flex items-center gap-4 flex-1"
+                            >
                                 <!-- Imagen del producto -->
                                 <div
                                     class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-white/90 flex items-center justify-center"
                                 >
                                     <img
-                                        v-if="item.product.image"
-                                        :src="item.product.image"
-                                        :alt="item.product.name"
+                                        v-if="
+                                            item
+                                                .product
+                                                .image
+                                        "
+                                        :src="
+                                            item
+                                                .product
+                                                .image
+                                        "
+                                        :alt="
+                                            item
+                                                .product
+                                                .name
+                                        "
                                         class="w-full h-full object-cover"
                                     />
                                     <span
                                         v-else
                                         class="text-3xl"
-                                    >{{ item.product.icon }}</span>
+                                        >{{
+                                            item
+                                                .product
+                                                .icon
+                                        }}</span
+                                    >
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="text-white font-semibold text-lg">
-                                        {{ item.product.name }}
+                                <div
+                                    class="flex-1 min-w-0"
+                                >
+                                    <h3
+                                        class="text-white font-semibold text-lg"
+                                    >
+                                        {{
+                                            item
+                                                .product
+                                                .name
+                                        }}
                                     </h3>
-                                    <p class="text-white/80 text-sm">
-                                        {{ item.product.category }}
+                                    <p
+                                        class="text-white/80 text-sm"
+                                    >
+                                        {{
+                                            item
+                                                .product
+                                                .category
+                                        }}
                                     </p>
                                 </div>
                             </div>
 
                             <!-- Lado derecho: Controles -->
-                            <div class="flex items-center gap-3" @click.stop>
+                            <div
+                                class="flex items-center gap-3"
+                                @click.stop
+                            >
                                 <!-- Controles de cantidad (para DespensaView) -->
                                 <QuantityControls
-                                    :quantity="item.quantity"
-                                    @increment="updateQuantity(section.id, item.productId, 1)"
-                                    @decrement="updateQuantity(section.id, item.productId, -1)"
+                                    :quantity="
+                                        item.quantity
+                                    "
+                                    @increment="
+                                        updateQuantity(
+                                            section.id,
+                                            item.productId,
+                                            1,
+                                        )
+                                    "
+                                    @decrement="
+                                        updateQuantity(
+                                            section.id,
+                                            item.productId,
+                                            -1,
+                                        )
+                                    "
                                 />
 
                                 <!-- Slot para acciones personalizadas (estrella, menú contextual, etc) -->
@@ -383,5 +460,28 @@ const shareSection = (
                 </p>
             </template>
         </ConfirmationModal>
+
+        <CreatePantrySectionModal
+            :show="
+                showCreateSectionModal
+            "
+            @close="
+                showCreateSectionModal = false
+            "
+            @create="
+                handleCreateSection
+            "
+        />
+
+        <AddToPantryModal
+            :show="showAddProductModal"
+            :section-id="
+                addProductToSection
+            "
+            @close="
+                showAddProductModal = false
+            "
+            @add="handleAddProduct"
+        />
     </div>
 </template>
