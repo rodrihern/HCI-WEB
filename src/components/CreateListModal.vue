@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useListsStore } from '@/stores/lists'
+import { useShoppingList } from '@/composables/shoppingList'
+import { ShoppingListApi } from '@/api/shoppingList'
+import type { ShoppingListData } from '@/api/shoppingList'
 import BaseModal from './BaseModal.vue'
+import QuantityControls from './QuantityControls.vue'
 
 const store = useListsStore()
+const { getAllShoppingLists } = useShoppingList()
 const searchProduct = ref('')
+const isCreating = ref(false)
+const emailToShare = ref('')
+const showShareInput = ref(false)
+
+// Collaborators with email tracking
+const collaborators = ref<Array<{ id: string, name: string, avatar: string, isOwner: boolean, email?: string }>>([
+  { id: '1', name: 'Yo', avatar: '👤', isOwner: true }
+])
 
 const emit = defineEmits<{
   close: []
@@ -12,6 +25,11 @@ const emit = defineEmits<{
 
 const closeModal = () => {
   searchProduct.value = ''
+  emailToShare.value = ''
+  showShareInput.value = false
+  // Reset collaborators to just the owner
+  collaborators.value = [{ id: '1', name: 'Yo', avatar: '👤', isOwner: true }]
+  store.closeCreateListModal()
   emit('close')
 }
 
@@ -40,10 +58,69 @@ const decrementQuantity = (index: number) => {
   }
 }
 
-const createList = () => {
-  if (store.newListName.trim()) {
-    store.addList(store.newListName.trim())
+const toggleShareInput = () => {
+  showShareInput.value = !showShareInput.value
+}
+
+const shareList = () => {
+  if (emailToShare.value.trim()) {
+    // Add to collaborators temporarily with email stored
+    const email = emailToShare.value.trim()
+    const newCollaborator = {
+      id: Date.now().toString(),
+      name: email.split('@')[0] || email,
+      avatar: '👥',
+      isOwner: false,
+      email: email
+    }
+    collaborators.value.push(newCollaborator)
+    emailToShare.value = ''
+    showShareInput.value = false
+  }
+}
+
+const removeCollaborator = (id: string) => {
+  collaborators.value = collaborators.value.filter(c => c.id !== id)
+}
+
+const createList = async () => {
+  if (!store.newListName.trim()) return
+  
+  isCreating.value = true
+  
+  try {
+    const newList: Partial<ShoppingListData> = {
+      name: store.newListName.trim(),
+      description: 'Nueva lista',
+      recurring: false,
+      metadata: {}
+    }
+    
+    // Import the API and store
+    const { useShoppingListStore } = await import('@/stores2/shoppingList')
+    const shoppingListStore = useShoppingListStore()
+    
+    const createdList = await shoppingListStore.add(newList)
+    
+    // Share list with collaborators if any (excluding owner)
+    const collaboratorsToShare = collaborators.value.filter(c => !c.isOwner && c.email)
+    for (const collab of collaboratorsToShare) {
+      try {
+        await ShoppingListApi.share(createdList.id!, collab.email!)
+      } catch (error) {
+        console.error(`Error sharing list with ${collab.email}:`, error)
+        // Continue with other collaborators even if one fails
+      }
+    }
+    
+    await getAllShoppingLists()
+    
     closeModal()
+  } catch (error) {
+    console.error('Error creating list:', error)
+    alert('Error al crear la lista. Por favor intenta de nuevo.')
+  } finally {
+    isCreating.value = false
   }
 }
 </script>
@@ -56,17 +133,83 @@ const createList = () => {
   >
     <!-- Contenido del Modal - Dos columnas -->
     <div class="flex h-full overflow-hidden">
-      <!-- Columna Izquierda - Nombre y Productos de la Lista -->
+      <!-- Columna Izquierda - Lista y Productos -->
       <div class="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
         <div class="p-8 overflow-y-auto flex-1">
-          <!-- Input para el nombre de la lista -->
-          <div class="mb-8">
-            <input 
-              v-model="store.newListName"
-              type="text" 
-              placeholder="Nombre de la lista"
-              class="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
-            />
+          <!-- Información de la lista -->
+          <div class="mb-6">
+            <!-- Input para el nombre de la lista -->
+            <div class="mb-4">
+              <input 
+                v-model="store.newListName"
+                type="text" 
+                placeholder="Nombre de la lista"
+                class="w-full px-5 py-4 text-xl font-bold border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
+              />
+            </div>
+            
+            <!-- Colaboradores -->
+            <div class="mb-6">
+              <h4 class="text-lg font-semibold text-gray-700 mb-3">Colaboradores</h4>
+              <div class="flex items-center gap-2 flex-wrap">
+                <div 
+                  v-for="user in collaborators" 
+                  :key="user.id"
+                  class="flex items-center gap-2 bg-white rounded-full px-3 py-2 border border-gray-200"
+                >
+                  <span class="text-lg">{{ user.avatar }}</span>
+                  <span class="text-sm font-medium text-gray-700">{{ user.name }}</span>
+                  <button 
+                    v-if="!user.isOwner"
+                    @click="removeCollaborator(user.id)"
+                    class="text-gray-400 hover:text-red-500 ml-1"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- Botón para agregar colaborador -->
+                <button 
+                  @click="toggleShareInput"
+                  class="flex items-center justify-center w-8 h-8 bg-verde-sidebar text-white rounded-full hover:bg-verde-contraste transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+              
+              <!-- Input para compartir por email -->
+              <transition
+                enter-active-class="transition-all duration-200"
+                leave-active-class="transition-all duration-200"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 -translate-y-2"
+              >
+                <div v-if="showShareInput" class="mt-3">
+                  <div class="flex gap-2">
+                    <input 
+                      v-model="emailToShare"
+                      type="email"
+                      placeholder="Email del colaborador"
+                      class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
+                      @keyup.enter="shareList"
+                    />
+                    <button 
+                      @click="shareList"
+                      :disabled="!emailToShare.trim()"
+                      class="px-4 py-2 bg-verde-sidebar text-white rounded-xl hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                </div>
+              </transition>
+            </div>
           </div>
 
           <!-- Productos en la lista -->
@@ -85,24 +228,16 @@ const createList = () => {
                 :key="index"
                 class="flex items-center gap-3 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
               >
-                <span class="flex-1 text-gray-800 font-semibold text-lg">{{ product.name }}</span>
-                
-                <!-- Controles de cantidad -->
-                <div class="flex items-center gap-3 bg-gray-100 rounded-xl px-3 py-2">
-                  <button 
-                    @click="decrementQuantity(index)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
-                  >
-                    −
-                  </button>
-                  <span class="text-gray-800 font-bold min-w-[3rem] text-center text-lg">{{ product.quantity }}</span>
-                  <button 
-                    @click="incrementQuantity(index)"
-                    class="text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center"
-                  >
-                    +
-                  </button>
+                <!-- Producto info -->
+                <div class="flex-1">
+                  <span class="text-gray-800 font-semibold text-lg">{{ product.name }}</span>
                 </div>
+                
+                <QuantityControls
+                  :quantity="product.quantity"
+                  @increment="incrementQuantity(index)"
+                  @decrement="decrementQuantity(index)"
+                />
 
                 <!-- Botón eliminar producto -->
                 <button 
@@ -118,14 +253,14 @@ const createList = () => {
           </div>
         </div>
 
-        <!-- Botón Listo en la columna izquierda -->
+        <!-- Botón de acción en la columna izquierda -->
         <div class="p-6 bg-gray-50 flex justify-center border-t border-gray-200">
           <button 
             @click="createList"
-            :disabled="!store.newListName.trim()"
+            :disabled="!store.newListName.trim() || isCreating"
             class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
           >
-            Listo
+            {{ isCreating ? 'Creando...' : 'Crear Lista' }}
           </button>
         </div>
       </div>

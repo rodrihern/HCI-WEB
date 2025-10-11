@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
     <div
         :class="[
             'relative flex-shrink-0',
-            { 'z-50': showMenu },
+            { 'z-[100]': showMenu },
         ]"
     >
         <button
@@ -110,7 +110,7 @@ onBeforeUnmount(() => {
 
         <div
             v-if="showMenu"
-            class="absolute right-2 top-12 z-50 w-44 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
+            class="absolute right-2 top-12 z-[100] w-44 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200"
             role="menu"
             @click.stop
         >

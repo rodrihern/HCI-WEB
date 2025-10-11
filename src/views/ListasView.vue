@@ -1,24 +1,47 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
+import { useShoppingList } from '@/composables/shoppingList'
+import { useUser } from '@/composables/user'
+import { ShoppingListApi } from '@/api/shoppingList'
 import PageHeader from '@/components/PageHeader.vue'
 import CreateListModal from '@/components/CreateListModal.vue'
 import PreviewListModal from '@/components/PreviewListModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import ListItem from '@/components/ListItem.vue'
+import ContextMenu from '@/components/ContextMenu.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import type { ContextMenuItem } from '@/components/ContextMenu.vue'
+import type { ShoppingListData } from '@/api/shoppingList'
 
 const store = useListsStore()
-const animatingFavorites = ref<Set<string>>(new Set())
+const { shoppingLists, deleteShoppingList, getAllShoppingLists } = useShoppingList()
+const { user } = useUser()
+const animatingFavorites = ref<Set<number>>(new Set())
 
 // Estado del modal de confirmación
 const showDeleteConfirm = ref(false)
-const listToDelete = ref<string | null>(null)
+const listToDelete = ref<number | null>(null)
+
+// Estado del modal de compartir
+const showShareModal = ref(false)
+const listToShare = ref<number | null>(null)
+const shareEmail = ref('')
+const isSharing = ref(false)
+const shareError = ref('')
+const shareSuccess = ref(false)
 
 const sortedLists = computed(() => {
-  return [...store.lists].sort((a, b) => {
-    if (a.isFavorite && !b.isFavorite) return -1
-    if (!a.isFavorite && b.isFavorite) return 1
-    return b.createdAt.getTime() - a.createdAt.getTime()
+  return [...shoppingLists.value].sort((a, b) => {
+    // Primero por recurrentes
+    const aRec = a.recurring === true ? 1 : 0
+    const bRec = b.recurring === true ? 1 : 0
+    if (aRec !== bRec) return bRec - aRec
+    
+    // Luego por fecha de creación (más reciente primero)
+    const dateA = new Date(a.createdAt || 0).getTime()
+    const dateB = new Date(b.createdAt || 0).getTime()
+    return dateB - dateA
   })
 })
 
@@ -26,36 +49,132 @@ const addNewList = () => {
   store.openCreateListModal()
 }
 
-const openPreviewList = (listId: string) => {
-  store.openPreviewListModal(listId)
+const openPreviewList = (listId: number) => {
+  store.openPreviewListModal(String(listId))
 }
 
-const confirmDelete = (id: string) => {
+const getListSubtitle = (list: ShoppingListData): string => {
+  if (!list.owner) {
+    return list.description || 'Sin descripción'
+  }
+  
+  // Check if current user is the owner
+  // Convert both IDs to numbers for comparison in case one is a string
+  const currentUserId = user.value?.id ? Number(user.value.id) : null
+  const ownerId = list.owner.id ? Number(list.owner.id) : null
+  
+  if (currentUserId && ownerId && currentUserId === ownerId) {
+    return 'Creada por mí'
+  }
+  
+  // Show owner name
+  const ownerName = list.owner.name || list.owner.email?.split('@')[0] || 'Usuario'
+  return `Creada por ${ownerName}`
+}
+
+const confirmDelete = (id: number) => {
   listToDelete.value = id
   showDeleteConfirm.value = true
 }
 
-const deleteList = () => {
+const deleteList = async () => {
   if (listToDelete.value) {
-    store.deleteList(listToDelete.value)
+    await deleteShoppingList(listToDelete.value)
     listToDelete.value = null
   }
   showDeleteConfirm.value = false
 }
 
-const toggleFavoriteWithAnimation = (id: string) => {
+const toggleRecurringWithAnimation = async (id: number) => {
   // Agregar animación
   animatingFavorites.value.add(id)
   
-  // Esperar un momento antes de cambiar el estado para que se vea la animación
+  // Encontrar la lista
+  const list = shoppingLists.value.find(l => l.id === id)
+  if (list) {
+    try {
+      // Toggle recurring
+      const updatedList = {
+        ...list,
+        recurring: !list.recurring
+      }
+      
+      // Actualizar en API
+      const { useShoppingListStore } = await import('@/stores2/shoppingList')
+      const shoppingListStore = useShoppingListStore()
+      await shoppingListStore.modify(updatedList)
+    } catch (error) {
+      console.error('Error toggling recurring:', error)
+    }
+  }
+  
+  // Remover animación
   setTimeout(() => {
-    store.toggleFavorite(id)
+    animatingFavorites.value.delete(id)
+  }, 400)
+}
+
+// Funciones del menú de contexto
+const getContextMenuItems = (listId: number): ContextMenuItem[] => {
+  return [
+    {
+      label: 'Editar',
+      onClick: () => openPreviewList(listId)
+    },
+    {
+      label: 'Compartir',
+      onClick: () => openShareModal(listId)
+    },
+    {
+      label: 'Eliminar',
+      onClick: () => confirmDelete(listId),
+      variant: 'danger'
+    }
+  ]
+}
+
+// Modal de compartir
+const openShareModal = (listId: number) => {
+  listToShare.value = listId
+  shareEmail.value = ''
+  shareError.value = ''
+  shareSuccess.value = false
+  showShareModal.value = true
+}
+
+const closeShareModal = () => {
+  showShareModal.value = false
+  listToShare.value = null
+  shareEmail.value = ''
+  shareError.value = ''
+  shareSuccess.value = false
+}
+
+const shareList = async () => {
+  if (!listToShare.value || !shareEmail.value.trim()) {
+    shareError.value = 'Por favor ingresa un email válido'
+    return
+  }
+
+  isSharing.value = true
+  shareError.value = ''
+  shareSuccess.value = false
+
+  try {
+    await ShoppingListApi.share(listToShare.value, shareEmail.value.trim())
+    shareSuccess.value = true
+    shareEmail.value = ''
     
-    // Remover de animación después de que termine
+    // Cerrar modal después de 1.5 segundos
     setTimeout(() => {
-      animatingFavorites.value.delete(id)
-    }, 200)
-  }, 200)
+      closeShareModal()
+    }, 1500)
+  } catch (error: any) {
+    console.error('Error sharing list:', error)
+    shareError.value = error.message || 'Error al compartir la lista. Intenta de nuevo.'
+  } finally {
+    isSharing.value = false
+  }
 }
 </script>
 
@@ -74,39 +193,52 @@ const toggleFavoriteWithAnimation = (id: string) => {
           v-for="list in sortedLists"
           :key="list.id"
           :title="list.name"
-          subtitle="Creada por Mamá"
-          :is-animating="animatingFavorites.has(list.id)"
-          @click="openPreviewList(list.id)"
+          :subtitle="getListSubtitle(list)"
+          :is-animating="list.id ? animatingFavorites.has(list.id) : false"
+          @click="list.id && openPreviewList(list.id)"
           class="cursor-pointer hover:scale-[1.02] transition-transform"
         >
           <template #actions>
-            <button
-              @click.stop="toggleFavoriteWithAnimation(list.id)"
-              class="p-2 hover:scale-110 transition-transform duration-200"
-            >
-              <!-- Filled Star (Favorite) -->
-              <svg 
-                v-if="list.isFavorite"
-                class="w-7 h-7 text-yellow-300 transition-all duration-200"
-                :class="{ 'favorite-bounce': animatingFavorites.has(list.id) }"
-                stroke="currentColor"
-                fill="currentColor" 
-                viewBox="0 0 24 24"
+            <div class="flex items-center gap-1">
+              <!-- Star Button -->
+              <button
+                @click.stop="list.id && toggleRecurringWithAnimation(list.id)"
+                class="p-2 hover:scale-110 transition-transform duration-200"
+                :title="list.recurring ? 'Lista recurrente' : 'Hacer recurrente'"
               >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              <!-- Outline Star (Not Favorite) -->
-              <svg 
-                v-else
-                class="w-7 h-7 text-white opacity-60 hover:opacity-100 transition-all duration-200"
-                fill="none" 
-                stroke="currentColor" 
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-            </button>
+                <!-- Filled Star (Recurring) -->
+                <svg 
+                  v-if="list.recurring"
+                  class="w-7 h-7 text-yellow-300 transition-all duration-200"
+                  :class="{ 'favorite-bounce': list.id && animatingFavorites.has(list.id) }"
+                  stroke="currentColor"
+                  fill="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <!-- Outline Star (Not Recurring) -->
+                <svg 
+                  v-else
+                  class="w-7 h-7 text-white opacity-60 hover:opacity-100 transition-all duration-200"
+                  fill="none" 
+                  stroke="currentColor" 
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </button>
+              
+              <!-- Context Menu (3 dots) -->
+              <div @click.stop class="relative z-50">
+                <ContextMenu
+                  v-if="list.id"
+                  :items="getContextMenuItems(list.id)"
+                  icon-color="text-white opacity-60 hover:opacity-100"
+                />
+              </div>
+            </div>
           </template>
         </ListItem>
       </transition-group>
@@ -141,4 +273,70 @@ const toggleFavoriteWithAnimation = (id: string) => {
       </p>
     </template>
   </ConfirmationModal>
+
+  <!-- Modal para compartir lista -->
+  <BaseModal
+    :show="showShareModal"
+    title="Compartir Lista"
+    max-width="md"
+    @close="closeShareModal"
+  >
+    <div class="p-6">
+      <div class="space-y-4">
+        <!-- Mensaje de éxito -->
+        <div v-if="shareSuccess" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <p class="text-green-800 font-medium">¡Lista compartida exitosamente!</p>
+        </div>
+
+        <!-- Formulario -->
+        <div v-else>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Email del colaborador
+          </label>
+          <input 
+            v-model="shareEmail"
+            type="email"
+            placeholder="ejemplo@email.com"
+            class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors"
+            @keyup.enter="shareList"
+            :disabled="isSharing"
+          />
+
+          <!-- Mensaje de error -->
+          <p v-if="shareError" class="text-red-600 text-sm mt-2">
+            {{ shareError }}
+          </p>
+
+          <!-- Información -->
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
+            <p class="text-sm text-blue-800">
+              💡 El usuario recibirá acceso para ver y editar esta lista
+            </p>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="flex gap-3 pt-4">
+          <button 
+            @click="closeShareModal"
+            :disabled="isSharing"
+            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ shareSuccess ? 'Cerrar' : 'Cancelar' }}
+          </button>
+          <button 
+            v-if="!shareSuccess"
+            @click="shareList"
+            :disabled="!shareEmail.trim() || isSharing"
+            class="flex-1 px-6 py-3 bg-verde-sidebar text-white font-semibold rounded-xl hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ isSharing ? 'Compartiendo...' : 'Compartir' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </BaseModal>
 </template>

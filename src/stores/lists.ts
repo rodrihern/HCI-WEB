@@ -111,45 +111,11 @@ export const useListsStore = defineStore('lists', () => {
   const isPreviewingHistorial = ref(false)
   const previewingHistorialId = ref<number | null>(null)
 
-  // Products mock data
-  const products = ref<Product[]>([
-    { id: '1', name: 'Banana', category: 'Frutas', icon: '🍌' },
-    { id: '2', name: 'Leche Proteica', category: 'Lácteos', icon: '🥛' },
-    { id: '3', name: 'Papitas', category: 'Snacks', icon: '🥔' },
-    { id: '4', name: 'Oreos', category: 'Galletas', icon: '🍪' },
-    { id: '5', name: 'Frutilla', category: 'Frutas', icon: '🍓' },
-  ])
+  // Products - now managed by API
+  const products = ref<Product[]>([])
 
-  // Shopping lists mock data
-  const lists = ref<ShoppingList[]>([
-    {
-      id: '1',
-      name: 'Compra Marzo',
-      items: [
-        { productId: '1', quantity: 6, unit: 'kg', checked: false, metadata: {} },
-        { productId: '2', quantity: 2, unit: 'l', checked: false, metadata: {} },
-      ],
-      createdAt: new Date('2025-03-15'),
-      isFavorite: true,
-    },
-    {
-      id: '2',
-      name: 'Verduleria',
-      items: [
-        { productId: '1', quantity: 3, unit: 'kg', checked: false, metadata: {} },
-        { productId: '5', quantity: 2, unit: 'kg', checked: false, metadata: {} },
-      ],
-      createdAt: new Date('2025-03-18'),
-      isFavorite: false,
-    },
-    {
-      id: '3',
-      name: 'Carniceria',
-      items: [],
-      createdAt: new Date('2025-03-20'),
-      isFavorite: false,
-    },
-  ])
+  // Shopping lists - now managed by API
+  const lists = ref<ShoppingList[]>([])
 
   // Pantry mock data (now grouped into sections)
   const pantrySections = ref<PantrySection[]>([
@@ -298,16 +264,8 @@ export const useListsStore = defineStore('lists', () => {
   ])
 
   // Actions
-  const addList = (name: string) => {
-    lists.value.push({
-      id: Date.now().toString(),
-      name,
-      items: [],
-      createdAt: new Date(),
-      isFavorite: false,
-    })
-  }
-
+  // Note: List CRUD operations now handled by API via useShoppingList composable
+  // Mock lists array maintained for backward compatibility with other features
 
   const deleteList = (id: string) => {
     lists.value = lists.value.filter((list) => list.id !== id)
@@ -504,7 +462,6 @@ export const useListsStore = defineStore('lists', () => {
     previewingListId,
     isPreviewingHistorial,
     previewingHistorialId,
-    addList,
     deleteList,
     toggleFavorite,
     addProduct,

@@ -1,11 +1,26 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref } from 'vue'
 import { useListsStore } from '@/stores/lists'
+import { ShoppingListApi } from '@/api/shoppingList'
+import { useShoppingList } from '@/composables/shoppingList'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
+import ConfirmationModal from './ConfirmationModal.vue'
 
 const store = useListsStore()
+const { getAllShoppingLists } = useShoppingList()
 const searchProduct = ref('')
+
+// Estado para compartir
+const showShareInput = ref(false)
+const shareEmail = ref('')
+const isSharing = ref(false)
+const shareError = ref('')
+const shareSuccess = ref(false)
+
+// Estado para eliminar
+const showDeleteConfirm = ref(false)
+const isDeleting = ref(false)
 
 const emit = defineEmits<{
   close: []
@@ -13,6 +28,10 @@ const emit = defineEmits<{
 
 const closeModal = () => {
   searchProduct.value = ''
+  showShareInput.value = false
+  shareEmail.value = ''
+  shareError.value = ''
+  shareSuccess.value = false
   emit('close')
 }
 
@@ -64,100 +83,82 @@ const decrementQuantity = (productId: string) => {
 
 
 
-// Mock users for now
-const listUsers = ref([
-  { id: '1', name: 'Mamá', avatar: '👩' },
-  { id: '2', name: 'Papá', avatar: '👨' },
-  { id: '3', name: 'Juan', avatar: '👦' }
-])
-
-// Mock products for search
-const mockProducts = ref([
-  { id: '6', name: 'Arroz', category: 'Granos', icon: '🍚' },
-  { id: '7', name: 'Aceite', category: 'Condimentos', icon: '🫒' },
-  { id: '8', name: 'Huevos', category: 'Lácteos', icon: '🥚' },
-  { id: '9', name: 'Pan', category: 'Panadería', icon: '🍞' },
-  { id: '10', name: 'Tomate', category: 'Verduras', icon: '🍅' },
-  { id: '11', name: 'Cebolla', category: 'Verduras', icon: '🧅' },
-  { id: '12', name: 'Pollo', category: 'Carnes', icon: '🍗' },
-  { id: '13', name: 'Queso', category: 'Lácteos', icon: '🧀' },
-])
-
-const filteredProducts = computed(() => {
-  if (!searchProduct.value.trim()) return mockProducts.value
-  return mockProducts.value.filter(product => 
-    product.name.toLowerCase().includes(searchProduct.value.toLowerCase())
-  )
+// Users from the list (owner + shared users)
+const listUsers = computed(() => {
+  if (!currentList.value) return []
+  
+  // TODO: Get actual shared users from API
+  // For now, just show owner
+  return [
+    { id: '1', name: 'Yo', avatar: '👤', isOwner: true }
+  ]
 })
 
-// Modal state for adding product with quantity and unit
-const showAddProductModal = ref(false)
-const selectedProduct = ref<any>(null)
-const productQuantity = ref(1)
-const productUnit = ref('')
-const showUnitDropdown = ref(false)
-
-// Available units
-const availableUnits = ref([
-  'kg',
-  'lts',
-  'unidad',
-  'docena',
-  'paquete',
-  'caja',
-  'bolsa',
-  'botella',
-  'lata',
-  'gramos',
-  'ml'
-])
-
-const openAddProductModal = (product: any) => {
-  selectedProduct.value = product
-  productQuantity.value = 1
-  productUnit.value = ''
-  showUnitDropdown.value = false
-  showAddProductModal.value = true
+// Funcionalidad de compartir
+const toggleShareInput = () => {
+  showShareInput.value = !showShareInput.value
+  shareEmail.value = ''
+  shareError.value = ''
+  shareSuccess.value = false
 }
 
-const closeAddProductModal = () => {
-  showAddProductModal.value = false
-  selectedProduct.value = null
-  productQuantity.value = 1
-  productUnit.value = ''
-  showUnitDropdown.value = false
-}
+const shareList = async () => {
+  if (!currentList.value?.id || !shareEmail.value.trim()) {
+    shareError.value = 'Por favor ingresa un email válido'
+    return
+  }
 
-const selectUnit = (unit: string) => {
-  productUnit.value = unit
-  showUnitDropdown.value = false
-}
+  isSharing.value = true
+  shareError.value = ''
+  shareSuccess.value = false
 
-const toggleUnitDropdown = () => {
-  showUnitDropdown.value = !showUnitDropdown.value
-}
-
-const closeDropdownOnOutsideClick = (event: Event) => {
-  const target = event.target as HTMLElement
-  if (!target.closest('.unit-dropdown-container')) {
-    showUnitDropdown.value = false
+  try {
+    const listId = parseInt(currentList.value.id)
+    await ShoppingListApi.share(listId, shareEmail.value.trim())
+    shareSuccess.value = true
+    shareEmail.value = ''
+    
+    // Ocultar mensaje de éxito después de 2 segundos
+    setTimeout(() => {
+      shareSuccess.value = false
+      showShareInput.value = false
+    }, 2000)
+  } catch (error: any) {
+    console.error('Error sharing list:', error)
+    shareError.value = error.message || 'Error al compartir la lista. Intenta de nuevo.'
+  } finally {
+    isSharing.value = false
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', closeDropdownOnOutsideClick)
-})
+// Funcionalidad de eliminar
+const confirmDeleteList = () => {
+  showDeleteConfirm.value = true
+}
 
-onBeforeUnmount(() => {
-  document.removeEventListener('click', closeDropdownOnOutsideClick)
-})
+const deleteList = async () => {
+  if (!currentList.value?.id) return
 
-const addProductFromList = () => {
-  if (currentList.value && selectedProduct.value) {
-    store.addItemToList(currentList.value.id, selectedProduct.value.id, productQuantity.value, productUnit.value)
-    closeAddProductModal()
+  isDeleting.value = true
+
+  try {
+    const listId = parseInt(currentList.value.id)
+    await ShoppingListApi.remove(listId)
+    await getAllShoppingLists()
+    showDeleteConfirm.value = false
+    closeModal()
+  } catch (error: any) {
+    console.error('Error deleting list:', error)
+    alert('Error al eliminar la lista. Intenta de nuevo.')
+  } finally {
+    isDeleting.value = false
   }
 }
+
+const cancelDelete = () => {
+  showDeleteConfirm.value = false
+}
+
 </script>
 
 <template>
@@ -183,7 +184,7 @@ const addProductFromList = () => {
             <!-- Usuarios de la lista -->
             <div class="mb-6">
               <h4 class="text-lg font-semibold text-gray-700 mb-3">Colaboradores</h4>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <div 
                   v-for="user in listUsers" 
                   :key="user.id"
@@ -192,11 +193,36 @@ const addProductFromList = () => {
                   <span class="text-lg">{{ user.avatar }}</span>
                   <span class="text-sm font-medium text-gray-700">{{ user.name }}</span>
                 </div>
-                <button class="flex items-center justify-center w-8 h-8 bg-verde-sidebar text-white rounded-full hover:bg-verde-contraste transition-colors">
+                <button 
+                  @click="toggleShareInput"
+                  class="flex items-center justify-center w-8 h-8 bg-verde-sidebar text-white rounded-full hover:bg-verde-contraste transition-colors"
+                >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
+              </div>
+              
+              <!-- Input para compartir -->
+              <div v-if="showShareInput" class="mt-4">
+                <div class="flex gap-2">
+                  <input 
+                    v-model="shareEmail"
+                    type="email" 
+                    placeholder="Email del colaborador"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:border-verde-sidebar focus:outline-none"
+                    @keyup.enter="shareList"
+                  />
+                  <button 
+                    @click="shareList"
+                    :disabled="isSharing || !shareEmail.trim()"
+                    class="px-4 py-2 bg-verde-sidebar text-white rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {{ isSharing ? 'Compartiendo...' : 'Compartir' }}
+                  </button>
+                </div>
+                <p v-if="shareError" class="text-red-500 text-sm mt-2">{{ shareError }}</p>
+                <p v-if="shareSuccess" class="text-green-600 text-sm mt-2">¡Lista compartida exitosamente!</p>
               </div>
             </div>
           </div>
@@ -248,13 +274,19 @@ const addProductFromList = () => {
           </div>
         </div>
 
-        <!-- Botón de acción en la columna izquierda -->
-        <div class="p-6 bg-gray-50 flex justify-center border-t border-gray-200">
+        <!-- Botones de acción en la columna izquierda -->
+        <div class="p-6 bg-gray-50 flex justify-between items-center border-t border-gray-200">
+          <button 
+            @click="confirmDeleteList"
+            class="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors" 
+          >
+            Eliminar Lista
+          </button>
           <button 
             @click="closeModal"
             class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors" 
           >
-            Cerrar
+            Guardar y Salir
           </button>
         </div>
       </div>
@@ -311,146 +343,24 @@ const addProductFromList = () => {
 
         <!-- Lista de productos disponibles (scroll) -->
         <div class="flex-1 overflow-y-auto px-8 pb-8">
-          <div v-if="filteredProducts.length === 0" class="text-gray-400 text-center py-12">
-            <p class="text-lg">No se encontraron productos</p>
-            <p class="text-sm mt-2">Intenta con otro término de búsqueda</p>
-          </div>
-          
-          <div v-else class="space-y-3">
-            <div 
-              v-for="product in filteredProducts" 
-              :key="product.id"
-              class="flex items-center gap-3 bg-gray-50 rounded-2xl p-4 border border-gray-200 hover:bg-gray-100 transition-colors"
-            >
-              <span class="text-2xl">{{ product.icon }}</span>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-800 font-semibold text-lg">{{ product.name }}</span>
-                </div>
-                <p class="text-sm text-gray-500">{{ product.category }}</p>
-              </div>
-              <button 
-                @click="openAddProductModal(product)"
-                class="bg-verde-sidebar text-white p-2 rounded-xl hover:bg-verde-contraste transition-colors"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
+          <div class="text-gray-400 text-center py-12">
+            <p class="text-lg">Busca productos para agregarlos</p>
+            <p class="text-sm mt-2">Los productos se mostrarán aquí</p>
           </div>
         </div>
       </div>
     </div>
   </BaseModal>
 
-  <!-- Modal para agregar producto con cantidad y unidad -->
-  <BaseModal 
-    :show="showAddProductModal" 
-    title="Agregar Producto"
-    max-width="md"
-    @close="closeAddProductModal"
-  >
-    <div class="p-6">
-      <div v-if="selectedProduct" class="space-y-6">
-        <!-- Producto seleccionado -->
-        <div class="flex items-center gap-3 bg-gray-50 rounded-2xl p-4">
-          <span class="text-3xl">{{ selectedProduct.icon }}</span>
-          <div>
-            <h3 class="text-xl font-semibold text-gray-800">{{ selectedProduct.name }}</h3>
-            <p class="text-sm text-gray-500">{{ selectedProduct.category }}</p>
-          </div>
-        </div>
-
-        <!-- Cantidad -->
-        <div>
-          <label class="block text-lg font-semibold text-gray-700 mb-2">Cantidad</label>
-          <input 
-            v-model.number="productQuantity"
-            type="number" 
-            min="1"
-            class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors"
-            placeholder="Cantidad"
-          />
-        </div>
-
-        <!-- Unidad -->
-        <div class="relative">
-          <label class="block text-lg font-semibold text-gray-700 mb-2">Unidad</label>
-          <div class="relative unit-dropdown-container">
-            <button 
-              @click="toggleUnitDropdown"
-              class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors bg-white text-left flex items-center justify-between hover:border-gray-400"
-              :class="{ 'border-verde-sidebar': showUnitDropdown }"
-            >
-              <span :class="{ 'text-gray-400': !productUnit }">
-                {{ productUnit || 'Select unidad' }}
-              </span>
-              <svg 
-                class="w-5 h-5 text-gray-400 transition-transform duration-200"
-                :class="{ 'rotate-180': showUnitDropdown }"
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            <!-- Dropdown Menu -->
-            <transition
-              enter-active-class="transition-all duration-200 ease-out"
-              leave-active-class="transition-all duration-200 ease-in"
-              enter-from-class="opacity-0 scale-95 -translate-y-2"
-              enter-to-class="opacity-100 scale-100 translate-y-0"
-              leave-from-class="opacity-100 scale-100 translate-y-0"
-              leave-to-class="opacity-0 scale-95 -translate-y-2"
-            >
-              <div 
-                v-if="showUnitDropdown"
-                class="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto"
-              >
-                <div class="py-2">
-                  <button
-                    v-for="unit in availableUnits"
-                    :key="unit"
-                    @click="selectUnit(unit)"
-                    class="w-full px-4 py-3 text-left text-lg hover:bg-gray-50 transition-colors flex items-center justify-between"
-                    :class="{ 'bg-verde-sidebar/10 text-verde-sidebar': productUnit === unit }"
-                  >
-                    <span>{{ unit }}</span>
-                    <svg 
-                      v-if="productUnit === unit"
-                      class="w-5 h-5 text-verde-sidebar"
-                      fill="currentColor" 
-                      viewBox="0 0 20 20"
-                    >
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </transition>
-          </div>
-        </div>
-
-        <!-- Botones -->
-        <div class="flex gap-3 pt-4">
-          <button 
-            @click="closeAddProductModal"
-            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button 
-            @click="addProductFromList"
-            :disabled="!productUnit || productQuantity < 1"
-            class="flex-1 px-6 py-3 bg-verde-sidebar text-white font-semibold rounded-xl hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Agregar
-          </button>
-        </div>
-      </div>
-    </div>
-  </BaseModal>
+  <!-- Modal de confirmación de eliminación -->
+  <ConfirmationModal
+    :show="showDeleteConfirm"
+    title="¿Eliminar lista?"
+    :message="`¿Estás seguro de que deseas eliminar la lista '${currentList?.name}'? Esta acción no se puede deshacer.`"
+    confirmText="Eliminar"
+    cancelText="Cancelar"
+    @confirm="deleteList"
+    @cancel="cancelDelete"
+    :isProcessing="isDeleting"
+  />
 </template>
