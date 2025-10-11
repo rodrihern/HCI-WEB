@@ -9,9 +9,14 @@ import CreateProductModal from "@/components/CreateProductModal.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import AddToListModal from "@/components/AddToListModal.vue";
 
-// Estado para mensajes de error
-const showErrorModal = ref(false);
-const errorMessage = ref("");
+// Estado para loading
+const isLoading = ref(false);
+
+// Ref para el modal de producto
+const createProductModalRef =
+    ref<InstanceType<
+        typeof CreateProductModal
+    > | null>(null);
 
 const {
     products,
@@ -107,9 +112,24 @@ const handleDeleteProduct = (
 
 const confirmDelete = async () => {
     if (productToDelete.value) {
-        await deleteProductApi(
-            productToDelete.value,
-        );
+        isLoading.value = true;
+        try {
+            await deleteProductApi(
+                productToDelete.value,
+            );
+        } catch (error: any) {
+            // Mostrar error si falla la eliminación
+            if (
+                createProductModalRef.value
+            ) {
+                createProductModalRef.value.showError(
+                    error.message ||
+                        "Error al eliminar el producto",
+                );
+            }
+        } finally {
+            isLoading.value = false;
+        }
     }
     showDeleteConfirmation.value = false;
     productToDelete.value = null;
@@ -156,11 +176,6 @@ const closeAddToListModal = () => {
     productToAddToList.value = null;
 };
 
-const closeErrorModal = () => {
-    showErrorModal.value = false;
-    errorMessage.value = "";
-};
-
 // Manejar creación/edición de producto desde el modal
 const handleSaveProduct =
     async (productData: {
@@ -169,6 +184,7 @@ const handleSaveProduct =
         description?: string;
         image?: string;
     }) => {
+        isLoading.value = true;
         try {
             if (
                 productToEdit.value &&
@@ -188,6 +204,11 @@ const handleSaveProduct =
                 ) {
                     metadata.description =
                         productData.description;
+                }
+
+                if (productData.image) {
+                    metadata.image =
+                        productData.image;
                 }
 
                 await modifyProduct(
@@ -214,6 +235,11 @@ const handleSaveProduct =
                         productData.description;
                 }
 
+                if (productData.image) {
+                    metadata.image =
+                        productData.image;
+                }
+
                 await createProduct(
                     productData.name,
                     productData.categoryId,
@@ -228,19 +254,30 @@ const handleSaveProduct =
 
             closeModal();
         } catch (error: any) {
-            // Mostrar mensaje de error al usuario
+            // Mostrar mensaje de error en el modal
+            let errorMsg =
+                "Ocurrió un error al guardar el producto. Por favor intenta de nuevo.";
+
             if (
                 error.message ===
                 "Product already exists"
             ) {
-                errorMessage.value = `Ya existe un producto con el nombre "${productData.name}". Por favor usa otro nombre.`;
-            } else {
-                errorMessage.value =
-                    error.message ||
-                    "Ocurrió un error al guardar el producto. Por favor intenta de nuevo.";
+                errorMsg = `Ya existe un producto con el nombre "${productData.name}". Por favor usa otro nombre.`;
+            } else if (error.message) {
+                errorMsg =
+                    error.message;
             }
 
-            showErrorModal.value = true;
+            // Mostrar error en el modal usando el ref
+            if (
+                createProductModalRef.value
+            ) {
+                createProductModalRef.value.showError(
+                    errorMsg,
+                );
+            }
+        } finally {
+            isLoading.value = false;
         }
     };
 </script>
@@ -394,11 +431,13 @@ const handleSaveProduct =
 
         <!-- Modal Add/Edit Product -->
         <CreateProductModal
+            ref="createProductModalRef"
             :show="showModal"
             :product-to-edit="
                 productToEdit
             "
             :categories="categories"
+            :loading="isLoading"
             @close="closeModal"
             @save="handleSaveProduct"
         />
@@ -432,16 +471,42 @@ const handleSaveProduct =
             @close="closeAddToListModal"
         />
 
-        <!-- Modal de Error -->
-        <ConfirmationModal
-            :show="showErrorModal"
-            title="Error"
-            :message="errorMessage"
-            confirm-text="Entendido"
-            cancel-text=""
-            variant="info"
-            @confirm="closeErrorModal"
-            @cancel="closeErrorModal"
-        />
+        <!-- Loading Overlay (solo cuando no hay modal abierto) -->
+        <div
+            v-if="
+                isLoading && !showModal
+            "
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+            <div
+                class="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl"
+            >
+                <svg
+                    class="animate-spin h-12 w-12 text-verde-sidebar"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                    ></circle>
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+                <p
+                    class="text-gray-700 font-medium text-lg"
+                >
+                    Procesando...
+                </p>
+            </div>
+        </div>
     </div>
 </template>

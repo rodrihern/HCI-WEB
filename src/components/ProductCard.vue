@@ -109,7 +109,13 @@ const contextMenuItems = [
 
                 <!-- Nombre y categoría -->
                 <div
-                    class="flex-1 min-w-0"
+                    class="flex-1 min-w-0 transition-transform duration-300"
+                    :style="{
+                        transform:
+                            isExpanded
+                                ? 'translateY(0)'
+                                : 'translateY(20px)',
+                    }"
                 >
                     <h3
                         class="text-white font-semibold text-lg"
@@ -117,6 +123,9 @@ const contextMenuItems = [
                         {{ name }}
                     </h3>
                     <p
+                        v-if="
+                            isExpanded
+                        "
                         class="text-white/80 text-sm"
                     >
                         {{ category }}
