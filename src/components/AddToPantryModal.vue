@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import BaseModal from './BaseModal.vue'
+import QuantityControls from './QuantityControls.vue'
 import { useListsStore } from '../stores/lists'
 
 interface Props {
@@ -154,25 +155,12 @@ watch(() => props.show, (newVal) => {
           <label class="block text-sm font-medium text-gray-700 mb-2">
             Cantidad
           </label>
-          <div class="flex items-center gap-3">
-            <button
-              @click="quantity = Math.max(1, quantity - 1)"
-              class="bg-white text-verde-sidebar rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold border border-gray-300"
-            >
-              -
-            </button>
-            <input
-              v-model.number="quantity"
-              type="number"
-              min="1"
-              class="w-20 text-center px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-sidebar"
+          <div class="w-fit">
+            <QuantityControls
+              :quantity="quantity"
+              @increment="quantity++"
+              @decrement="quantity = Math.max(1, quantity - 1)"
             />
-            <button
-              @click="quantity++"
-              class="bg-white text-verde-sidebar rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors font-semibold border border-gray-300"
-            >
-              +
-            </button>
           </div>
         </div>
 

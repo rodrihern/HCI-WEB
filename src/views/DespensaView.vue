@@ -331,11 +331,9 @@ const shareSection = (
                                     <span
                                         v-else
                                         class="text-3xl"
-                                        >{{
-                                            item
-                                                .product
-                                                .icon
-                                        }}</span
+                                        >
+                                        {{item.product.icon}}
+                                    </span
                                     >
                                 </div>
                                 <div
@@ -344,20 +342,12 @@ const shareSection = (
                                     <h3
                                         class="text-white font-semibold text-lg"
                                     >
-                                        {{
-                                            item
-                                                .product
-                                                .name
-                                        }}
+                                        {{item.product.name}}
                                     </h3>
                                     <p
                                         class="text-white/80 text-sm"
                                     >
-                                        {{
-                                            item
-                                                .product
-                                                .category
-                                        }}
+                                        {{item.product.category}}
                                     </p>
                                 </div>
                             </div>
