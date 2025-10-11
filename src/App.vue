@@ -4,16 +4,25 @@ import {
     useRoute,
     useRouter,
 } from "vue-router";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useUserStore } from "@/stores2/user";
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
+
 const isSidebarExpanded = ref(false);
 const isHoverExpanded = ref(false);
 const hoverTimeout = ref<number | null>(
     null,
 );
 const searchQuery = ref("");
+const showProfileMenu = ref(false);
+
+// Initialize user store on mount
+onMounted(() => {
+    userStore.initialize();
+});
 
 const searchPlaceholder = computed(
     () => {
@@ -89,8 +98,37 @@ const handleMenuLeave = () => {
 };
 
 const goToProfile = () => {
+    showProfileMenu.value = false;
     router.push("/profile");
 };
+
+const handleLogout = async () => {
+    showProfileMenu.value = false;
+    try {
+        await userStore.logout();
+        router.push('/login');
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Force logout even if API call fails
+        router.push('/login');
+    }
+};
+
+const toggleProfileMenu = () => {
+    showProfileMenu.value = !showProfileMenu.value;
+};
+
+// Close profile menu when clicking outside
+const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.profile-menu-container')) {
+        showProfileMenu.value = false;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
@@ -176,21 +214,51 @@ const goToProfile = () => {
                     >Listazo!</span
                 >
 
-                <!-- Profile -->
-                <button
-                    @click="goToProfile"
-                    class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity"
-                >
-                    <svg
-                        class="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
+                <!-- Profile Menu -->
+                <div class="relative profile-menu-container">
+                    <button
+                        @click="toggleProfileMenu"
+                        class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity"
                     >
-                        <use
-                            href="@/assets/sprite.svg#user-profile"
-                        />
-                    </svg>
-                </button>
+                        <svg
+                            class="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                        >
+                            <use
+                                href="@/assets/sprite.svg#user-profile"
+                            />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <Transition name="dropdown">
+                        <div
+                            v-if="showProfileMenu"
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200"
+                        >
+                            <button
+                                @click="goToProfile"
+                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                                    <use href="@/assets/sprite.svg#user-profile" />
+                                </svg>
+                                Mi Perfil
+                            </button>
+                            <hr class="my-1 border-gray-200" />
+                            <button
+                                @click="handleLogout"
+                                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                    </Transition>
+                </div>
             </div>
         </header>
 
@@ -434,4 +502,21 @@ const goToProfile = () => {
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.dropdown-enter-to,
+.dropdown-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>

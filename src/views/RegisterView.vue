@@ -1,15 +1,171 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { UserApi, Api, type RegisterData } from '@/api';
+import VerificationModal from '@/components/VerificationModal.vue';
 
-const router = useRouter()
+const router = useRouter();
 
-const goToMain = () => {
-  router.push('/listas')
-}
+// Form fields
+const name = ref('');
+const surname = ref('');
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+
+// UI state
+const loading = ref(false);
+const error = ref('');
+const showVerificationModal = ref(false);
+const verificationModalRef = ref<InstanceType<typeof VerificationModal> | null>(null);
+
+// Saved credentials for auto-login after verification
+const savedEmail = ref('');
+const savedPassword = ref('');
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push('/login');
+};
+
+const validateForm = (): boolean => {
+  error.value = '';
+
+  if (!name.value.trim()) {
+    error.value = 'El nombre es requerido';
+    return false;
+  }
+
+  if (!surname.value.trim()) {
+    error.value = 'El apellido es requerido';
+    return false;
+  }
+
+  if (!email.value.trim()) {
+    error.value = 'El email es requerido';
+    return false;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    error.value = 'El email no es válido';
+    return false;
+  }
+
+  if (!password.value) {
+    error.value = 'La contraseña es requerida';
+    return false;
+  }
+
+  if (password.value.length < 6) {
+    error.value = 'La contraseña debe tener al menos 6 caracteres';
+    return false;
+  }
+
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Las contraseñas no coinciden';
+    return false;
+  }
+
+  return true;
+};
+
+const handleRegister = async () => {
+  if (!validateForm()) return;
+
+  loading.value = true;
+  error.value = '';
+
+  try {
+    const registerData: RegisterData = {
+      name: name.value.trim(),
+      surname: surname.value.trim(),
+      email: email.value.trim(),
+      password: password.value,
+      metadata: {}
+    };
+
+    await UserApi.register(registerData);
+
+    // Save credentials for auto-login after verification
+    savedEmail.value = email.value.trim();
+    savedPassword.value = password.value;
+
+    // Show verification modal
+    showVerificationModal.value = true;
+  } catch (e: any) {
+    console.error('Register error:', e);
+    error.value = e.message || 'Error al registrarse. Por favor, intentá de nuevo.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleVerifyCode = async (code: string) => {
+  try {
+    await UserApi.verifyAccount({ code });
+    
+    verificationModalRef.value?.setSuccess('Cuenta verificada exitosamente!');
+    
+    // Wait a moment to show success message
+    setTimeout(async () => {
+      showVerificationModal.value = false;
+      
+      // Auto-login after verification
+      await autoLogin();
+    }, 1500);
+  } catch (e: any) {
+    console.error('Verification error:', e);
+    verificationModalRef.value?.setError(e.message || 'Código inválido. Intentá de nuevo.');
+  }
+};
+
+const autoLogin = async () => {
+  try {
+    loading.value = true;
+    
+    const loginResponse = await UserApi.login({
+      email: savedEmail.value,
+      password: savedPassword.value
+    });
+
+    // Save token
+    Api.token = loginResponse.token;
+    localStorage.setItem('security-token', loginResponse.token);
+
+    // Clear saved credentials
+    savedEmail.value = '';
+    savedPassword.value = '';
+
+    // Redirect to main app
+    router.push('/listas');
+  } catch (e: any) {
+    console.error('Auto-login error:', e);
+    error.value = 'Cuenta verificada pero hubo un error al iniciar sesión. Por favor, iniciá sesión manualmente.';
+    
+    // Redirect to login after a moment
+    setTimeout(() => {
+      router.push('/login');
+    }, 3000);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleResendCode = async () => {
+  try {
+    await UserApi.sendVerification(savedEmail.value || email.value);
+    // Success message is shown by the modal component
+  } catch (e: any) {
+    console.error('Resend code error:', e);
+    verificationModalRef.value?.setError('Error al reenviar el código. Intentá de nuevo.');
+  }
+};
+
+const closeVerificationModal = () => {
+  showVerificationModal.value = false;
+  // Optionally redirect to login
+  // router.push('/login');
+};
 </script>
 
 <template>
@@ -41,33 +197,61 @@ const goToLogin = () => {
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Crear Cuenta</h1>
           </div>
 
+          <!-- Error message -->
+          <div v-if="error" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-600 text-center">{{ error }}</p>
+          </div>
+
           <div class="space-y-3 sm:space-y-4">
             <input
+              v-model="name"
               type="text"
               placeholder="Nombre"
-              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+              :disabled="loading"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
             <input
+              v-model="surname"
               type="text"
               placeholder="Apellido"
-              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+              :disabled="loading"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
             <input
+              v-model="email"
               type="email"
               placeholder="Email"
-              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+              :disabled="loading"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
             <input
+              v-model="password"
               type="password"
               placeholder="Contraseña"
-              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+              :disabled="loading"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+            <input
+              v-model="confirmPassword"
+              type="password"
+              placeholder="Confirmar Contraseña"
+              :disabled="loading"
+              class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
 
             <button
-              @click="goToMain"
-              class="w-full bg-verde-sidebar hover:bg-verde-contraste text-white font-semibold py-2.5 sm:py-3 lg:py-3.5 rounded-full transition-colors"
+              @click="handleRegister"
+              :disabled="loading"
+              class="w-full bg-verde-sidebar hover:bg-verde-contraste text-white font-semibold py-2.5 sm:py-3 lg:py-3.5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Registrarse
+              <span v-if="!loading">Registrarse</span>
+              <span v-else class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Registrando...
+              </span>
             </button>
 
             <div class="text-center text-sm pt-1">
@@ -78,6 +262,16 @@ const goToLogin = () => {
         </div>
       </div>
     </div>
+
+    <!-- Verification Modal -->
+    <VerificationModal
+      ref="verificationModalRef"
+      :show="showVerificationModal"
+      :email="email"
+      @close="closeVerificationModal"
+      @verify="handleVerifyCode"
+      @resend="handleResendCode"
+    />
   </div>
 </template>
 

@@ -9,6 +9,15 @@
 •⁠  ⁠Unificar tarjetas de historial y listas como un componente
 
 
+API
+
+pasar las interfaces a /types
+
+localstorage?
+
+controller 
+
+store? ese lists.ts va o no?
 
 
 
