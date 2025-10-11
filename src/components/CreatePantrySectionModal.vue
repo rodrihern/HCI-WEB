@@ -39,8 +39,8 @@ watch(() => props.show, (newVal) => {
   <BaseModal
     :show="show"
     title="Nueva sección de despensa"
-    max-width="lg"
-    height="auto"
+    max-width="xl"
+    height="90vh"
     @close="handleClose"
   >
     <div class="p-8">

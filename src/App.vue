@@ -305,6 +305,7 @@ onMounted(() => {
                 <div
                     class="flex flex-col items-start py-8 space-y-6"
                 >
+                    <!-- Updated Material Icons with Tailwind classes -->
                     <RouterLink
                         to="/listas"
                         class="relative flex items-center w-full px-4 py-3 gap-4 h-16 transition-all duration-200 rounded-r-full"
@@ -315,20 +316,7 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <div
-                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <use
-                                    href="@/assets/sprite.svg#list-icon"
-                                />
-                            </svg>
-                        </div>
+                        <span class="material-icons text-gray-700 text-2xl">list</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
@@ -352,20 +340,7 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <div
-                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <use
-                                    href="@/assets/sprite.svg#shopping-bag"
-                                />
-                            </svg>
-                        </div>
+                        <span class="material-icons text-gray-700 text-2xl">shopping_bag</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
@@ -389,20 +364,7 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <div
-                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <use
-                                    href="@/assets/sprite.svg#pantry-box"
-                                />
-                            </svg>
-                        </div>
+                        <span class="material-icons text-gray-700 text-2xl">kitchen</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
@@ -426,20 +388,7 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <div
-                            class="w-8 h-8 flex items-center justify-center flex-shrink-0 text-gray-700"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <use
-                                    href="@/assets/sprite.svg#clock-history"
-                                />
-                            </svg>
-                        </div>
+                        <span class="material-icons text-gray-700 text-2xl">history</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="

@@ -1,5 +1,5 @@
-import { computed, onMounted } from "vue";
-import { Pantry, PantryItem, type PantryData, type AddPantryItemData } from "@/api/pantry";
+import { computed, onMounted, ref } from "vue";
+import { Pantry, PantryItem, type PantryData, type AddPantryItemData, type UpdatePantryItemData } from "@/api/pantry";
 import { usePantryStore } from "@/stores2/pantry";
 import { useLog } from "./log";
 import { useUser } from "./user";
@@ -9,34 +9,43 @@ export function usePantry() {
     const { isLoggedIn } = useUser();
     const pantryStore = usePantryStore();
 
-    async function createPantry(name: string, metadata = {}): Promise<void> {
+    async function createPantry(name: string, metadata = {}): Promise<Pantry | undefined> {
         const pantry: Partial<PantryData> = {
             name,
             metadata
         };
 
         try {
-            log(await pantryStore.add(pantry));
+            const result = await pantryStore.add(pantry);
+            log(result);
+            return result;
         } catch (e) {
             error(e);
+            return undefined;
         }
     }
 
-    async function modifyPantry(id: number, updates: Partial<PantryData>): Promise<void> {
+    async function modifyPantry(id: number, updates: Partial<PantryData>): Promise<Pantry | undefined> {
         try {
             const pantry = await pantryStore.get(id);
             const updatedPantry = { ...pantry, ...updates };
-            log(await pantryStore.modify(updatedPantry));
+            const result = await pantryStore.modify(updatedPantry);
+            log(result);
+            return result;
         } catch (e) {
             error(e);
+            return undefined;
         }
     }
 
-    async function deletePantry(id: number): Promise<void> {
+    async function deletePantry(id: number): Promise<boolean> {
         try {
-            log(await pantryStore.remove(id));
+            await pantryStore.remove(id);
+            log(`Despensa ${id} eliminada`);
+            return true;
         } catch (e) {
             error(e);
+            return false;
         }
     }
 
@@ -50,11 +59,25 @@ export function usePantry() {
         }
     }
 
-    async function addItemToPantry(pantryId: number, item: AddPantryItemData): Promise<void> {
+    async function getPantry(id: number): Promise<Pantry | undefined> {
         try {
-            log(await pantryStore.addItem(pantryId, item));
+            const result = await pantryStore.get(id);
+            log(result);
+            return result;
         } catch (e) {
             error(e);
+            return undefined;
+        }
+    }
+
+    async function addItemToPantry(pantryId: number, item: AddPantryItemData): Promise<PantryItem | undefined> {
+        try {
+            const result = await pantryStore.addItem(pantryId, item);
+            log(result);
+            return result;
+        } catch (e) {
+            error(e);
+            return undefined;
         }
     }
 
@@ -68,19 +91,58 @@ export function usePantry() {
         }
     }
 
-    async function updatePantryItem(pantryId: number, itemId: number, updates: any): Promise<void> {
+    async function updatePantryItem(pantryId: number, itemId: number, updates: UpdatePantryItemData): Promise<PantryItem | undefined> {
         try {
-            log(await pantryStore.updateItem(pantryId, itemId, updates));
+            const result = await pantryStore.updateItem(pantryId, itemId, updates);
+            log(result);
+            return result;
         } catch (e) {
             error(e);
+            return undefined;
         }
     }
 
-    async function deletePantryItem(pantryId: number, itemId: number): Promise<void> {
+    async function deletePantryItem(pantryId: number, itemId: number): Promise<boolean> {
         try {
-            log(await pantryStore.removeItem(pantryId, itemId));
+            await pantryStore.removeItem(pantryId, itemId);
+            log(`Item ${itemId} eliminado de despensa ${pantryId}`);
+            return true;
         } catch (e) {
             error(e);
+            return false;
+        }
+    }
+
+    async function sharePantry(pantryId: number, email: string): Promise<boolean> {
+        try {
+            await pantryStore.share(pantryId, email);
+            log(`Despensa ${pantryId} compartida con ${email}`);
+            return true;
+        } catch (e) {
+            error(e);
+            return false;
+        }
+    }
+
+    async function getSharedUsers(pantryId: number): Promise<any[] | undefined> {
+        try {
+            const users = await pantryStore.getSharedUsers(pantryId);
+            log(users);
+            return users;
+        } catch (e) {
+            error(e);
+            return undefined;
+        }
+    }
+
+    async function revokeShare(pantryId: number, userId: number): Promise<boolean> {
+        try {
+            await pantryStore.revokeShare(pantryId, userId);
+            log(`Acceso revocado para usuario ${userId} en despensa ${pantryId}`);
+            return true;
+        } catch (e) {
+            error(e);
+            return false;
         }
     }
 
@@ -105,6 +167,27 @@ export function usePantry() {
         }
     }
 
+    async function goToItemsPage(pantryId: number, page: number): Promise<void> {
+        try {
+            const currentOptions = { page, limit: 50, orderBy: "createdAt", order: "DESC" as const };
+            await getPantryItems(pantryId, currentOptions);
+        } catch (e) {
+            error(e);
+        }
+    }
+
+    async function nextItemsPage(pantryId: number): Promise<void> {
+        if (itemsPagination.value && itemsPagination.value.has_next) {
+            await goToItemsPage(pantryId, itemsPagination.value.page + 1);
+        }
+    }
+
+    async function prevItemsPage(pantryId: number): Promise<void> {
+        if (itemsPagination.value && itemsPagination.value.has_prev) {
+            await goToItemsPage(pantryId, itemsPagination.value.page - 1);
+        }
+    }
+
     const pantries = computed(() => {
         return pantryStore.pantries;
     });
@@ -122,7 +205,9 @@ export function usePantry() {
     });
 
     onMounted(async () => {
-        if (isLoggedIn.value) await pantryStore.getAll();
+        if (isLoggedIn.value) {
+            await pantryStore.getAll(undefined, { page: 1, limit: 50, orderBy: "name", order: "ASC" });
+        }
     });
 
     return {
@@ -134,12 +219,19 @@ export function usePantry() {
         modifyPantry,
         deletePantry,
         getAllPantries,
+        getPantry,
         addItemToPantry,
         getPantryItems,
         updatePantryItem,
         deletePantryItem,
+        sharePantry,
+        getSharedUsers,
+        revokeShare,
         goToPage,
         nextPage,
-        prevPage
+        prevPage,
+        goToItemsPage,
+        nextItemsPage,
+        prevItemsPage
     };
 }

@@ -1,477 +1,211 @@
 <script setup lang="ts">
-import {
-    computed,
-    onBeforeUnmount,
-    onMounted,
-    ref,
-} from "vue";
-import { useListsStore } from "../stores/lists";
+import { ref } from "vue";
 import PageHeader from "@/components/PageHeader.vue";
-import CollapsibleSection from "@/components/CollapsibleSection.vue";
-import ProductCard from "@/components/ProductCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
-import ContextMenu from "@/components/ContextMenu.vue";
-import QuantityControls from "@/components/QuantityControls.vue";
 import CreatePantrySectionModal from "@/components/CreatePantrySectionModal.vue";
-import AddToPantryModal from "@/components/AddToPantryModal.vue";
+import PreviewPantryModal from "@/components/PreviewPantryModal.vue";
+import SharePantryModal from "@/components/SharePantryModal.vue";
+import AddProductsToPantryModal from "@/components/AddProductsToPantryModal.vue";
+import { usePantry } from "@/composables/pantry";
 
-const store = useListsStore();
+const { pantries, createPantry, deletePantry } = usePantry();
 
-const sectionsWithProducts = computed(
-    () => {
-        return store.pantrySections.map(
-            (section) => {
-                const items =
-                    section.items
-                        .map((item) => {
-                            const product =
-                                store.getProductById(
-                                    item.productId,
-                                );
-                            return product
-                                ? {
-                                      ...item,
-                                      product,
-                                  }
-                                : null;
-                        })
-                        .filter(
-                            (item) =>
-                                item !==
-                                null,
-                        );
-                return {
-                    ...section,
-                    items,
-                };
-            },
-        );
-    },
-);
-
+// Modal states
+const showCreatePantryModal = ref(false);
+const showPreviewPantryModal = ref(false);
+const showSharePantryModal = ref(false);
 const showDeleteConfirm = ref(false);
-const itemToDelete = ref<{
-    sectionId: string;
-    productId: string;
-} | null>(null);
+const showAddProductsModal = ref(false);
 
-const showCreateSectionModal =
-    ref(false);
-const showAddProductModal = ref(false);
-const addProductToSection = ref<
-    string | undefined
->(undefined);
+// Selected pantry for preview/share/delete/add products
+const selectedPantryId = ref<number | undefined>(undefined);
+const selectedPantryName = ref<string>("");
+const pantryToDelete = ref<number | null>(null);
 
-const openCreateSectionModal = () => {
-    showCreateSectionModal.value = true;
+const openCreatePantryModal = () => {
+    showCreatePantryModal.value = true;
 };
 
-const openAddProductModal = (
-    sectionId?: string,
-) => {
-    addProductToSection.value =
-        sectionId;
-    showAddProductModal.value = true;
+const handleCreatePantry = async (name: string) => {
+    await createPantry(name, {});
+    showCreatePantryModal.value = false;
 };
 
-const handleCreateSection = (
-    name: string,
-) => {
-    // Aquí deberías tener un método en el store para crear una nueva sección
-    // store.createPantrySection(name);
-    console.log("Crear sección:", name);
-    showCreateSectionModal.value = false;
+const openPreviewPantry = (pantryId: number, pantryName: string) => {
+    selectedPantryId.value = pantryId;
+    selectedPantryName.value = pantryName;
+    showPreviewPantryModal.value = true;
 };
 
-const handleAddProduct = (
-    productId: string,
-    quantity: number,
-    sectionId?: string,
-) => {
-    if (sectionId) {
-        store.addToPantryInSection(
-            sectionId,
-            productId,
-            quantity,
-        );
-    } else {
-        store.addToPantry(
-            productId,
-            quantity,
-        );
+const closePreviewPantry = () => {
+    showPreviewPantryModal.value = false;
+    selectedPantryId.value = undefined;
+    selectedPantryName.value = "";
+};
+
+const openShareModal = (pantryId: number, pantryName: string) => {
+    selectedPantryId.value = pantryId;
+    selectedPantryName.value = pantryName;
+    showSharePantryModal.value = true;
+};
+
+const handleShareFromPreview = (pantryId: number) => {
+    const pantry = pantries.value.find(p => p.id === pantryId);
+    if (pantry) {
+        selectedPantryId.value = pantryId;
+        selectedPantryName.value = pantry.name;
+        showSharePantryModal.value = true;
+        showPreviewPantryModal.value = false;
     }
-    showAddProductModal.value = false;
-    addProductToSection.value =
-        undefined;
 };
 
-const updateQuantity = (
-    sectionId: string,
-    productId: string,
-    change: number,
-) => {
-    // Obtener la cantidad actual
-    const section =
-        store.pantrySections.find(
-            (s) => s.id === sectionId,
-        );
-    const item = section?.items.find(
-        (i) =>
-            i.productId === productId,
-    );
-    const currentQuantity =
-        item?.quantity || 0;
+const closeShareModal = () => {
+    showSharePantryModal.value = false;
+    selectedPantryId.value = undefined;
+    selectedPantryName.value = "";
+};
 
-    // Si la cantidad resultante es 0 o menos, mostrar confirmación
-    if (currentQuantity + change <= 0) {
-        confirmDeleteItem(
-            sectionId,
-            productId,
-        );
-        return;
+const handleAddProductsFromPreview = (pantryId: number) => {
+    const pantry = pantries.value.find(p => p.id === pantryId);
+    if (pantry) {
+        selectedPantryId.value = pantryId;
+        selectedPantryName.value = pantry.name;
+        showAddProductsModal.value = true;
+        showPreviewPantryModal.value = false;
     }
-
-    if (change > 0)
-        store.addToPantryInSection(
-            sectionId,
-            productId,
-            change,
-        );
-    else
-        store.removeFromPantryInSection(
-            sectionId,
-            productId,
-            Math.abs(change),
-        );
 };
 
-const modifyItem = (
-    sectionId: string,
-    productId: string,
-    currentQty: number,
-) => {
-    const value = prompt(
-        "Nueva cantidad:",
-        String(currentQty),
-    );
-    if (value === null) return;
-    const qty = parseInt(value);
-    if (isNaN(qty)) return;
-    store.setPantryQuantityInSection(
-        sectionId,
-        productId,
-        qty,
-    );
+const closeAddProductsModal = () => {
+    showAddProductsModal.value = false;
+    // Reopen preview modal
+    if (selectedPantryId.value && selectedPantryName.value) {
+        showPreviewPantryModal.value = true;
+    }
 };
 
-const confirmDeleteItem = (
-    sectionId: string,
-    productId: string,
-) => {
-    itemToDelete.value = {
-        sectionId,
-        productId,
-    };
+const confirmDelete = (id: number) => {
+    pantryToDelete.value = id;
     showDeleteConfirm.value = true;
 };
 
-const deleteItem = () => {
-    if (itemToDelete.value) {
-        store.removeItemFromPantryInSection(
-            itemToDelete.value
-                .sectionId,
-            itemToDelete.value
-                .productId,
-        );
+const handleDeletePantry = async () => {
+    if (pantryToDelete.value) {
+        await deletePantry(pantryToDelete.value);
+        pantryToDelete.value = null;
     }
     showDeleteConfirm.value = false;
-    itemToDelete.value = null;
 };
 
-const shareSection = (
-    sectionId: string,
-) => {
-    const section =
-        store.pantrySections.find(
-            (s) => s.id === sectionId,
-        );
-    if (!section) return;
-
-    const items = section.items
-        .map((item) => {
-            const product =
-                store.getProductById(
-                    item.productId,
-                );
-            return product
-                ? `${product.name} (${item.quantity})`
-                : null;
-        })
-        .filter((item) => item !== null)
-        .join("\n");
-
-    const shareText = `Mi despensa - ${section.name}:\n${items}`;
-
-    if (navigator.share) {
-        navigator
-            .share({
-                title: `Despensa - ${section.name}`,
-                text: shareText,
-            })
-            .catch(console.error);
-    } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard
-            .writeText(shareText)
-            .then(() => {
-                alert(
-                    "Lista copiada al portapapeles",
-                );
-            })
-            .catch(() => {
-                // Fallback for older browsers
-                const textArea =
-                    document.createElement(
-                        "textarea",
-                    );
-                textArea.value =
-                    shareText;
-                document.body.appendChild(
-                    textArea,
-                );
-                textArea.select();
-                document.execCommand(
-                    "copy",
-                );
-                document.body.removeChild(
-                    textArea,
-                );
-                alert(
-                    "Lista copiada al portapapeles",
-                );
-            });
-    }
-};
 </script>
 
 <template>
-    <div
-        class="py-6 px-6 relative min-h-full"
-    >
+    <div class="py-6 px-6 relative min-h-full">
         <PageHeader
             title="Despensa"
-            :onAddClick="
-                openCreateSectionModal
-            "
+            :onAddClick="openCreatePantryModal"
             :showFilter="true"
         />
 
-        <div class="space-y-8 pb-20">
-            <CollapsibleSection
-                v-for="section in sectionsWithProducts"
-                :key="section.id"
-                :title="section.name"
-                :showAddButton="true"
-                addButtonText="Agregar"
-                :onAddClick="
-                    () =>
-                        openAddProductModal(
-                            section.id,
-                        )
-                "
-                :showShareButton="true"
-                shareButtonText="Compartir"
-                :onShareClick="
-                    () =>
-                        shareSection(
-                            section.id,
-                        )
-                "
+        <div class="space-y-3 pb-20">
+            <ListItem
+                v-for="pantry in pantries"
+                :key="pantry.id"
+                :title="pantry.name"
+                subtitle="Mi despensa"
+                @click="openPreviewPantry(pantry.id!, pantry.name)"
+                class="cursor-pointer hover:scale-[1.02] transition-transform"
             >
-                <div class="space-y-3">
-                    <div
-                        v-for="item in section.items"
-                        :key="
-                            section.id +
-                            '-' +
-                            item.productId
-                        "
-                        class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative"
+                <template #actions>
+                    <button
+                        @click.stop="openShareModal(pantry.id!, pantry.name)"
+                        class="p-2 hover:scale-110 transition-transform duration-200"
                     >
-                        <div
-                            class="flex items-center justify-between"
+                        <svg
+                            class="w-7 h-7 text-white opacity-60 hover:opacity-100 transition-all duration-200"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24"
                         >
-                            <!-- Lado izquierdo: Imagen/Icono y textos -->
-                            <div
-                                class="flex items-center gap-4 flex-1"
-                            >
-                                <!-- Imagen del producto -->
-                                <div
-                                    class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-white/90 flex items-center justify-center"
-                                >
-                                    <img
-                                        v-if="
-                                            item
-                                                .product
-                                                .image
-                                        "
-                                        :src="
-                                            item
-                                                .product
-                                                .image
-                                        "
-                                        :alt="
-                                            item
-                                                .product
-                                                .name
-                                        "
-                                        class="w-full h-full object-cover"
-                                    />
-                                    <span
-                                        v-else
-                                        class="text-3xl"
-                                        >
-                                        {{item.product.icon}}
-                                    </span
-                                    >
-                                </div>
-                                <div
-                                    class="flex-1 min-w-0"
-                                >
-                                    <h3
-                                        class="text-white font-semibold text-lg"
-                                    >
-                                        {{item.product.name}}
-                                    </h3>
-                                    <p
-                                        class="text-white/80 text-sm"
-                                    >
-                                        {{item.product.category}}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Lado derecho: Controles -->
-                            <div
-                                class="flex items-center gap-3"
-                                @click.stop
-                            >
-                                <!-- Controles de cantidad (para DespensaView) -->
-                                <QuantityControls
-                                    :quantity="
-                                        item.quantity
-                                    "
-                                    @increment="
-                                        updateQuantity(
-                                            section.id,
-                                            item.productId,
-                                            1,
-                                        )
-                                    "
-                                    @decrement="
-                                        updateQuantity(
-                                            section.id,
-                                            item.productId,
-                                            -1,
-                                        )
-                                    "
-                                />
-
-                                <!-- Slot para acciones personalizadas (estrella, menú contextual, etc) -->
-                                <ContextMenu
-                                    :items="[
-                                        {
-                                            label: 'Modificar',
-                                            onClick:
-                                                () =>
-                                                    modifyItem(
-                                                        section.id,
-                                                        item.productId,
-                                                        item.quantity,
-                                                    ),
-                                        },
-                                        {
-                                            label: 'Eliminar',
-                                            onClick:
-                                                () =>
-                                                    confirmDeleteItem(
-                                                        section.id,
-                                                        item.productId,
-                                                    ),
-                                            variant:
-                                                'danger',
-                                        },
-                                    ]"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </CollapsibleSection>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                            />
+                        </svg>
+                    </button>
+                </template>
+            </ListItem>
         </div>
 
         <div
-            v-if="
-                sectionsWithProducts.every(
-                    (s) =>
-                        s.items
-                            .length ===
-                        0,
-                )
-            "
+            v-if="pantries.length === 0"
             class="text-center text-gray-500 mt-12"
         >
             <p class="text-lg">
-                Tu despensa está vacía
+                No tienes despensas todavía
             </p>
             <p class="text-sm">
-                Haz clic en el botón +
-                para agregar productos
+                Haz clic en el botón + para
+                crear una
             </p>
         </div>
 
+        <!-- Modal para crear nueva despensa -->
+        <CreatePantrySectionModal
+            :show="showCreatePantryModal"
+            @close="showCreatePantryModal = false"
+            @create="handleCreatePantry"
+        />
+
+        <!-- Modal para vista previa de despensa -->
+        <PreviewPantryModal
+            :show="showPreviewPantryModal"
+            :pantry-id="selectedPantryId"
+            :pantry-name="selectedPantryName"
+            @close="closePreviewPantry"
+            @add-products="handleAddProductsFromPreview"
+        />
+
+        <!-- Modal para agregar productos -->
+        <AddProductsToPantryModal
+            :show="showAddProductsModal"
+            :pantry-id="selectedPantryId"
+            :pantry-name="selectedPantryName"
+            @close="closeAddProductsModal"
+        />
+
+        <!-- Modal para compartir despensa -->
+        <SharePantryModal
+            :show="showSharePantryModal"
+            :pantry-id="selectedPantryId"
+            :pantry-name="selectedPantryName"
+            @close="closeShareModal"
+            @shared="() => {}"
+        />
+
+        <!-- Modal de confirmación para eliminar -->
         <ConfirmationModal
             :show="showDeleteConfirm"
-            title="Eliminar producto"
-            message="¿Estás seguro de que quieres eliminar este producto de la despensa?"
+            title="Eliminar despensa"
+            message="¿Estás seguro de que quieres eliminar esta despensa?"
+            confirm-text="Eliminar"
+            cancel-text="Cancelar"
             variant="danger"
-            @confirm="deleteItem"
-            @cancel="
-                showDeleteConfirm = false
-            "
+            @confirm="handleDeletePantry"
+            @cancel="showDeleteConfirm = false"
         >
             <template #details>
                 <p
                     class="text-sm text-gray-600 mt-2"
                 >
-                    Esta acción no se
-                    puede deshacer.
+                    Esta acción no se puede
+                    deshacer. Todos los
+                    productos de la despensa
+                    serán eliminados.
                 </p>
             </template>
         </ConfirmationModal>
-
-        <CreatePantrySectionModal
-            :show="
-                showCreateSectionModal
-            "
-            @close="
-                showCreateSectionModal = false
-            "
-            @create="
-                handleCreateSection
-            "
-        />
-
-        <AddToPantryModal
-            :show="showAddProductModal"
-            :section-id="
-                addProductToSection
-            "
-            @close="
-                showAddProductModal = false
-            "
-            @add="handleAddProduct"
-        />
     </div>
 </template>

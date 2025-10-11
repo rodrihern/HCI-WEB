@@ -90,6 +90,19 @@ export const usePantryStore = defineStore("pantry", () => {
         await getItems(pantryId);
     }
 
+    async function share(pantryId: number, email: string): Promise<void> {
+        await PantryApi.share(pantryId, email);
+    }
+
+    async function getSharedUsers(pantryId: number): Promise<any[]> {
+        const users = await PantryApi.getSharedUsers(pantryId);
+        return users;
+    }
+
+    async function revokeShare(pantryId: number, userId: number): Promise<void> {
+        await PantryApi.revokeShare(pantryId, userId);
+    }
+
     return { 
         pantries, 
         pantryItems, 
@@ -103,6 +116,9 @@ export const usePantryStore = defineStore("pantry", () => {
         addItem,
         getItems,
         updateItem,
-        removeItem
+        removeItem,
+        share,
+        getSharedUsers,
+        revokeShare
     };
 });

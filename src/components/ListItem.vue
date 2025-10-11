@@ -30,10 +30,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   quantityChange: [change: number]
+  click: []
 }>()
 
 const handleQuantityChange = (change: number) => {
   emit('quantityChange', change)
+}
+
+const handleClick = () => {
+  emit('click')
 }
 </script>
 
@@ -41,6 +46,7 @@ const handleQuantityChange = (change: number) => {
   <div
     class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative"
     :class="[props.class, { 'scale-[1.02] shadow-lg': isAnimating }]"
+    @click="handleClick"
   >
     <div class="flex items-center justify-between">
       <!-- Lado izquierdo: Icono y textos -->
