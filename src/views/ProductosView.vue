@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import {
+    computed,
+    ref,
+    inject,
+    watch,
+    type Ref,
+} from "vue";
 import { useProduct } from "@/composables/product";
 import { useCategory } from "@/composables/category";
 import PageHeader from "@/components/PageHeader.vue";
@@ -12,6 +18,12 @@ import AddToListModal from "@/components/AddToListModal.vue";
 // Estado para loading
 const isLoading = ref(false);
 
+// Inyectar searchQuery del header principal
+const searchQuery = inject<Ref<string>>(
+    "searchQuery",
+    ref(""),
+);
+
 // Ref para el modal de producto
 const createProductModalRef =
     ref<InstanceType<
@@ -23,11 +35,37 @@ const {
     createProduct,
     modifyProduct,
     deleteProduct: deleteProductApi,
+    getAllProducts,
 } = useProduct();
 const { categories } = useCategory();
 
+// Watch para buscar productos cuando cambia el query
+watch(searchQuery, async (newQuery) => {
+    if (newQuery.trim()) {
+        // Si hay búsqueda, hacer query con name
+        await getAllProducts({
+            name: newQuery,
+            limit: 100,
+        });
+    } else {
+        // Si no hay búsqueda, traer todos los productos
+        await getAllProducts({
+            limit: 100,
+        });
+    }
+});
+
 const productsByCategory = computed(
     () => {
+        // Si hay búsqueda, no agrupar por categoría
+        if (searchQuery.value.trim()) {
+            return {
+                "Resultados de búsqueda":
+                    products.value,
+            };
+        }
+
+        // Si no hay búsqueda, agrupar por categoría
         const grouped: Record<
             string,
             typeof products.value
@@ -291,7 +329,6 @@ const handleSaveProduct =
             :onAddClick="
                 openAddProductModal
             "
-            :showFilter="true"
         />
 
         <div class="space-y-6 pb-20">
@@ -420,12 +457,18 @@ const handleSaveProduct =
             class="text-center text-gray-500 mt-12"
         >
             <p class="text-lg">
-                No tienes productos
-                todavía
+                {{
+                    searchQuery
+                        ? "No se encontraron productos"
+                        : "No tienes productos todavía"
+                }}
             </p>
             <p class="text-sm">
-                Haz clic en el botón +
-                para crear uno
+                {{
+                    searchQuery
+                        ? "Intenta con otra búsqueda"
+                        : "Haz clic en el botón + para crear uno"
+                }}
             </p>
         </div>
 
