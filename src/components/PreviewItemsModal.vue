@@ -6,15 +6,19 @@ import { useShoppingList } from '@/composables/shoppingList'
 import { useShoppingListStore } from '@/stores/shoppingList'
 import { useProductStore } from '@/stores/product'
 import { useListItem } from '@/composables/listItem'
+import { usePantry } from '@/composables/pantry'
+import { useCategory } from '@/composables/category'
 import { useUser } from '@/composables/user'
+import { PantryApi } from '@/api/pantry'
 import type { Product } from '@/api/product'
 import type { ListItemData } from '@/api/listItem'
+import type { PantryItem } from '@/api/pantry'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
 import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
 
-interface ListUser {
+interface ItemUser {
   id: string
   name: string
   avatar: string
@@ -22,19 +26,39 @@ interface ListUser {
   email?: string
 }
 
-const store = useListsStore()
+type ItemType = 'list' | 'pantry'
+
+const props = defineProps<{
+  show: boolean
+  itemId?: number
+  itemName?: string
+  type: ItemType
+}>()
+
+const emit = defineEmits<{
+  close: []
+}>()
+
+// Stores and composables
+const listsStore = useListsStore()
 const shoppingListStore = useShoppingListStore()
 const { getAllShoppingLists } = useShoppingList()
 const productStore = useProductStore()
 const { addItemToList, getListItems, toggleItemPurchased, deleteListItem, updateListItem } = useListItem()
+const { pantryItems, getPantryItems, updatePantryItem, deletePantryItem, pantries } = usePantry()
+const { categories, getAllCategories } = useCategory()
 const { user } = useUser()
+
+// State
 const searchProduct = ref('')
 const availableProducts = ref<Product[]>([])
 const isLoadingProducts = ref(false)
 const isAddingProduct = ref(false)
+const isLoadingItems = ref(false)
+const currentItemId = ref<number | null>(null)
+
+// Items state (unified for both list and pantry)
 const listItems = ref<ListItemData[]>([])
-const isLoadingListItems = ref(false)
-const currentListId = ref<number | null>(null)
 
 // Modal state for adding product details
 const showAddProductModal = ref(false)
@@ -53,100 +77,37 @@ const isLoadingSharedUsers = ref(false)
 const showDeleteConfirm = ref(false)
 const isDeleting = ref(false)
 
-const emit = defineEmits<{
-  close: []
-}>()
+// Computed properties
+const isListType = computed(() => props.type === 'list')
+const isPantryType = computed(() => props.type === 'pantry')
 
-// Load products from API
-onMounted(async () => {
-  await loadProducts()
-  await loadListItems()
-  await loadSharedUsers()
-})
-
-// Watch for changes in previewingListId to reload items
-watch(() => store.previewingListId, async (newListId, oldListId) => {
-  if (newListId && newListId !== oldListId && store.isPreviewingList) {
-    await loadListItems()
-    await loadSharedUsers()
+const currentItem = computed(() => {
+  if (!props.itemId) return null
+  
+  if (isListType.value) {
+    const listId = parseInt(props.itemId.toString())
+    return shoppingListStore.shoppingLists.find(list => list.id === listId) || null
+  } else {
+    return pantries.value.find(pantry => pantry.id === props.itemId) || null
   }
 })
 
-const loadProducts = async () => {
-  isLoadingProducts.value = true
-  try {
-    await productStore.getAll(undefined, { limit: 100 })
-    availableProducts.value = productStore.products
-  } catch (error) {
-    // Error loading products
-  } finally {
-    isLoadingProducts.value = false
-  }
-}
-
-const loadListItems = async () => {
-  if (!currentList.value?.id) return
-  
-  // Prevent reloading if we're already loading the same list
-  if (currentListId.value === currentList.value.id && isLoadingListItems.value) {
-    return
-  }
-  
-  currentListId.value = currentList.value.id
-  isLoadingListItems.value = true
-  
-  try {
-    const result = await getListItems(currentList.value.id, { limit: 100 })
-    listItems.value = result.data || []
-  } catch (error) {
-    // Error loading list items
-    listItems.value = []
-  } finally {
-    isLoadingListItems.value = false
-  }
-}
-
-const loadSharedUsers = async () => {
-  if (!currentList.value?.id) return
-  
-  isLoadingSharedUsers.value = true
-  try {
-    const users = await ShoppingListApi.getSharedUsers(currentList.value.id)
-    sharedUsers.value = users || []
-  } catch (error) {
-    console.error('Error loading shared users:', error)
-    sharedUsers.value = []
-  } finally {
-    isLoadingSharedUsers.value = false
-  }
-}
-
-const closeModal = () => {
-  searchProduct.value = ''
-  showShareInput.value = false
-  shareEmail.value = ''
-  shareError.value = ''
-  shareSuccess.value = false
-  currentListId.value = null
-  listItems.value = []
-  sharedUsers.value = []
-  emit('close')
-}
-
-const currentList = computed(() => {
-  if (!store.previewingListId) return null
-  const listId = parseInt(store.previewingListId)
-  return shoppingListStore.shoppingLists.find(list => list.id === listId) || null
-})
-
-// Check if current user is the owner of the list
 const isCurrentUserOwner = computed(() => {
-  if (!currentList.value?.owner || !user.value?.id) return false
+  if (!currentItem.value?.owner || !user.value?.id) return false
   
   const currentUserId = Number(user.value.id)
-  const ownerId = Number(currentList.value.owner.id)
+  const ownerId = Number(currentItem.value.owner.id)
   
   return currentUserId === ownerId
+})
+
+// Items for display (unified)
+const displayItems = computed(() => {
+  if (isListType.value) {
+    return listItems.value
+  } else {
+    return pantryItems.value
+  }
 })
 
 // Filter products based on search
@@ -160,123 +121,23 @@ const filteredProducts = computed(() => {
   )
 })
 
-// Handle clicking + button on a product
-const openAddProductModal = (product: Product) => {
-  selectedProductToAdd.value = product
-  showAddProductModal.value = true
-}
-
-// Handle confirming addition with details
-const handleAddProductWithDetails = async (details: { quantity: number; unit: string; description: string }) => {
-  if (!currentList.value?.id || !selectedProductToAdd.value?.id) {
-    return
-  }
-
-  isAddingProduct.value = true
+// Users from the item (owner + shared users)
+const itemUsers = computed((): ItemUser[] => {
+  if (!currentItem.value) return []
   
-  try {
-    const listId = currentList.value.id
-    const productId = selectedProductToAdd.value.id
-    
-    const itemData = {
-      product: {
-        id: productId
-      },
-      quantity: details.quantity,
-      unit: details.unit,
-      metadata: details.description ? { description: details.description } : {}
-    }
-    
-    await addItemToList(listId, itemData)
-    
-    // Reload list items to show the new item
-    await loadListItems()
-    
-    // Close modal and reset state
-    showAddProductModal.value = false
-    selectedProductToAdd.value = null
-  } catch (error) {
-    alert('Error al agregar el producto a la lista. Intenta de nuevo.')
-  } finally {
-    isAddingProduct.value = false
-  }
-}
-
-const addProduct = () => {
-  // Disabled quick add
-}
-
-const removeProduct = async (itemId: number | undefined) => {
-  if (!itemId || !currentList.value?.id) return
-  
-  try {
-    await deleteListItem(currentList.value.id, itemId)
-    await loadListItems()
-  } catch (error) {
-    alert('Error al eliminar el producto. Intenta de nuevo.')
-  }
-}
-
-const incrementQuantity = async (item: ListItemData) => {
-  if (!item.id || !currentList.value?.id) return
-  
-  try {
-    await updateListItem(currentList.value.id, item.id, {
-      quantity: item.quantity + 1,
-      unit: item.unit,
-      metadata: item.metadata
-    })
-    await loadListItems()
-  } catch (error) {
-    // Error updating quantity
-  }
-}
-
-const decrementQuantity = async (item: ListItemData) => {
-  if (!item.id || !currentList.value?.id || item.quantity <= 1) return
-  
-  try {
-    await updateListItem(currentList.value.id, item.id, {
-      quantity: item.quantity - 1,
-      unit: item.unit,
-      metadata: item.metadata
-    })
-    await loadListItems()
-  } catch (error) {
-    // Error updating quantity
-  }
-}
-
-const togglePurchased = async (item: ListItemData) => {
-  if (!item.id || !currentList.value?.id) return
-  
-  try {
-    await toggleItemPurchased(currentList.value.id, item.id, !item.purchased)
-    await loadListItems()
-  } catch (error) {
-    // Error toggling purchased status
-  }
-}
-
-
-
-// Users from the list (owner + shared users)
-const listUsers = computed((): ListUser[] => {
-  if (!currentList.value) return []
-  
-  const users: ListUser[] = []
+  const users: ItemUser[] = []
   
   // Add owner
-  if (currentList.value.owner) {
-    const ownerName = currentList.value.owner.name || 
-                     currentList.value.owner.email?.split('@')[0] || 
+  if (currentItem.value.owner) {
+    const ownerName = currentItem.value.owner.name || 
+                     currentItem.value.owner.email?.split('@')[0] || 
                      'Propietario'
     users.push({
-      id: currentList.value.owner.id?.toString() || '',
+      id: currentItem.value.owner.id?.toString() || '',
       name: ownerName,
       avatar: '👤',
       isOwner: true,
-      email: currentList.value.owner.email
+      email: currentItem.value.owner.email
     })
   }
   
@@ -294,6 +155,219 @@ const listUsers = computed((): ListUser[] => {
   return users
 })
 
+const itemTypeLabel = computed(() => isListType.value ? 'lista' : 'despensa')
+const itemTypeLabelCapitalized = computed(() => isListType.value ? 'Lista' : 'Despensa')
+
+// Load data on mount
+onMounted(async () => {
+  await loadProducts()
+  await loadItems()
+  await loadSharedUsers()
+  if (isPantryType.value) {
+    await getAllCategories({ page: 1, limit: 100, orderBy: 'name', order: 'ASC' })
+  }
+})
+
+// Watch for changes in itemId to reload items
+watch(() => [props.show, props.itemId] as const, async (newVal, oldVal) => {
+  const [show, itemId] = newVal
+  const [oldShow, oldItemId] = oldVal || [false, undefined]
+  if (show && itemId && itemId !== oldItemId) {
+    await loadItems()
+    await loadSharedUsers()
+  }
+}, { immediate: true })
+
+const loadProducts = async () => {
+  isLoadingProducts.value = true
+  try {
+    await productStore.getAll(undefined, { limit: 100 })
+    availableProducts.value = productStore.products
+  } catch (error) {
+    console.error('Error loading products:', error)
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
+
+const loadItems = async () => {
+  if (!props.itemId) return
+  
+  // Prevent reloading if we're already loading the same item
+  if (currentItemId.value === props.itemId && isLoadingItems.value) {
+    return
+  }
+  
+  currentItemId.value = props.itemId
+  isLoadingItems.value = true
+  
+  try {
+    if (isListType.value) {
+      const result = await getListItems(props.itemId, { limit: 100 })
+      listItems.value = result.data || []
+    } else {
+      await getPantryItems(props.itemId, { page: 1, limit: 100, orderBy: 'createdAt', order: 'DESC' })
+    }
+  } catch (error) {
+    console.error('Error loading items:', error)
+    if (isListType.value) {
+      listItems.value = []
+    }
+  } finally {
+    isLoadingItems.value = false
+  }
+}
+
+const loadSharedUsers = async () => {
+  if (!props.itemId) return
+  
+  isLoadingSharedUsers.value = true
+  try {
+    if (isListType.value) {
+      const users = await ShoppingListApi.getSharedUsers(props.itemId)
+      sharedUsers.value = users || []
+    } else {
+      const users = await PantryApi.getSharedUsers(props.itemId)
+      sharedUsers.value = users || []
+    }
+  } catch (error) {
+    console.error('Error loading shared users:', error)
+    sharedUsers.value = []
+  } finally {
+    isLoadingSharedUsers.value = false
+  }
+}
+
+const closeModal = () => {
+  searchProduct.value = ''
+  showShareInput.value = false
+  shareEmail.value = ''
+  shareError.value = ''
+  shareSuccess.value = false
+  currentItemId.value = null
+  listItems.value = []
+  sharedUsers.value = []
+  emit('close')
+}
+
+// Handle clicking + button on a product
+const openAddProductModal = (product: Product) => {
+  selectedProductToAdd.value = product
+  showAddProductModal.value = true
+}
+
+// Handle confirming addition with details
+const handleAddProductWithDetails = async (details: { quantity: number; unit: string; description: string }) => {
+  if (!props.itemId || !selectedProductToAdd.value?.id) {
+    return
+  }
+
+  isAddingProduct.value = true
+  
+  try {
+    const itemId = props.itemId
+    const productId = selectedProductToAdd.value.id
+    
+    const itemData = {
+      product: {
+        id: productId
+      },
+      quantity: details.quantity,
+      unit: details.unit,
+      metadata: details.description ? { description: details.description } : {}
+    }
+    
+    if (isListType.value) {
+      await addItemToList(itemId, itemData)
+    } else {
+      await PantryApi.addItem(itemId, itemData)
+    }
+    
+    // Reload items to show the new item
+    await loadItems()
+    
+    // Close modal and reset state
+    showAddProductModal.value = false
+    selectedProductToAdd.value = null
+  } catch (error) {
+    alert(`Error al agregar el producto a la ${itemTypeLabel.value}. Intenta de nuevo.`)
+  } finally {
+    isAddingProduct.value = false
+  }
+}
+
+const removeProduct = async (itemId: number | undefined) => {
+  if (!itemId || !props.itemId) return
+  
+  try {
+    if (isListType.value) {
+      await deleteListItem(props.itemId, itemId)
+    } else {
+      await deletePantryItem(props.itemId, itemId)
+    }
+    await loadItems()
+  } catch (error) {
+    alert('Error al eliminar el producto. Intenta de nuevo.')
+  }
+}
+
+const incrementQuantity = async (item: ListItemData | PantryItem) => {
+  if (!item.id || !props.itemId) return
+  
+  try {
+    if (isListType.value) {
+      await updateListItem(props.itemId, item.id, {
+        quantity: item.quantity + 1,
+        unit: item.unit,
+        metadata: item.metadata
+      })
+    } else {
+      await updatePantryItem(props.itemId, item.id, {
+        quantity: item.quantity + 1,
+        unit: item.unit,
+        metadata: item.metadata
+      })
+    }
+    await loadItems()
+  } catch (error) {
+    console.error('Error updating quantity:', error)
+  }
+}
+
+const decrementQuantity = async (item: ListItemData | PantryItem) => {
+  if (!item.id || !props.itemId || item.quantity <= 1) return
+  
+  try {
+    if (isListType.value) {
+      await updateListItem(props.itemId, item.id, {
+        quantity: item.quantity - 1,
+        unit: item.unit,
+        metadata: item.metadata
+      })
+    } else {
+      await updatePantryItem(props.itemId, item.id, {
+        quantity: item.quantity - 1,
+        unit: item.unit,
+        metadata: item.metadata
+      })
+    }
+    await loadItems()
+  } catch (error) {
+    console.error('Error updating quantity:', error)
+  }
+}
+
+const togglePurchased = async (item: ListItemData) => {
+  if (!item.id || !props.itemId || !isListType.value) return
+  
+  try {
+    await toggleItemPurchased(props.itemId, item.id, !item.purchased)
+    await loadItems()
+  } catch (error) {
+    console.error('Error toggling purchased status:', error)
+  }
+}
+
 // Funcionalidad de compartir
 const toggleShareInput = () => {
   showShareInput.value = !showShareInput.value
@@ -302,8 +376,8 @@ const toggleShareInput = () => {
   shareSuccess.value = false
 }
 
-const shareList = async () => {
-  if (!currentList.value?.id || !shareEmail.value.trim()) {
+const shareItem = async () => {
+  if (!props.itemId || !shareEmail.value.trim()) {
     shareError.value = 'Por favor ingresa un email válido'
     return
   }
@@ -313,8 +387,11 @@ const shareList = async () => {
   shareSuccess.value = false
 
   try {
-    const listId = currentList.value.id
-    await ShoppingListApi.share(listId, shareEmail.value.trim())
+    if (isListType.value) {
+      await ShoppingListApi.share(props.itemId, shareEmail.value.trim())
+    } else {
+      await PantryApi.share(props.itemId, shareEmail.value.trim())
+    }
     shareSuccess.value = true
     shareEmail.value = ''
     
@@ -327,20 +404,24 @@ const shareList = async () => {
       showShareInput.value = false
     }, 2000)
   } catch (error: any) {
-    shareError.value = error.message || 'Error al compartir la lista. Intenta de nuevo.'
+    shareError.value = error.message || `Error al compartir la ${itemTypeLabel.value}. Intenta de nuevo.`
   } finally {
     isSharing.value = false
   }
 }
 
 const revokeShare = async (userId: number) => {
-  if (!currentList.value?.id || !isCurrentUserOwner.value) {
+  if (!props.itemId || !isCurrentUserOwner.value) {
     alert('No tienes permisos para revocar accesos.')
     return
   }
   
   try {
-    await ShoppingListApi.revokeShare(currentList.value.id, userId)
+    if (isListType.value) {
+      await ShoppingListApi.revokeShare(props.itemId, userId)
+    } else {
+      await PantryApi.revokeShare(props.itemId, userId)
+    }
     // Refresh shared users list
     await loadSharedUsers()
   } catch (error) {
@@ -350,26 +431,31 @@ const revokeShare = async (userId: number) => {
 }
 
 // Funcionalidad de eliminar
-const confirmDeleteList = () => {
+const confirmDeleteItem = () => {
   showDeleteConfirm.value = true
 }
 
-const deleteList = async () => {
-  if (!currentList.value?.id || !isCurrentUserOwner.value) {
-    alert('No tienes permisos para eliminar esta lista.')
+const deleteItem = async () => {
+  if (!props.itemId || !isCurrentUserOwner.value) {
+    alert(`No tienes permisos para eliminar esta ${itemTypeLabel.value}.`)
     return
   }
 
   isDeleting.value = true
 
   try {
-    const listId = currentList.value.id
-    await ShoppingListApi.remove(listId)
-    await getAllShoppingLists()
+    if (isListType.value) {
+      await ShoppingListApi.remove(props.itemId)
+      await getAllShoppingLists()
+    } else {
+      await PantryApi.remove(props.itemId)
+      // Reload page for pantry
+      window.location.reload()
+    }
     showDeleteConfirm.value = false
     closeModal()
   } catch (error: any) {
-    alert('Error al eliminar la lista. Intenta de nuevo.')
+    alert(`Error al eliminar la ${itemTypeLabel.value}. Intenta de nuevo.`)
   } finally {
     isDeleting.value = false
   }
@@ -383,30 +469,30 @@ const cancelDelete = () => {
 
 <template>
   <BaseModal 
-    :show="store.isPreviewingList" 
-    :title="currentList?.name || 'Vista previa'"
+    :show="show" 
+    :title="itemName || 'Vista previa'"
     @close="closeModal"
   >
     <!-- Contenido del Modal - Dos columnas -->
     <div class="flex h-full overflow-hidden">
-      <!-- Columna Izquierda - Lista y Productos -->
+      <!-- Columna Izquierda - Items -->
       <div class="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
         <div class="p-8 overflow-y-auto flex-1">
-          <!-- Información de la lista -->
+          <!-- Información del item -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-gray-800">{{ currentList?.name }}</h3>
+              <h3 class="text-xl font-bold text-gray-800">{{ itemName }}</h3>
               <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">0 productos</span>
+                <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
               </div>
             </div>
             
-            <!-- Usuarios de la lista -->
+            <!-- Usuarios -->
             <div class="mb-6">
               <h4 class="text-lg font-semibold text-gray-700 mb-3">Colaboradores</h4>
               <div class="flex items-center gap-2 flex-wrap">
                 <div 
-                  v-for="user in listUsers" 
+                  v-for="user in itemUsers" 
                   :key="user.id"
                   class="flex items-center gap-2 bg-white rounded-full px-3 py-2 border border-gray-200 cursor-pointer"
                   :title="user.isOwner ? 'Propietario' : 'Colaborador'"
@@ -449,10 +535,10 @@ const cancelDelete = () => {
                     type="email" 
                     placeholder="Email del colaborador"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:border-verde-sidebar focus:outline-none"
-                    @keyup.enter="shareList"
+                    @keyup.enter="shareItem"
                   />
                   <button 
-                    @click="shareList"
+                    @click="shareItem"
                     :disabled="isSharing || !shareEmail.trim()"
                     class="px-4 py-2 bg-verde-sidebar text-white rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -460,37 +546,38 @@ const cancelDelete = () => {
                   </button>
                 </div>
                 <p v-if="shareError" class="text-red-500 text-sm mt-2">{{ shareError }}</p>
-                <p v-if="shareSuccess" class="text-green-600 text-sm mt-2">¡Lista compartida exitosamente!</p>
+                <p v-if="shareSuccess" class="text-green-600 text-sm mt-2">¡{{ itemTypeLabelCapitalized }} compartida exitosamente!</p>
               </div>
             </div>
           </div>
 
-          <!-- Productos en la lista -->
+          <!-- Productos -->
           <div>
             <label class="block text-2xl font-bold text-gray-800 mb-4">Productos</label>
             
             <!-- Loading state -->
-            <div v-if="isLoadingListItems" class="text-center text-gray-400 py-12">
+            <div v-if="isLoadingItems" class="text-center text-gray-400 py-12">
               <p class="text-lg">Cargando productos...</p>
             </div>
             
             <!-- Empty state -->
-            <div v-else-if="listItems.length === 0" class="text-center text-gray-400 py-12">
-              <p class="text-lg">No hay productos en la lista</p>
+            <div v-else-if="displayItems.length === 0" class="text-center text-gray-400 py-12">
+              <p class="text-lg">No hay productos en la {{ itemTypeLabel }}</p>
               <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
             </div>
             
-            <!-- List items -->
+            <!-- Items -->
             <div v-else class="space-y-3">
               <div 
-                v-for="item in listItems" 
+                v-for="item in displayItems" 
                 :key="item.id"
                 class="flex items-center gap-3 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
-                :class="{ 'opacity-60': item.purchased }"
+                :class="{ 'opacity-60': isListType && 'purchased' in item && item.purchased }"
               >
-                <!-- Checkbox for purchased status -->
+                <!-- Checkbox for purchased status (only for lists) -->
                 <button 
-                  @click="togglePurchased(item)"
+                  v-if="isListType && 'purchased' in item"
+                  @click="togglePurchased(item as ListItemData)"
                   class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
                   :class="item.purchased ? 'bg-verde-sidebar border-verde-sidebar text-white' : 'border-gray-300 hover:border-verde-sidebar'"
                 >
@@ -498,6 +585,11 @@ const cancelDelete = () => {
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </button>
+
+                <!-- Imagen del producto (only for pantry) -->
+                <div v-if="isPantryType" class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                  <span class="text-2xl">{{ item.product.metadata?.icon || '📦' }}</span>
+                </div>
                 
                 <!-- Product info -->
                 <div class="flex-1 min-w-0">
@@ -551,10 +643,10 @@ const cancelDelete = () => {
         <div class="p-6 bg-gray-50 flex justify-between items-center border-t border-gray-200">
           <button 
             v-if="isCurrentUserOwner"
-            @click="confirmDeleteList"
+            @click="confirmDeleteItem"
             class="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors" 
           >
-            Eliminar Lista
+            Eliminar {{ itemTypeLabelCapitalized }}
           </button>
           <button 
             @click="closeModal"
@@ -579,7 +671,6 @@ const cancelDelete = () => {
                 type="text" 
                 placeholder="Buscar Productos"
                 class="w-full pl-12 pr-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
-                @keyup.enter="addProduct"
               />
             </div>
             <button 
@@ -587,29 +678,6 @@ const cancelDelete = () => {
             >
               <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Tag de producto actual con X y + -->
-          <div v-if="searchProduct.trim()" class="flex items-center gap-3 mb-6">
-            <div class="flex items-center gap-2 bg-gray-100 rounded-2xl px-5 py-3 flex-1 border-2 border-gray-300">
-              <span class="text-gray-800 font-semibold text-lg flex-1">{{ searchProduct }}</span>
-              <button 
-                @click="searchProduct = ''"
-                class="text-gray-500 hover:text-gray-700"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <button 
-              @click="addProduct"
-              class="bg-verde-sidebar hover:bg-verde-contraste text-white p-3 rounded-2xl transition-colors shadow-md"
-            >
-              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
               </svg>
             </button>
           </div>
@@ -635,6 +703,11 @@ const cancelDelete = () => {
               :key="product.id"
               class="flex items-center gap-3 bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-verde-sidebar transition-colors"
             >
+              <!-- Product icon/image -->
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                <span class="text-xl">{{ product.metadata?.icon || '📦' }}</span>
+              </div>
+              
               <!-- Product info -->
               <div class="flex-1 min-w-0">
                 <p class="text-gray-800 font-semibold text-base truncate">{{ product.name }}</p>
@@ -660,11 +733,11 @@ const cancelDelete = () => {
   <!-- Modal de confirmación de eliminación -->
   <ConfirmationModal
     :show="showDeleteConfirm"
-    title="¿Eliminar lista?"
-    :message="`¿Estás seguro de que deseas eliminar la lista '${currentList?.name}'? Esta acción no se puede deshacer.`"
+    :title="`¿Eliminar ${itemTypeLabel}?`"
+    :message="`¿Estás seguro de que deseas eliminar ${isListType ? 'la lista' : 'la despensa'} '${itemName}'? Esta acción no se puede deshacer.`"
     confirmText="Eliminar"
     cancelText="Cancelar"
-    @confirm="deleteList"
+    @confirm="deleteItem"
     @cancel="cancelDelete"
     :isProcessing="isDeleting"
   />

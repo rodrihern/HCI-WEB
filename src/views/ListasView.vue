@@ -6,7 +6,7 @@ import { useUser } from '@/composables/user'
 import { ShoppingListApi } from '@/api/shoppingList'
 import PageHeader from '@/components/PageHeader.vue'
 import CreateListModal from '@/components/CreateListModal.vue'
-import PreviewListModal from '@/components/PreviewListModal.vue'
+import PreviewItemsModal from '@/components/PreviewItemsModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import ListItem from '@/components/ListItem.vue'
 import ContextMenu from '@/components/ContextMenu.vue'
@@ -289,8 +289,14 @@ const shareList = async () => {
   <!-- Modal para crear nueva lista -->
   <CreateListModal @close="store.closeCreateListModal" />
 
-  <!-- Modal para vista previa de lista -->
-  <PreviewListModal @close="store.closePreviewListModal" />
+  <!-- Modal para vista previa de lista (nuevo genérico) -->
+  <PreviewItemsModal 
+    :show="store.isPreviewingList"
+    :item-id="store.previewingListId ? parseInt(store.previewingListId) : undefined"
+    :item-name="shoppingLists.find(l => l.id === parseInt(store.previewingListId || '0'))?.name"
+    type="list"
+    @close="store.closePreviewListModal" 
+  />
 
   <!-- Modal de confirmación para eliminar -->
   <ConfirmationModal
