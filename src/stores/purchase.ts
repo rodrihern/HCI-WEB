@@ -35,5 +35,9 @@ export const usePurchaseStore = defineStore("purchase", () => {
         return await PurchaseApi.restore(id);
     }
 
-    return { purchases, pagination, getAll, get, restore };
+    function removePurchase(id: number): void {
+        purchases.value = purchases.value.filter(p => p.id !== id);
+    }
+
+    return { purchases, pagination, getAll, get, restore, removePurchase };
 });

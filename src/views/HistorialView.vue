@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useListsStore } from "../stores/lists";
 import { usePurchaseStore } from "../stores/purchase";
-import { usePurchase } from "../composables/purchase";
-import ConfirmationModal from "../components/ConfirmationModal.vue";
 import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
 import ContextMenu from "../components/ContextMenu.vue";
 import ListItem from "../components/ListItem.vue";
 
 const store = useListsStore();
 const purchaseStore = usePurchaseStore();
-const { getAllPurchases, restorePurchase } = usePurchase();
 
-const showDeleteConfirm = ref(false);
-const itemToDelete = ref<number | null>(null);
 const openMenuForItemId = ref<number | null>(null);
-const isLoadingPurchases = ref(false);
+const isLoadingPurchases = ref(true);
 
 onMounted(async () => {
     await loadPurchases();
@@ -24,7 +19,7 @@ onMounted(async () => {
 const loadPurchases = async () => {
     isLoadingPurchases.value = true;
     try {
-        await getAllPurchases({ 
+        await purchaseStore.getAll(undefined, { 
             orderBy: "createdAt", 
             order: "DESC",
             limit: 100 
@@ -35,6 +30,8 @@ const loadPurchases = async () => {
         isLoadingPurchases.value = false;
     }
 };
+
+const purchases = computed(() => purchaseStore.purchases);
 
 const handleMenuStateChange = (
     itemId: number,
@@ -66,30 +63,21 @@ const openPreviewHistorial = (
 
 const onRestore = async (id: number) => {
     try {
-        await restorePurchase(id);
+        await purchaseStore.restore(id);
+        
+        // Eliminar la compra del store después de restaurarla
+        purchaseStore.removePurchase(id);
+        
+        // Cerrar el modal si está abierto
+        if (store.previewingHistorialId === id) {
+            store.closePreviewHistorialModal();
+        }
+        
         alert(`Lista restaurada exitosamente`);
-        await loadPurchases();
     } catch (error) {
         console.error("Error restoring purchase:", error);
         alert("Error al restaurar la lista");
     }
-};
-
-const confirmDelete = (id: number) => {
-    itemToDelete.value = id;
-    showDeleteConfirm.value = true;
-};
-
-const onDelete = () => {
-    if (itemToDelete.value) {
-        // Note: La API no tiene endpoint para eliminar compras del historial
-        // Por ahora solo mostramos un mensaje
-        alert(
-            "Las compras del historial no se pueden eliminar"
-        );
-    }
-    showDeleteConfirm.value = false;
-    itemToDelete.value = null;
 };
 
 const formatDate = (
@@ -102,6 +90,28 @@ const formatDate = (
         month: "short",
         year: "numeric",
     });
+};
+
+const formatDateTime = (
+    dateString: string,
+) => {
+    return new Date(
+        dateString,
+    ).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const getPurchasedCount = (item: any) => {
+    return item.listItemArray?.filter((i: any) => i.purchased).length || 0;
+};
+
+const getTotalCount = (item: any) => {
+    return item.listItemArray?.length || 0;
 };
 </script>
 
@@ -123,10 +133,10 @@ const formatDate = (
 
         <div class="space-y-3">
             <ListItem
-                v-for="item in purchaseStore.purchases"
+                v-for="item in purchases"
                 :key="item.id"
-                :title="item.list.name"
-                :subtitle="`${formatDate(item.createdAt || '')} • ${item.listItemArray.length} productos`"
+                :title="`Compra de: ${item.list.name}`"
+                :subtitle="`${formatDateTime(item.createdAt || '')} • ${getPurchasedCount(item)}/${getTotalCount(item)} productos comprados`"
                 :class="
                     getItemClass(
                         item.id!,
@@ -149,16 +159,6 @@ const formatDate = (
                                             item.id!,
                                         ),
                             },
-                            {
-                                label: 'Eliminar',
-                                onClick:
-                                    () =>
-                                        confirmDelete(
-                                            item.id!,
-                                        ),
-                                variant:
-                                    'danger',
-                            },
                         ]"
                         @menu-state-change="
                             (isOpen) =>
@@ -174,7 +174,7 @@ const formatDate = (
 
         <div
             v-if="
-                purchaseStore.purchases.length === 0 && !isLoadingPurchases
+                purchases.length === 0 && !isLoadingPurchases
             "
             class="text-center text-gray-500 mt-12"
         >
@@ -203,25 +203,5 @@ const formatDate = (
                 store.closePreviewHistorialModal
             "
         />
-
-        <ConfirmationModal
-            :show="showDeleteConfirm"
-            title="Eliminar compra del historial"
-            message="¿Estás seguro de que quieres eliminar esta compra del historial?"
-            variant="danger"
-            @confirm="onDelete"
-            @cancel="
-                showDeleteConfirm = false
-            "
-        >
-            <template #details>
-                <p
-                    class="text-sm text-gray-600 mt-2"
-                >
-                    Esta acción no se
-                    puede deshacer.
-                </p>
-            </template>
-        </ConfirmationModal>
     </div>
 </template>
