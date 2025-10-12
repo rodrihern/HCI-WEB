@@ -325,6 +325,17 @@ const submitProduct = async () => {
             description || undefined,
         image: imageBase64,
     });
+
+    // Limpiar campos después de guardar
+    productName.value = "";
+    productDescription.value = "";
+    selectedCategoryId.value = undefined;
+    categorySearch.value = "";
+    newCategoryName.value = "";
+    selectedFile.value = null;
+    existingImage.value = undefined;
+    imagePreview.value = undefined;
+    isCategoryOpen.value = false;
 };
 
 // Función para mostrar error (llamada desde el padre)
