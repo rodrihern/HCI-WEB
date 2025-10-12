@@ -1,5 +1,5 @@
 import { computed, onMounted } from "vue";
-import { ShoppingList, type ShoppingListData } from "@/api/shoppingList";
+import { ShoppingList, ShoppingListApi, type ShoppingListData } from "@/api/shoppingList";
 import { useShoppingListStore } from "@/stores/shoppingList";
 import { useLog } from "./log";
 import { useUser } from "./user";
@@ -85,6 +85,36 @@ export function useShoppingList() {
         return shoppingListStore.pagination;
     });
 
+    async function shareShoppingList(listId: number, email: string): Promise<boolean> {
+        try {
+            await ShoppingListApi.share(listId, email);
+            return true;
+        } catch (e) {
+            error(e);
+            throw e;
+        }
+    }
+
+    async function getSharedUsers(listId: number): Promise<any[]> {
+        try {
+            const response = await ShoppingListApi.getSharedUsers(listId);
+            return response || [];
+        } catch (e) {
+            error(e);
+            return [];
+        }
+    }
+
+    async function revokeShare(listId: number, userId: number): Promise<boolean> {
+        try {
+            await ShoppingListApi.revokeShare(listId, userId);
+            return true;
+        } catch (e) {
+            error(e);
+            return false;
+        }
+    }
+
     onMounted(async () => {
         if (isLoggedIn.value) await shoppingListStore.getAll();
     });
@@ -98,6 +128,9 @@ export function useShoppingList() {
         getAllShoppingLists, 
         goToPage, 
         nextPage, 
-        prevPage 
+        prevPage,
+        shareShoppingList,
+        getSharedUsers,
+        revokeShare
     };
 }

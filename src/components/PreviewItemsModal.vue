@@ -57,9 +57,21 @@ const listItems = ref<ListItemData[]>([])
 const showAddProductModal = ref(false)
 const selectedProductToAdd = ref<Product | null>(null)
 
-// Estado para eliminar
-const showDeleteConfirm = ref(false)
-const isDeleting = ref(false)
+// Estado para descartar cambios
+const showDiscardConfirm = ref(false)
+
+// Track pending changes (changes not yet saved to server)
+interface PendingChange {
+  type: 'add' | 'update' | 'delete'
+  itemId?: number
+  productId?: number
+  data?: any
+}
+
+const pendingChanges = ref<PendingChange[]>([])
+const originalItems = ref<(ListItemData | PantryItem)[]>([])
+
+const hasUnsavedChanges = computed(() => pendingChanges.value.length > 0)
 
 // Computed properties
 const isListType = computed(() => props.type === 'list')
@@ -174,24 +186,116 @@ const loadItems = async () => {
     if (isListType.value) {
       const result = await getListItems(props.itemId, { limit: 100 })
       listItems.value = result.data || []
+      // Save original state for comparison
+      originalItems.value = JSON.parse(JSON.stringify(listItems.value))
     } else {
       await getPantryItems(props.itemId, { page: 1, limit: 100, orderBy: 'createdAt', order: 'DESC' })
+      // Save original state for comparison
+      originalItems.value = JSON.parse(JSON.stringify(pantryItems.value))
     }
+    // Reset pending changes when loading new data
+    pendingChanges.value = []
   } catch (error) {
     console.error('Error loading items:', error)
     if (isListType.value) {
       listItems.value = []
     }
+    originalItems.value = []
   } finally {
     isLoadingItems.value = false
   }
 }
 
+const saveAllChanges = async () => {
+  if (!props.itemId || pendingChanges.value.length === 0) return
+
+  try {
+    // Process all pending changes
+    for (const change of pendingChanges.value) {
+      if (change.type === 'add') {
+        if (isListType.value) {
+          await addItemToList(props.itemId, change.data)
+        } else {
+          await PantryApi.addItem(props.itemId, change.data)
+        }
+      } else if (change.type === 'update' && change.itemId) {
+        if (change.data.purchased !== undefined) {
+          // Handle purchased toggle separately
+          await toggleItemPurchased(props.itemId, change.itemId, change.data.purchased)
+        } else {
+          // Handle quantity/unit updates
+          if (isListType.value) {
+            await updateListItem(props.itemId, change.itemId, change.data)
+          } else {
+            await updatePantryItem(props.itemId, change.itemId, change.data)
+          }
+        }
+      } else if (change.type === 'delete' && change.itemId) {
+        if (isListType.value) {
+          await deleteListItem(props.itemId, change.itemId)
+        } else {
+          await deletePantryItem(props.itemId, change.itemId)
+        }
+      }
+    }
+
+    // Clear pending changes after successful save
+    pendingChanges.value = []
+    
+    // Reload items to get fresh data from server
+    await loadItems()
+  } catch (error) {
+    console.error('Error saving changes:', error)
+    throw error
+  }
+}
+
 const closeModal = () => {
+  // Check if there are unsaved changes
+  if (hasUnsavedChanges.value) {
+    showDiscardConfirm.value = true
+    return
+  }
+  
+  // Reset all state and close
   searchProduct.value = ''
   selectedCategoryId.value = null
   currentItemId.value = null
   listItems.value = []
+  pendingChanges.value = []
+  originalItems.value = []
+  emit('close')
+}
+
+const saveAndClose = async () => {
+  if (hasUnsavedChanges.value) {
+    try {
+      await saveAllChanges()
+    } catch (error) {
+      alert(`Error al guardar los cambios. Intenta de nuevo.`)
+      return
+    }
+  }
+  
+  // Reset all state and close
+  searchProduct.value = ''
+  selectedCategoryId.value = null
+  currentItemId.value = null
+  listItems.value = []
+  pendingChanges.value = []
+  originalItems.value = []
+  emit('close')
+}
+
+const discardChanges = () => {
+  // Reset all state and close without saving
+  searchProduct.value = ''
+  selectedCategoryId.value = null
+  currentItemId.value = null
+  listItems.value = []
+  pendingChanges.value = []
+  originalItems.value = []
+  showDiscardConfirm.value = false
   emit('close')
 }
 
@@ -210,25 +314,40 @@ const handleAddProductWithDetails = async (productId: number, quantity: number, 
   isAddingProduct.value = true
   
   try {
-    const itemId = props.itemId
-    
-    const itemData = {
-      product: {
-        id: productId
-      },
+    const product = availableProducts.value.find(p => p.id === productId)
+    if (!product) {
+      alert('Producto no encontrado')
+      return
+    }
+
+    // Create a temporary item for local display
+    const tempItem = {
+      id: Date.now(), // temporary ID (negative to distinguish from real IDs)
+      product: product,
       quantity: quantity,
       unit: unit,
-      metadata: {}
+      metadata: {},
+      purchased: false
     }
     
+    // Add to local state
     if (isListType.value) {
-      await addItemToList(itemId, itemData)
+      listItems.value.push(tempItem as ListItemData)
     } else {
-      await PantryApi.addItem(itemId, itemData)
+      pantryItems.value.push(tempItem as PantryItem)
     }
-    
-    // Reload items to show the new item
-    await loadItems()
+
+    // Track the change
+    pendingChanges.value.push({
+      type: 'add',
+      productId: productId,
+      data: {
+        product: { id: productId },
+        quantity: quantity,
+        unit: unit,
+        metadata: {}
+      }
+    })
     
     // Close modal and reset state
     showAddProductModal.value = false
@@ -240,51 +359,43 @@ const handleAddProductWithDetails = async (productId: number, quantity: number, 
   }
 }
 
-const removeProduct = async (itemId: number | undefined) => {
+const removeProduct = (itemId: number | undefined) => {
   if (!itemId || !props.itemId) return
   
-  // Optimistic update: remover del UI inmediatamente
-  let removedItem: ListItemData | PantryItem | undefined = undefined
-  let removedIndex = -1
-  
+  // Remove from local state
   if (isListType.value) {
-    removedIndex = listItems.value.findIndex(i => i.id === itemId)
-    if (removedIndex !== -1) {
-      removedItem = { ...listItems.value[removedIndex] } as ListItemData
-      listItems.value.splice(removedIndex, 1)
+    const index = listItems.value.findIndex(i => i.id === itemId)
+    if (index !== -1) {
+      listItems.value.splice(index, 1)
     }
   } else {
-    removedIndex = pantryItems.value.findIndex(i => i.id === itemId)
-    if (removedIndex !== -1) {
-      removedItem = { ...pantryItems.value[removedIndex] } as PantryItem
-      pantryItems.value.splice(removedIndex, 1)
+    const index = pantryItems.value.findIndex(i => i.id === itemId)
+    if (index !== -1) {
+      pantryItems.value.splice(index, 1)
     }
   }
   
-  try {
-    // Eliminar en el servidor en segundo plano
-    if (isListType.value) {
-      await deleteListItem(props.itemId, itemId)
-    } else {
-      await deletePantryItem(props.itemId, itemId)
+  // Track the change (only if it's a real item, not a temporary one)
+  if (itemId < 1000000000000) { // Real IDs are smaller than our temporary timestamp IDs
+    pendingChanges.value.push({
+      type: 'delete',
+      itemId: itemId
+    })
+  } else {
+    // If it's a temporary item (just added), remove the 'add' change
+    const addIndex = pendingChanges.value.findIndex(
+      c => c.type === 'add' && c.data?.product?.id === itemId
+    )
+    if (addIndex !== -1) {
+      pendingChanges.value.splice(addIndex, 1)
     }
-  } catch (error) {
-    // Revertir si hay error: restaurar el item eliminado
-    if (removedItem && removedIndex !== -1) {
-      if (isListType.value) {
-        listItems.value.splice(removedIndex, 0, removedItem as ListItemData)
-      } else {
-        pantryItems.value.splice(removedIndex, 0, removedItem as PantryItem)
-      }
-    }
-    alert('Error al eliminar el producto. Intenta de nuevo.')
   }
 }
 
-const incrementQuantity = async (item: ListItemData | PantryItem) => {
+const incrementQuantity = (item: ListItemData | PantryItem) => {
   if (!item.id || !props.itemId) return
   
-  // Optimistic update: actualizar UI inmediatamente
+  // Update local state
   if (isListType.value) {
     const index = listItems.value.findIndex(i => i.id === item.id)
     if (index !== -1) {
@@ -297,43 +408,24 @@ const incrementQuantity = async (item: ListItemData | PantryItem) => {
     }
   }
   
-  try {
-    // Actualizar en el servidor en segundo plano
-    if (isListType.value) {
-      await updateListItem(props.itemId, item.id, {
+  // Track the change (only for real items)
+  if (item.id < 1000000000000) {
+    pendingChanges.value.push({
+      type: 'update',
+      itemId: item.id,
+      data: {
         quantity: item.quantity + 1,
         unit: item.unit,
         metadata: item.metadata
-      })
-    } else {
-      await updatePantryItem(props.itemId, item.id, {
-        quantity: item.quantity + 1,
-        unit: item.unit,
-        metadata: item.metadata
-      })
-    }
-  } catch (error) {
-    console.error('Error updating quantity:', error)
-    // Revertir cambio si hay error
-    if (isListType.value) {
-      const index = listItems.value.findIndex(i => i.id === item.id)
-      if (index !== -1) {
-        listItems.value[index] = { ...listItems.value[index], quantity: item.quantity } as ListItemData
       }
-    } else {
-      const index = pantryItems.value.findIndex(i => i.id === item.id)
-      if (index !== -1) {
-        pantryItems.value[index] = { ...pantryItems.value[index], quantity: item.quantity } as PantryItem
-      }
-    }
-    alert('Error al actualizar la cantidad. Intenta de nuevo.')
+    })
   }
 }
 
-const decrementQuantity = async (item: ListItemData | PantryItem) => {
+const decrementQuantity = (item: ListItemData | PantryItem) => {
   if (!item.id || !props.itemId || item.quantity <= 1) return
   
-  // Optimistic update: actualizar UI inmediatamente
+  // Update local state
   if (isListType.value) {
     const index = listItems.value.findIndex(i => i.id === item.id)
     if (index !== -1) {
@@ -346,95 +438,42 @@ const decrementQuantity = async (item: ListItemData | PantryItem) => {
     }
   }
   
-  try {
-    // Actualizar en el servidor en segundo plano
-    if (isListType.value) {
-      await updateListItem(props.itemId, item.id, {
+  // Track the change (only for real items)
+  if (item.id < 1000000000000) {
+    pendingChanges.value.push({
+      type: 'update',
+      itemId: item.id,
+      data: {
         quantity: item.quantity - 1,
         unit: item.unit,
         metadata: item.metadata
-      })
-    } else {
-      await updatePantryItem(props.itemId, item.id, {
-        quantity: item.quantity - 1,
-        unit: item.unit,
-        metadata: item.metadata
-      })
-    }
-  } catch (error) {
-    console.error('Error updating quantity:', error)
-    // Revertir cambio si hay error
-    if (isListType.value) {
-      const index = listItems.value.findIndex(i => i.id === item.id)
-      if (index !== -1) {
-        listItems.value[index] = { ...listItems.value[index], quantity: item.quantity } as ListItemData
       }
-    } else {
-      const index = pantryItems.value.findIndex(i => i.id === item.id)
-      if (index !== -1) {
-        pantryItems.value[index] = { ...pantryItems.value[index], quantity: item.quantity } as PantryItem
-      }
-    }
-    alert('Error al actualizar la cantidad. Intenta de nuevo.')
+    })
   }
 }
 
-const togglePurchased = async (item: ListItemData) => {
+const togglePurchased = (item: ListItemData) => {
   if (!item.id || !props.itemId || !isListType.value) return
   
-  // Optimistic update: actualizar UI inmediatamente
+  // Update local state
   const index = listItems.value.findIndex(i => i.id === item.id)
   if (index !== -1) {
     listItems.value[index] = { ...listItems.value[index], purchased: !item.purchased } as ListItemData
   }
   
-  try {
-    // Actualizar en el servidor en segundo plano
-    await toggleItemPurchased(props.itemId, item.id, !item.purchased)
-  } catch (error) {
-    console.error('Error toggling purchased status:', error)
-    // Revertir cambio si hay error
-    if (index !== -1) {
-      listItems.value[index] = { ...listItems.value[index], purchased: item.purchased } as ListItemData
-    }
-    alert('Error al actualizar el estado. Intenta de nuevo.')
+  // Track the change (only for real items)
+  if (item.id < 1000000000000) {
+    pendingChanges.value.push({
+      type: 'update',
+      itemId: item.id,
+      data: {
+        purchased: !item.purchased
+      }
+    })
   }
 }
 
-// Funcionalidad de eliminar
-const confirmDeleteItem = () => {
-  showDeleteConfirm.value = true
-}
 
-const deleteItem = async () => {
-  if (!props.itemId || !isCurrentUserOwner.value) {
-    alert(`No tienes permisos para eliminar esta ${itemTypeLabel.value}.`)
-    return
-  }
-
-  isDeleting.value = true
-
-  try {
-    if (isListType.value) {
-      await ShoppingListApi.remove(props.itemId)
-      await getAllShoppingLists()
-    } else {
-      await PantryApi.remove(props.itemId)
-      // Reload page for pantry
-      window.location.reload()
-    }
-    showDeleteConfirm.value = false
-    closeModal()
-  } catch (error: any) {
-    alert(`Error al eliminar la ${itemTypeLabel.value}. Intenta de nuevo.`)
-  } finally {
-    isDeleting.value = false
-  }
-}
-
-const cancelDelete = () => {
-  showDeleteConfirm.value = false
-}
 
 </script>
 
@@ -511,16 +550,9 @@ const cancelDelete = () => {
         </div>
 
         <!-- Botones de acción en la columna izquierda -->
-        <div class="p-6 bg-gray-50 flex justify-between items-center border-t border-gray-200">
+        <div class="p-6 bg-gray-50 flex justify-end items-center border-t border-gray-200">
           <button 
-            v-if="isCurrentUserOwner"
-            @click="confirmDeleteItem"
-            class="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors" 
-          >
-            Eliminar {{ itemTypeLabelCapitalized }}
-          </button>
-          <button 
-            @click="closeModal"
+            @click="saveAndClose"
             class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors" 
           >
             Guardar y Salir
@@ -582,16 +614,15 @@ const cancelDelete = () => {
     </div>
   </BaseModal>
 
-  <!-- Modal de confirmación de eliminación -->
+  <!-- Modal de confirmación para descartar cambios -->
   <ConfirmationModal
-    :show="showDeleteConfirm"
-    :title="`¿Eliminar ${itemTypeLabel}?`"
-    :message="`¿Estás seguro de que deseas eliminar ${isListType ? 'la lista' : 'la despensa'} '${itemName}'? Esta acción no se puede deshacer.`"
-    confirmText="Eliminar"
-    cancelText="Cancelar"
-    @confirm="deleteItem"
-    @cancel="cancelDelete"
-    :isProcessing="isDeleting"
+    :show="showDiscardConfirm"
+    title="¿Descartar cambios?"
+    message="Tienes cambios sin guardar. ¿Estás seguro de que deseas salir sin guardar?"
+    confirmText="Descartar"
+    cancelText="Continuar editando"
+    @confirm="discardChanges"
+    @cancel="showDiscardConfirm = false"
   />
 
   <!-- Modal para añadir producto con detalles -->

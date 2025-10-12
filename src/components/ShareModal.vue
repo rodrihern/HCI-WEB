@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import BaseModal from './BaseModal.vue'
 import { usePantry } from '@/composables/pantry'
+import { useShoppingList } from '@/composables/shoppingList'
 
 const props = defineProps<{
   show: boolean
-  pantryId?: number
-  pantryName?: string
+  type: 'pantry' | 'list'
+  itemId?: number
+  itemName?: string
 }>()
 
 const emit = defineEmits<{
@@ -14,7 +16,8 @@ const emit = defineEmits<{
   shared: []
 }>()
 
-const { sharePantry, getSharedUsers, revokeShare } = usePantry()
+const { sharePantry, getSharedUsers: getPantrySharedUsers, revokeShare: revokePantryShare } = usePantry()
+const { shareShoppingList, getSharedUsers: getListSharedUsers, revokeShare: revokeListShare } = useShoppingList()
 
 const email = ref('')
 const isLoading = ref(false)
@@ -22,6 +25,10 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const sharedUsers = ref<any[]>([])
 const loadingUsers = ref(false)
+
+// Computed properties for dynamic text
+const itemTypeLabel = computed(() => props.type === 'pantry' ? 'Despensa' : 'Lista')
+const itemTypeLower = computed(() => props.type === 'pantry' ? 'despensa' : 'lista')
 
 const closeModal = () => {
   email.value = ''
@@ -31,17 +38,22 @@ const closeModal = () => {
 }
 
 // Load shared users when modal opens
-watch(() => [props.show, props.pantryId], async ([show, pantryId]) => {
-  if (show && pantryId && typeof pantryId === 'number') {
+watch(() => [props.show, props.itemId], async ([show, itemId]) => {
+  if (show && itemId && typeof itemId === 'number') {
     loadingUsers.value = true
-    const users = await getSharedUsers(pantryId)
-    sharedUsers.value = users || []
+    if (props.type === 'pantry') {
+      const users = await getPantrySharedUsers(itemId)
+      sharedUsers.value = users || []
+    } else {
+      const users = await getListSharedUsers(itemId)
+      sharedUsers.value = users || []
+    }
     loadingUsers.value = false
   }
 }, { immediate: true })
 
 const handleShare = async () => {
-  if (!email.value.trim() || !props.pantryId) return
+  if (!email.value.trim() || !props.itemId) return
   
   // Simple email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -55,13 +67,24 @@ const handleShare = async () => {
   isLoading.value = true
 
   try {
-    const success = await sharePantry(props.pantryId, email.value)
+    let success = false
+    if (props.type === 'pantry') {
+      success = await sharePantry(props.itemId, email.value)
+    } else {
+      success = await shareShoppingList(props.itemId, email.value)
+    }
+    
     if (success) {
-      successMessage.value = `Despensa compartida con ${email.value}`
+      successMessage.value = `${itemTypeLabel.value} compartida con ${email.value}`
       email.value = ''
       // Reload shared users
-      const users = await getSharedUsers(props.pantryId)
-      sharedUsers.value = users || []
+      if (props.type === 'pantry') {
+        const users = await getPantrySharedUsers(props.itemId)
+        sharedUsers.value = users || []
+      } else {
+        const users = await getListSharedUsers(props.itemId)
+        sharedUsers.value = users || []
+      }
       emit('shared')
       
       // Clear success message after 3 seconds
@@ -69,27 +92,38 @@ const handleShare = async () => {
         successMessage.value = ''
       }, 3000)
     } else {
-      errorMessage.value = 'No se pudo compartir la despensa. Intenta nuevamente.'
+      errorMessage.value = `No se pudo compartir la ${itemTypeLower.value}. Intenta nuevamente.`
     }
   } catch (error: any) {
-    errorMessage.value = error.message || 'Error al compartir la despensa'
+    errorMessage.value = error.message || `Error al compartir la ${itemTypeLower.value}`
   } finally {
     isLoading.value = false
   }
 }
 
 const handleRevokeShare = async (userId: number) => {
-  if (!props.pantryId) return
+  if (!props.itemId) return
   
   const confirmed = confirm('¿Estás seguro de que quieres revocar el acceso a este usuario?')
   if (!confirmed) return
 
   try {
-    const success = await revokeShare(props.pantryId, userId)
+    let success = false
+    if (props.type === 'pantry') {
+      success = await revokePantryShare(props.itemId, userId)
+    } else {
+      success = await revokeListShare(props.itemId, userId)
+    }
+    
     if (success) {
       // Reload shared users
-      const users = await getSharedUsers(props.pantryId)
-      sharedUsers.value = users || []
+      if (props.type === 'pantry') {
+        const users = await getPantrySharedUsers(props.itemId)
+        sharedUsers.value = users || []
+      } else {
+        const users = await getListSharedUsers(props.itemId)
+        sharedUsers.value = users || []
+      }
     }
   } catch (error: any) {
     errorMessage.value = 'Error al revocar acceso'
@@ -100,7 +134,7 @@ const handleRevokeShare = async (userId: number) => {
 <template>
   <BaseModal 
     :show="show" 
-    :title="`Compartir: ${pantryName}`"
+    :title="`Compartir: ${itemName || itemTypeLabel}`"
     max-width="xl"
     height="auto"
     @close="closeModal"

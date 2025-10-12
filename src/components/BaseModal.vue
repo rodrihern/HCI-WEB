@@ -149,7 +149,7 @@ const maxWidthClasses = {
 <style scoped>
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-    transition: opacity 1ms ease;
+    transition: opacity 0.02 ease;
 }
 
 .modal-fade-enter-from,

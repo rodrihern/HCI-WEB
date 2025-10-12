@@ -507,7 +507,6 @@ const handleSaveProduct =
                 productToEdit
             "
             :categories="categories"
-            :loading="isLoading"
             @close="closeModal"
             @save="handleSaveProduct"
             @category-deleted="

@@ -9,9 +9,9 @@ import PageHeader from '@/components/PageHeader.vue'
 import CreateItemModal from '@/components/CreateItemModal.vue'
 import PreviewItemsModal from '@/components/PreviewItemsModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import ShareModal from '@/components/ShareModal.vue'
 import ListItem from '@/components/ListItem.vue'
 import ContextMenu from '@/components/ContextMenu.vue'
-import BaseModal from '@/components/BaseModal.vue'
 import type { ContextMenuItem } from '@/components/ContextMenu.vue'
 import type { ShoppingListData } from '@/api/shoppingList'
 import SearchEmptyState from '@/components/SearchEmptyState.vue'
@@ -53,13 +53,10 @@ const listToDelete = ref<number | null>(
 
 // Estado del modal de compartir
 const showShareModal = ref(false);
-const listToShare = ref<number | null>(
-    null,
-);
-const shareEmail = ref("");
-const isSharing = ref(false);
-const shareError = ref("");
-const shareSuccess = ref(false);
+const listToShare = ref<{
+    id: number;
+    name: string;
+} | null>(null);
 
 const sortedLists = computed(() => {
     const lists = [
@@ -239,6 +236,8 @@ const toggleRecurringWithAnimation =
 const getContextMenuItems = (
     listId: number,
 ): ContextMenuItem[] => {
+    const list = shoppingLists.value.find(l => l.id === listId);
+    
     const items: ContextMenuItem[] = [
         {
             label: "Editar",
@@ -252,10 +251,9 @@ const getContextMenuItems = (
         items.push(
             {
                 label: "Compartir",
-                onClick: () =>
-                    openShareModal(
-                        listId,
-                    ),
+                onClick: () => {
+                    if (list) openShareModal(list);
+                },
             },
             {
                 label: "Eliminar",
@@ -272,61 +270,19 @@ const getContextMenuItems = (
 };
 
 // Modal de compartir
-const openShareModal = (
-    listId: number,
-) => {
-    listToShare.value = listId;
-    shareEmail.value = "";
-    shareError.value = "";
-    shareSuccess.value = false;
-    showShareModal.value = true;
+const openShareModal = (list: ShoppingListData) => {
+    if (list.id && list.name) {
+        listToShare.value = {
+            id: list.id,
+            name: list.name
+        };
+        showShareModal.value = true;
+    }
 };
 
 const closeShareModal = () => {
     showShareModal.value = false;
     listToShare.value = null;
-    shareEmail.value = "";
-    shareError.value = "";
-    shareSuccess.value = false;
-};
-
-const shareList = async () => {
-    if (
-        !listToShare.value ||
-        !shareEmail.value.trim()
-    ) {
-        shareError.value =
-            "Por favor ingresa un email válido";
-        return;
-    }
-
-    isSharing.value = true;
-    shareError.value = "";
-    shareSuccess.value = false;
-
-    try {
-        await ShoppingListApi.share(
-            listToShare.value,
-            shareEmail.value.trim(),
-        );
-        shareSuccess.value = true;
-        shareEmail.value = "";
-
-        // Cerrar modal después de 1.5 segundos
-        setTimeout(() => {
-            closeShareModal();
-        }, 1500);
-    } catch (error: any) {
-        console.error(
-            "Error sharing list:",
-            error,
-        );
-        shareError.value =
-            error.message ||
-            "Error al compartir la lista. Intenta de nuevo.";
-    } finally {
-        isSharing.value = false;
-    }
 };
 </script>
 
@@ -518,131 +474,12 @@ const shareList = async () => {
     </ConfirmationModal>
 
     <!-- Modal para compartir lista -->
-    <BaseModal
+    <ShareModal
+        type="list"
         :show="showShareModal"
-        title="Compartir Lista"
-        max-width="md"
+        :item-id="listToShare?.id"
+        :item-name="listToShare?.name"
         @close="closeShareModal"
-    >
-        <div class="p-6">
-            <div class="space-y-4">
-                <!-- Mensaje de éxito -->
-                <div
-                    v-if="shareSuccess"
-                    class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3"
-                >
-                    <svg
-                        class="w-6 h-6 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                        />
-                    </svg>
-                    <p
-                        class="text-green-800 font-medium"
-                    >
-                        ¡Lista
-                        compartida
-                        exitosamente!
-                    </p>
-                </div>
-
-                <!-- Formulario -->
-                <div v-else>
-                    <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                        Email del
-                        colaborador
-                    </label>
-                    <input
-                        v-model="
-                            shareEmail
-                        "
-                        type="email"
-                        placeholder="ejemplo@email.com"
-                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:border-verde-sidebar focus:outline-none transition-colors"
-                        @keyup.enter="
-                            shareList
-                        "
-                        :disabled="
-                            isSharing
-                        "
-                    />
-
-                    <!-- Mensaje de error -->
-                    <p
-                        v-if="
-                            shareError
-                        "
-                        class="text-red-600 text-sm mt-2"
-                    >
-                        {{ shareError }}
-                    </p>
-
-                    <!-- Información -->
-                    <div
-                        class="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4"
-                    >
-                        <p
-                            class="text-sm text-blue-800"
-                        >
-                            💡 El
-                            usuario
-                            recibirá
-                            acceso para
-                            ver y editar
-                            esta lista
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Botones -->
-                <div
-                    class="flex gap-3 pt-4"
-                >
-                    <button
-                        @click="
-                            closeShareModal
-                        "
-                        :disabled="
-                            isSharing
-                        "
-                        class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {{
-                            shareSuccess
-                                ? "Cerrar"
-                                : "Cancelar"
-                        }}
-                    </button>
-                    <button
-                        v-if="
-                            !shareSuccess
-                        "
-                        @click="
-                            shareList
-                        "
-                        :disabled="
-                            !shareEmail.trim() ||
-                            isSharing
-                        "
-                        class="flex-1 px-6 py-3 bg-verde-sidebar text-white font-semibold rounded-xl hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {{
-                            isSharing
-                                ? "Compartiendo..."
-                                : "Compartir"
-                        }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </BaseModal>
+        @shared="() => {}"
+    />
 </template>

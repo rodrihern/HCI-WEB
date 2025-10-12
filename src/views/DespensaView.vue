@@ -8,7 +8,7 @@ import ContextMenu, {
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import CreateItemModal from "@/components/CreateItemModal.vue";
 import PreviewItemsModal from "@/components/PreviewItemsModal.vue";
-import SharePantryModal from "@/components/SharePantryModal.vue";
+import ShareModal from "@/components/ShareModal.vue";
 import AddProductModal from "@/components/AddProductModal.vue";
 import { usePantry } from "@/composables/pantry";
 import { PantryApi } from "@/api/pantry";
@@ -324,12 +324,13 @@ const getPantrySubtitle = (
         />
 
         <!-- Modal para compartir despensa -->
-        <SharePantryModal
+        <ShareModal
+            type="pantry"
             :show="showSharePantryModal"
-            :pantry-id="
+            :item-id="
                 selectedPantryId
             "
-            :pantry-name="
+            :item-name="
                 selectedPantryName
             "
             @close="closeShareModal"
