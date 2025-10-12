@@ -14,7 +14,9 @@ export interface ListItemData {
 }
 
 export interface AddListItemData {
-    product_id: number;
+    product: {
+        id: number;
+    };
     quantity: number;
     unit: string;
     metadata?: Record<string, any>;

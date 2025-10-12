@@ -13,7 +13,9 @@ export const useListItemStore = defineStore("listItem", () => {
     }
 
     async function add(listId: number, item: any): Promise<ListItem> {
+        console.log('🔵 [listItemStore] Calling API to add item:', listId, item);
         const result = await ListItemApi.add(listId, item);
+        console.log('✅ [listItemStore] API response:', result);
         await getAll(listId);
         return mapListItem(result);
     }

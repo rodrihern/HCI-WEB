@@ -1,15 +1,34 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useListsStore } from '@/stores/lists'
 import { ShoppingListApi } from '@/api/shoppingList'
 import { useShoppingList } from '@/composables/shoppingList'
+import { useShoppingListStore } from '@/stores2/shoppingList'
+import { useProductStore } from '@/stores2/product'
+import { useListItem } from '@/composables/listItem'
+import type { Product } from '@/api/product'
+import type { ListItemData } from '@/api/listItem'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
+import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
 
 const store = useListsStore()
+const shoppingListStore = useShoppingListStore()
 const { getAllShoppingLists } = useShoppingList()
+const productStore = useProductStore()
+const { addItemToList, getListItems, toggleItemPurchased, deleteListItem, updateListItem } = useListItem()
 const searchProduct = ref('')
+const availableProducts = ref<Product[]>([])
+const isLoadingProducts = ref(false)
+const isAddingProduct = ref(false)
+const listItems = ref<ListItemData[]>([])
+const isLoadingListItems = ref(false)
+const currentListId = ref<number | null>(null)
+
+// Modal state for adding product details
+const showAddProductModal = ref(false)
+const selectedProductToAdd = ref<Product | null>(null)
 
 // Estado para compartir
 const showShareInput = ref(false)
@@ -26,58 +45,176 @@ const emit = defineEmits<{
   close: []
 }>()
 
+// Load products from API
+onMounted(async () => {
+  await loadProducts()
+  await loadListItems()
+})
+
+// Watch for changes in previewingListId to reload items
+watch(() => store.previewingListId, async (newListId, oldListId) => {
+  if (newListId && newListId !== oldListId && store.isPreviewingList) {
+    await loadListItems()
+  }
+})
+
+const loadProducts = async () => {
+  isLoadingProducts.value = true
+  try {
+    await productStore.getAll(undefined, { limit: 100 })
+    availableProducts.value = productStore.products
+  } catch (error) {
+    // Error loading products
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
+
+const loadListItems = async () => {
+  if (!currentList.value?.id) return
+  
+  // Prevent reloading if we're already loading the same list
+  if (currentListId.value === currentList.value.id && isLoadingListItems.value) {
+    return
+  }
+  
+  currentListId.value = currentList.value.id
+  isLoadingListItems.value = true
+  
+  try {
+    const result = await getListItems(currentList.value.id, { limit: 100 })
+    listItems.value = result.data || []
+  } catch (error) {
+    // Error loading list items
+    listItems.value = []
+  } finally {
+    isLoadingListItems.value = false
+  }
+}
+
 const closeModal = () => {
   searchProduct.value = ''
   showShareInput.value = false
   shareEmail.value = ''
   shareError.value = ''
   shareSuccess.value = false
+  currentListId.value = null
+  listItems.value = []
   emit('close')
 }
 
-const currentList = computed(() => store.getPreviewingList())
+const currentList = computed(() => {
+  if (!store.previewingListId) return null
+  const listId = parseInt(store.previewingListId)
+  return shoppingListStore.shoppingLists.find(list => list.id === listId) || null
+})
 
-const addProduct = () => {
-  if (searchProduct.value.trim() && currentList.value) {
-    // Find or create product
-    let product = store.products.find(p => p.name.toLowerCase() === searchProduct.value.toLowerCase())
-    if (!product) {
-      // Create new product if it doesn't exist
-      product = {
-        id: Date.now().toString(),
-        name: searchProduct.value.trim(),
-        category: 'Otros',
-        icon: '📦'
-      }
-      store.addProduct(product)
+// Filter products based on search
+const filteredProducts = computed(() => {
+  if (!searchProduct.value.trim()) {
+    return availableProducts.value
+  }
+  const query = searchProduct.value.toLowerCase()
+  return availableProducts.value.filter(product => 
+    product.name.toLowerCase().includes(query)
+  )
+})
+
+// Handle clicking + button on a product
+const openAddProductModal = (product: Product) => {
+  selectedProductToAdd.value = product
+  showAddProductModal.value = true
+}
+
+// Handle confirming addition with details
+const handleAddProductWithDetails = async (details: { quantity: number; unit: string; description: string }) => {
+  if (!currentList.value?.id || !selectedProductToAdd.value?.id) {
+    return
+  }
+
+  isAddingProduct.value = true
+  
+  try {
+    const listId = currentList.value.id
+    const productId = selectedProductToAdd.value.id
+    
+    const itemData = {
+      product: {
+        id: productId
+      },
+      quantity: details.quantity,
+      unit: details.unit,
+      metadata: details.description ? { description: details.description } : {}
     }
     
-    store.addItemToList(currentList.value.id, product.id, 1, 'unidad')
-    searchProduct.value = ''
+    await addItemToList(listId, itemData)
+    
+    // Reload list items to show the new item
+    await loadListItems()
+    
+    // Close modal and reset state
+    showAddProductModal.value = false
+    selectedProductToAdd.value = null
+  } catch (error) {
+    alert('Error al agregar el producto a la lista. Intenta de nuevo.')
+  } finally {
+    isAddingProduct.value = false
   }
 }
 
-const removeProduct = (productId: string) => {
-  if (currentList.value) {
-    store.removeItemFromList(currentList.value.id, productId)
+const addProduct = () => {
+  // Disabled quick add
+}
+
+const removeProduct = async (itemId: number | undefined) => {
+  if (!itemId || !currentList.value?.id) return
+  
+  try {
+    await deleteListItem(currentList.value.id, itemId)
+    await loadListItems()
+  } catch (error) {
+    alert('Error al eliminar el producto. Intenta de nuevo.')
   }
 }
 
-const incrementQuantity = (productId: string) => {
-  if (currentList.value) {
-    const item = currentList.value.items.find(i => i.productId === productId)
-    if (item) {
-      store.updateListItemQuantity(currentList.value.id, productId, item.quantity + 1)
-    }
+const incrementQuantity = async (item: ListItemData) => {
+  if (!item.id || !currentList.value?.id) return
+  
+  try {
+    await updateListItem(currentList.value.id, item.id, {
+      quantity: item.quantity + 1,
+      unit: item.unit,
+      metadata: item.metadata
+    })
+    await loadListItems()
+  } catch (error) {
+    // Error updating quantity
   }
 }
 
-const decrementQuantity = (productId: string) => {
-  if (currentList.value) {
-    const item = currentList.value.items.find(i => i.productId === productId)
-    if (item && item.quantity > 1) {
-      store.updateListItemQuantity(currentList.value.id, productId, item.quantity - 1)
-    }
+const decrementQuantity = async (item: ListItemData) => {
+  if (!item.id || !currentList.value?.id || item.quantity <= 1) return
+  
+  try {
+    await updateListItem(currentList.value.id, item.id, {
+      quantity: item.quantity - 1,
+      unit: item.unit,
+      metadata: item.metadata
+    })
+    await loadListItems()
+  } catch (error) {
+    // Error updating quantity
+  }
+}
+
+const togglePurchased = async (item: ListItemData) => {
+  if (!item.id || !currentList.value?.id) return
+  
+  try {
+    await toggleItemPurchased(currentList.value.id, item.id, !item.purchased)
+    await loadListItems()
+  } catch (error) {
+    // Error toggling purchased status
   }
 }
 
@@ -113,7 +250,7 @@ const shareList = async () => {
   shareSuccess.value = false
 
   try {
-    const listId = parseInt(currentList.value.id)
+    const listId = currentList.value.id
     await ShoppingListApi.share(listId, shareEmail.value.trim())
     shareSuccess.value = true
     shareEmail.value = ''
@@ -124,7 +261,6 @@ const shareList = async () => {
       showShareInput.value = false
     }, 2000)
   } catch (error: any) {
-    console.error('Error sharing list:', error)
     shareError.value = error.message || 'Error al compartir la lista. Intenta de nuevo.'
   } finally {
     isSharing.value = false
@@ -142,13 +278,12 @@ const deleteList = async () => {
   isDeleting.value = true
 
   try {
-    const listId = parseInt(currentList.value.id)
+    const listId = currentList.value.id
     await ShoppingListApi.remove(listId)
     await getAllShoppingLists()
     showDeleteConfirm.value = false
     closeModal()
   } catch (error: any) {
-    console.error('Error deleting list:', error)
     alert('Error al eliminar la lista. Intenta de nuevo.')
   } finally {
     isDeleting.value = false
@@ -177,7 +312,7 @@ const cancelDelete = () => {
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-xl font-bold text-gray-800">{{ currentList?.name }}</h3>
               <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">{{ currentList?.items.length }} productos</span>
+                <span class="text-sm text-gray-500">0 productos</span>
               </div>
             </div>
             
@@ -231,41 +366,76 @@ const cancelDelete = () => {
           <div>
             <label class="block text-2xl font-bold text-gray-800 mb-4">Productos</label>
             
-            <div v-if="!currentList?.items.length" class="text-center text-gray-400 py-12">
+            <!-- Loading state -->
+            <div v-if="isLoadingListItems" class="text-center text-gray-400 py-12">
+              <p class="text-lg">Cargando productos...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div v-else-if="listItems.length === 0" class="text-center text-gray-400 py-12">
               <p class="text-lg">No hay productos en la lista</p>
               <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
             </div>
-
-            <!-- Lista de productos -->
+            
+            <!-- List items -->
             <div v-else class="space-y-3">
               <div 
-                v-for="item in currentList?.items" 
-                :key="item.productId"
+                v-for="item in listItems" 
+                :key="item.id"
                 class="flex items-center gap-3 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
+                :class="{ 'opacity-60': item.purchased }"
               >
-                <!-- Producto info -->
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg">{{ store.getProductById(item.productId)?.icon }}</span>
-                    <span class="text-gray-800 font-semibold text-lg">
-                      {{ store.getProductById(item.productId)?.name }}
-                    </span>
-                    <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ item.unit }}</span>
-                  </div>
+                <!-- Checkbox for purchased status -->
+                <button 
+                  @click="togglePurchased(item)"
+                  class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
+                  :class="item.purchased ? 'bg-verde-sidebar border-verde-sidebar text-white' : 'border-gray-300 hover:border-verde-sidebar'"
+                >
+                  <svg v-if="item.purchased" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                
+                <!-- Product info -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-gray-800 font-semibold text-base truncate">{{ item.product.name }}</p>
+                  <p v-if="item.product.category" class="text-gray-500 text-sm">{{ item.product.category.name }}</p>
+                  <p v-if="item.metadata?.description" class="text-gray-400 text-xs mt-1">{{ item.metadata.description }}</p>
                 </div>
                 
-                <QuantityControls
-                  :quantity="item.quantity"
-                  @increment="incrementQuantity(item.productId)"
-                  @decrement="decrementQuantity(item.productId)"
-                />
-
-                <!-- Botón eliminar producto -->
+                <!-- Quantity controls -->
+                <div class="flex items-center gap-2">
+                  <button 
+                    @click="decrementQuantity(item)"
+                    :disabled="item.quantity <= 1"
+                    class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                    </svg>
+                  </button>
+                  
+                  <span class="text-gray-800 font-semibold text-lg min-w-[2rem] text-center">{{ item.quantity }}</span>
+                  
+                  <button 
+                    @click="incrementQuantity(item)"
+                    class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  >
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- Unit -->
+                <span class="text-gray-500 text-sm font-medium">{{ item.unit }}</span>
+                
+                <!-- Delete button -->
                 <button 
-                  @click="removeProduct(item.productId)"
+                  @click="removeProduct(item.id)"
                   class="text-red-500 hover:bg-red-50 rounded-xl p-2 transition-colors"
                 >
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
@@ -343,9 +513,40 @@ const cancelDelete = () => {
 
         <!-- Lista de productos disponibles (scroll) -->
         <div class="flex-1 overflow-y-auto px-8 pb-8">
-          <div class="text-gray-400 text-center py-12">
-            <p class="text-lg">Busca productos para agregarlos</p>
-            <p class="text-sm mt-2">Los productos se mostrarán aquí</p>
+          <!-- Loading state -->
+          <div v-if="isLoadingProducts" class="text-center text-gray-400 py-12">
+            <p class="text-lg">Cargando productos...</p>
+          </div>
+
+          <!-- Empty state when no products -->
+          <div v-else-if="filteredProducts.length === 0" class="text-center text-gray-400 py-12">
+            <p class="text-lg">No se encontraron productos</p>
+            <p class="text-sm mt-2">{{ searchProduct ? 'Intenta con otra búsqueda' : 'No hay productos disponibles' }}</p>
+          </div>
+
+          <!-- Products grid -->
+          <div v-else class="grid grid-cols-1 gap-3">
+            <div 
+              v-for="product in filteredProducts" 
+              :key="product.id"
+              class="flex items-center gap-3 bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-verde-sidebar transition-colors"
+            >
+              <!-- Product info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-gray-800 font-semibold text-base truncate">{{ product.name }}</p>
+                <p v-if="product.category" class="text-gray-500 text-sm">{{ product.category.name }}</p>
+              </div>
+              
+              <!-- Add button -->
+              <button 
+                @click="openAddProductModal(product)"
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-verde-sidebar hover:bg-verde-contraste text-white flex items-center justify-center transition-colors"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -362,5 +563,15 @@ const cancelDelete = () => {
     @confirm="deleteList"
     @cancel="cancelDelete"
     :isProcessing="isDeleting"
+  />
+
+  <!-- Modal para añadir producto con detalles -->
+  <AddProductToListDetailsModal
+    :show="showAddProductModal"
+    :productName="selectedProductToAdd?.name || ''"
+    :productId="selectedProductToAdd?.id"
+    :isLoading="isAddingProduct"
+    @close="showAddProductModal = false"
+    @confirm="handleAddProductWithDetails"
   />
 </template>

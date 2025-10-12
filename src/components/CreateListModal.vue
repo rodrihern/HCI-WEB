@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useListsStore } from '@/stores/lists'
 import { useShoppingList } from '@/composables/shoppingList'
 import { ShoppingListApi } from '@/api/shoppingList'
 import type { ShoppingListData } from '@/api/shoppingList'
+import { useProductStore } from '@/stores2/product'
+import type { Product } from '@/api/product'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
+import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
 
 const store = useListsStore()
 const { getAllShoppingLists } = useShoppingList()
+const productStore = useProductStore()
 const searchProduct = ref('')
 const isCreating = ref(false)
 const emailToShare = ref('')
 const showShareInput = ref(false)
+const availableProducts = ref<Product[]>([])
+const isLoadingProducts = ref(false)
+
+// Modal state for adding product details
+const showAddProductModal = ref(false)
+const selectedProductToAdd = ref<Product | null>(null)
 
 // Collaborators with email tracking
 const collaborators = ref<Array<{ id: string, name: string, avatar: string, isOwner: boolean, email?: string }>>([
@@ -23,6 +33,23 @@ const emit = defineEmits<{
   close: []
 }>()
 
+// Load products from API
+onMounted(async () => {
+  await loadProducts()
+})
+
+const loadProducts = async () => {
+  isLoadingProducts.value = true
+  try {
+    await productStore.getAll(undefined, { limit: 100 })
+    availableProducts.value = productStore.products
+  } catch (error) {
+    console.error('Error loading products:', error)
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
+
 const closeModal = () => {
   searchProduct.value = ''
   emailToShare.value = ''
@@ -31,6 +58,39 @@ const closeModal = () => {
   collaborators.value = [{ id: '1', name: 'Yo', avatar: '👤', isOwner: true }]
   store.closeCreateListModal()
   emit('close')
+}
+
+// Filter products based on search
+const filteredProducts = computed(() => {
+  if (!searchProduct.value.trim()) {
+    return availableProducts.value
+  }
+  const query = searchProduct.value.toLowerCase()
+  return availableProducts.value.filter(product => 
+    product.name.toLowerCase().includes(query)
+  )
+})
+
+// Handle clicking + button on a product
+const openAddProductModal = (product: Product) => {
+  selectedProductToAdd.value = product
+  showAddProductModal.value = true
+}
+
+// Handle confirming addition with details
+const handleAddProductWithDetails = (details: { quantity: number; unit: string; description: string }) => {
+  // Modal functionality - no API integration yet
+  if (selectedProductToAdd.value) {
+    store.newListProducts.push({
+      name: selectedProductToAdd.value.name,
+      quantity: details.quantity,
+      unit: details.unit,
+      description: details.description,
+      id: selectedProductToAdd.value.id
+    } as any)
+  }
+  showAddProductModal.value = false
+  selectedProductToAdd.value = null
 }
 
 const addProduct = () => {
@@ -317,11 +377,52 @@ const createList = async () => {
 
         <!-- Lista de productos disponibles (scroll) -->
         <div class="flex-1 overflow-y-auto px-8 pb-8">
-          <div class="text-gray-400 text-center py-12">
-            <p class="text-lg">Busca productos para agregarlos a tu lista</p>
+          <!-- Loading state -->
+          <div v-if="isLoadingProducts" class="text-center text-gray-400 py-12">
+            <p class="text-lg">Cargando productos...</p>
+          </div>
+
+          <!-- Empty state when no products -->
+          <div v-else-if="filteredProducts.length === 0" class="text-center text-gray-400 py-12">
+            <p class="text-lg">No se encontraron productos</p>
+            <p class="text-sm mt-2">{{ searchProduct ? 'Intenta con otra búsqueda' : 'No hay productos disponibles' }}</p>
+          </div>
+
+          <!-- Products grid -->
+          <div v-else class="grid grid-cols-1 gap-3">
+            <div 
+              v-for="product in filteredProducts" 
+              :key="product.id"
+              class="flex items-center gap-3 bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-verde-sidebar transition-colors"
+            >
+              <!-- Product info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-gray-800 font-semibold text-base truncate">{{ product.name }}</p>
+                <p v-if="product.category" class="text-gray-500 text-sm">{{ product.category.name }}</p>
+              </div>
+              
+              <!-- Add button -->
+              <button 
+                @click="openAddProductModal(product)"
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-verde-sidebar hover:bg-verde-contraste text-white flex items-center justify-center transition-colors"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </BaseModal>
+
+  <!-- Modal para añadir producto con detalles -->
+  <AddProductToListDetailsModal
+    :show="showAddProductModal"
+    :productName="selectedProductToAdd?.name || ''"
+    :productId="selectedProductToAdd?.id"
+    @close="showAddProductModal = false"
+    @confirm="handleAddProductWithDetails"
+  />
 </template>

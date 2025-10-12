@@ -15,11 +15,16 @@ export class Api {
         init: RequestInit = {},
         controller?: AbortController
     ): Promise<T> {
-        if (secure && Api.token) {
-            if (!init.headers) {
-                init.headers = {};
+        if (secure) {
+            if (!Api.token) {
+                console.warn('⚠️ [API] Secure request without token:', url);
             }
-            (init.headers as Record<string, string>)["Authorization"] = `bearer ${Api.token}`;
+            if (Api.token) {
+                if (!init.headers) {
+                    init.headers = {};
+                }
+                (init.headers as Record<string, string>)["Authorization"] = `bearer ${Api.token}`;
+            }
         }
 
         controller = controller || new AbortController();
@@ -52,7 +57,9 @@ export class Api {
         data?: any,
         controller?: AbortController
     ): Promise<T> {
-        return await Api.fetch<T>(
+        console.log('🌐 [API POST]', url);
+        console.log('📦 [API POST] Body:', data);
+        const result = await Api.fetch<T>(
             url,
             secure,
             {
@@ -64,6 +71,8 @@ export class Api {
             },
             controller
         );
+        console.log('✅ [API POST] Response:', result);
+        return result;
     }
 
     static async put<T = any>(

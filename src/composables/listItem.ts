@@ -9,9 +9,14 @@ export function useListItem() {
 
     async function addItemToList(listId: number, item: AddListItemData): Promise<void> {
         try {
-            log(await listItemStore.add(listId, item));
+            console.log('🔵 [useListItem] Adding item to list:', listId, item);
+            const result = await listItemStore.add(listId, item);
+            console.log('✅ [useListItem] Item added successfully:', result);
+            log(result);
         } catch (e) {
+            console.error('❌ [useListItem] Error adding item:', e);
             error(e);
+            throw e;
         }
     }
 
