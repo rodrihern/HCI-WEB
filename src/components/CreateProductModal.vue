@@ -108,6 +108,22 @@ watch(
                 undefined;
             isCategoryOpen.value = false;
             errorMessage.value = "";
+        } else {
+            // Limpiar todos los campos cuando no hay producto a editar
+            productName.value = "";
+            productDescription.value =
+                "";
+            selectedCategoryId.value =
+                undefined;
+            categorySearch.value = "";
+            newCategoryName.value = "";
+            selectedFile.value = null;
+            existingImage.value =
+                undefined;
+            imagePreview.value =
+                undefined;
+            isCategoryOpen.value = false;
+            errorMessage.value = "";
         }
     },
 );
