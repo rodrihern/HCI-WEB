@@ -12,10 +12,15 @@ import {
     watch,
 } from "vue";
 import { useUserStore } from "@/stores2/user";
+import { useUser } from "@/composables/user";
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const {
+    user: currentUser,
+    getProfile,
+} = useUser();
 
 const isSidebarExpanded = ref(false);
 const isHoverExpanded = ref(false);
@@ -26,8 +31,19 @@ const searchQuery = ref("");
 const showProfileMenu = ref(false);
 
 // Initialize user store on mount
-onMounted(() => {
+onMounted(async () => {
     userStore.initialize();
+    // Load user profile if logged in
+    if (userStore.isLoggedIn) {
+        try {
+            await getProfile();
+        } catch (e) {
+            console.error(
+                "Error loading user profile:",
+                e,
+            );
+        }
+    }
 });
 
 // Provide searchQuery to child components
@@ -40,6 +56,17 @@ watch(
         searchQuery.value = "";
     },
 );
+
+// Compute user initials for avatar fallback
+const userInitials = computed(() => {
+    if (!currentUser.value) return "";
+    const name =
+        currentUser.value.name || "";
+    const surname =
+        currentUser.value.surname || "";
+    if (!name || !surname) return "";
+    return `${name[0]}${surname[0]}`.toUpperCase();
+});
 
 const searchPlaceholder = computed(
     () => {
@@ -253,9 +280,44 @@ onMounted(() => {
                         @click="
                             toggleProfileMenu
                         "
-                        class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity"
+                        class="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                        :class="
+                            currentUser
+                                ?.metadata
+                                ?.avatar
+                                ? 'bg-transparent'
+                                : 'bg-verde-sidebar'
+                        "
                     >
+                        <!-- Avatar if exists -->
+                        <img
+                            v-if="
+                                currentUser
+                                    ?.metadata
+                                    ?.avatar
+                            "
+                            :src="
+                                currentUser
+                                    .metadata
+                                    .avatar
+                            "
+                            alt="Avatar"
+                            class="w-full h-full object-cover"
+                        />
+                        <!-- Initials if user exists but no avatar -->
+                        <span
+                            v-else-if="
+                                userInitials
+                            "
+                            class="text-white font-bold text-sm"
+                        >
+                            {{
+                                userInitials
+                            }}
+                        </span>
+                        <!-- Default icon -->
                         <svg
+                            v-else
                             class="w-6 h-6 text-white"
                             fill="none"
                             stroke="currentColor"
