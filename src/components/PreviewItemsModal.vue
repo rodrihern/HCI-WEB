@@ -507,7 +507,7 @@ const togglePurchased = (item: ListItemData) => {
       <div class="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
         <div class="p-8 pb-4 flex-shrink-0">
           <!-- Header -->
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between mb-8">
             <label class="text-2xl font-bold text-gray-800">Productos</label>
             <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
           </div>
@@ -581,7 +581,7 @@ const togglePurchased = (item: ListItemData) => {
 
       <!-- Columna Derecha - Buscar y Agregar Productos -->
       <div class="w-1/2 flex flex-col bg-white">
-        <div class="p-8 pb-4 flex-shrink-0">
+        <div class="p-4 flex-shrink-0">
           <!-- Buscador de productos -->
           <div class="mb-4">
             <div class="relative">
