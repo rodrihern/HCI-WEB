@@ -45,9 +45,15 @@ export function useUser() {
     log(await userStore.logout());
   }
 
-  async function getProfile(): Promise<void> {
+  async function getProfile(
+    force: boolean = false,
+  ): Promise<void> {
     try {
-      log(await userStore.getProfile());
+      log(
+        await userStore.getProfile(
+          force,
+        ),
+      );
     } catch (e) {
       error(e);
     }

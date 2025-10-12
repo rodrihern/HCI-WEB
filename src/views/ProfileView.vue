@@ -47,7 +47,8 @@ onMounted(async () => {
 const loadProfile = async () => {
     try {
         loading.value = true;
-        await getProfile();
+        // Force reload to get latest data
+        await getProfile(true);
 
         if (currentUser.value) {
             profileData.value.name =
