@@ -4,12 +4,23 @@ import {
     useRoute,
     useRouter,
 } from "vue-router";
-import { ref, computed, onMounted } from "vue";
+import {
+    ref,
+    computed,
+    onMounted,
+    provide,
+    watch,
+} from "vue";
 import { useUserStore } from "@/stores2/user";
+import { useUser } from "@/composables/user";
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const {
+    user: currentUser,
+    getProfile,
+} = useUser();
 
 const isSidebarExpanded = ref(false);
 const isHoverExpanded = ref(false);
@@ -20,8 +31,41 @@ const searchQuery = ref("");
 const showProfileMenu = ref(false);
 
 // Initialize user store on mount
-onMounted(() => {
+onMounted(async () => {
     userStore.initialize();
+    // Load user profile if logged in
+    if (userStore.isLoggedIn) {
+        try {
+            await getProfile();
+        } catch (e) {
+            console.error(
+                "Error loading user profile:",
+                e,
+            );
+        }
+    }
+});
+
+// Provide searchQuery to child components
+provide("searchQuery", searchQuery);
+
+// Clear search when route changes
+watch(
+    () => route.path,
+    () => {
+        searchQuery.value = "";
+    },
+);
+
+// Compute user initials for avatar fallback
+const userInitials = computed(() => {
+    if (!currentUser.value) return "";
+    const name =
+        currentUser.value.name || "";
+    const surname =
+        currentUser.value.surname || "";
+    if (!name || !surname) return "";
+    return `${name[0]}${surname[0]}`.toUpperCase();
 });
 
 const searchPlaceholder = computed(
@@ -106,28 +150,42 @@ const handleLogout = async () => {
     showProfileMenu.value = false;
     try {
         await userStore.logout();
-        router.push('/login');
+        router.push("/login");
     } catch (error) {
-        console.error('Logout error:', error);
+        console.error(
+            "Logout error:",
+            error,
+        );
         // Force logout even if API call fails
-        router.push('/login');
+        router.push("/login");
     }
 };
 
 const toggleProfileMenu = () => {
-    showProfileMenu.value = !showProfileMenu.value;
+    showProfileMenu.value =
+        !showProfileMenu.value;
 };
 
 // Close profile menu when clicking outside
-const handleClickOutside = (event: MouseEvent) => {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.profile-menu-container')) {
+const handleClickOutside = (
+    event: MouseEvent,
+) => {
+    const target =
+        event.target as HTMLElement;
+    if (
+        !target.closest(
+            ".profile-menu-container",
+        )
+    ) {
         showProfileMenu.value = false;
     }
 };
 
 onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener(
+        "click",
+        handleClickOutside,
+    );
 });
 </script>
 
@@ -135,7 +193,10 @@ onMounted(() => {
     <div
         v-if="
             route.path === '/login' ||
-            route.path === '/register'
+            route.path ===
+                '/register' ||
+            route.path ===
+                '/forgot-password'
         "
         class="min-h-screen bg-[#FEFFF7]"
     >
@@ -215,12 +276,51 @@ onMounted(() => {
                 >
 
                 <!-- Profile Menu -->
-                <div class="relative profile-menu-container">
+                <div
+                    class="relative profile-menu-container"
+                >
                     <button
-                        @click="toggleProfileMenu"
-                        class="w-10 h-10 rounded-full bg-verde-sidebar flex items-center justify-center hover:opacity-80 transition-opacity"
+                        @click="
+                            toggleProfileMenu
+                        "
+                        class="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                        :class="
+                            currentUser
+                                ?.metadata
+                                ?.avatar
+                                ? 'bg-transparent'
+                                : 'bg-verde-sidebar'
+                        "
                     >
+                        <!-- Avatar if exists -->
+                        <img
+                            v-if="
+                                currentUser
+                                    ?.metadata
+                                    ?.avatar
+                            "
+                            :src="
+                                currentUser
+                                    .metadata
+                                    .avatar
+                            "
+                            alt="Avatar"
+                            class="w-full h-full object-cover"
+                        />
+                        <!-- Initials if user exists but no avatar -->
+                        <span
+                            v-else-if="
+                                userInitials
+                            "
+                            class="text-white font-bold text-sm"
+                        >
+                            {{
+                                userInitials
+                            }}
+                        </span>
+                        <!-- Default icon -->
                         <svg
+                            v-else
                             class="w-6 h-6 text-white"
                             fill="none"
                             stroke="currentColor"
@@ -232,29 +332,57 @@ onMounted(() => {
                     </button>
 
                     <!-- Dropdown Menu -->
-                    <Transition name="dropdown">
+                    <Transition
+                        name="dropdown"
+                    >
                         <div
-                            v-if="showProfileMenu"
+                            v-if="
+                                showProfileMenu
+                            "
                             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200"
                         >
                             <button
-                                @click="goToProfile"
+                                @click="
+                                    goToProfile
+                                "
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                                    <use href="@/assets/sprite.svg#user-profile" />
+                                <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <use
+                                        href="@/assets/sprite.svg#user-profile"
+                                    />
                                 </svg>
-                                Mi Perfil
+                                Mi
+                                Perfil
                             </button>
-                            <hr class="my-1 border-gray-200" />
+                            <hr
+                                class="my-1 border-gray-200"
+                            />
                             <button
-                                @click="handleLogout"
+                                @click="
+                                    handleLogout
+                                "
                                 class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                    />
                                 </svg>
-                                Cerrar Sesión
+                                Cerrar
+                                Sesión
                             </button>
                         </div>
                     </Transition>
@@ -454,18 +582,18 @@ onMounted(() => {
 <style scoped>
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: all 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .dropdown-enter-from,
 .dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+    opacity: 0;
+    transform: translateY(-10px);
 }
 
 .dropdown-enter-to,
 .dropdown-leave-from {
-  opacity: 1;
-  transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
 }
 </style>

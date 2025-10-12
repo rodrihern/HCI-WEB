@@ -10,7 +10,7 @@ defineProps<{
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-4">
       <h1 class="text-3xl font-semibold text-gray-800">{{ title }}</h1>
-      <button 
+      <button
         v-if="showFilter"
         class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
       >
@@ -19,7 +19,7 @@ defineProps<{
         </svg>
       </button>
     </div>
-    
+
     <!-- Botón de agregar -->
     <button
       @click="onAddClick"

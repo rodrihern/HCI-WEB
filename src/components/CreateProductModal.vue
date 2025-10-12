@@ -52,6 +52,7 @@ const existingImage = ref<
 const imagePreview = ref<
     string | undefined
 >(undefined);
+const errorMessage = ref("");
 
 // Modo edición
 const isEditMode = computed(
@@ -105,10 +106,18 @@ watch(
             selectedFile.value = null;
             imagePreview.value =
                 undefined;
+            isCategoryOpen.value = false;
+            errorMessage.value = "";
         }
     },
-    { immediate: true },
 );
+
+// Limpiar error cuando el usuario empiece a escribir
+watch(productName, () => {
+    if (errorMessage.value) {
+        errorMessage.value = "";
+    }
+});
 
 const filteredCategories = computed(
     () => {
@@ -138,6 +147,7 @@ const closeModal = () => {
     existingImage.value = undefined;
     imagePreview.value = undefined;
     isCategoryOpen.value = false;
+    errorMessage.value = "";
     emit("close");
 };
 
@@ -146,7 +156,51 @@ const onFileChange = (e: Event) => {
         e.target as HTMLInputElement
     ).files;
     if (files && files[0]) {
-        selectedFile.value = files[0];
+        const file = files[0];
+
+        // Validar tamaño (máximo 2MB)
+        const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+        if (file.size > maxSize) {
+            errorMessage.value =
+                "La imagen es demasiado grande. El tamaño máximo es 2MB.";
+            selectedFile.value = null;
+            imagePreview.value =
+                undefined;
+            // Limpiar el input
+            (
+                e.target as HTMLInputElement
+            ).value = "";
+            return;
+        }
+
+        // Validar tipo de archivo
+        const validTypes = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+        ];
+        if (
+            !validTypes.includes(
+                file.type,
+            )
+        ) {
+            errorMessage.value =
+                "Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, GIF, WEBP).";
+            selectedFile.value = null;
+            imagePreview.value =
+                undefined;
+            (
+                e.target as HTMLInputElement
+            ).value = "";
+            return;
+        }
+
+        // Limpiar error si había uno
+        errorMessage.value = "";
+
+        selectedFile.value = file;
         // Crear preview de la imagen
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -154,11 +208,18 @@ const onFileChange = (e: Event) => {
                 .target
                 ?.result as string;
         };
-        reader.readAsDataURL(files[0]);
+        reader.readAsDataURL(file);
     } else {
         selectedFile.value = null;
         imagePreview.value = undefined;
     }
+};
+
+const removeImage = () => {
+    selectedFile.value = null;
+    imagePreview.value = undefined;
+    existingImage.value = undefined;
+    errorMessage.value = "";
 };
 
 const chooseCategory = (
@@ -202,8 +263,34 @@ const submitProduct = async () => {
         productName.value.trim();
     if (!name) return;
 
+    // Limpiar error previo
+    errorMessage.value = "";
+
     const description =
         productDescription.value.trim();
+
+    // Convertir imagen a base64 si hay una nueva seleccionada
+    let imageBase64 =
+        existingImage.value;
+    if (selectedFile.value) {
+        // Convertir nueva imagen a base64
+        const reader = new FileReader();
+        imageBase64 =
+            await new Promise<string>(
+                (resolve) => {
+                    reader.onload = (
+                        e,
+                    ) =>
+                        resolve(
+                            e.target
+                                ?.result as string,
+                        );
+                    reader.readAsDataURL(
+                        selectedFile.value!,
+                    );
+                },
+            );
+    }
 
     emit("save", {
         name,
@@ -211,8 +298,19 @@ const submitProduct = async () => {
             selectedCategoryId.value,
         description:
             description || undefined,
+        image: imageBase64,
     });
 };
+
+// Función para mostrar error (llamada desde el padre)
+const showError = (message: string) => {
+    errorMessage.value = message;
+};
+
+// Exponer función para que el padre pueda llamarla
+defineExpose({
+    showError,
+});
 </script>
 
 <template>
@@ -231,6 +329,18 @@ const submitProduct = async () => {
         <div
             class="p-8 space-y-4 bg-gray-50"
         >
+            <!-- Error message -->
+            <div
+                v-if="errorMessage"
+                class="p-3 bg-red-50 border border-red-200 rounded-lg"
+            >
+                <p
+                    class="text-sm text-red-600 text-center"
+                >
+                    {{ errorMessage }}
+                </p>
+            </div>
+
             <!-- Name input -->
             <div>
                 <input
@@ -453,6 +563,29 @@ const submitProduct = async () => {
                             alt="Preview"
                             class="max-w-full max-h-full object-contain"
                         />
+                        <!-- Botón para eliminar imagen -->
+                        <button
+                            @click.stop="
+                                removeImage
+                            "
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors z-10"
+                            type="button"
+                            aria-label="Eliminar imagen"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
                         <!-- Overlay al hover para cambiar imagen -->
                         <div
                             class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
@@ -506,13 +639,11 @@ const submitProduct = async () => {
                             Multimedia</span
                         >
                         <span
-                            v-if="
-                                selectedFile
-                            "
-                            class="text-xs mt-1 text-verde-sidebar"
-                            >{{
-                                selectedFile.name
-                            }}</span
+                            class="text-xs mt-2 text-gray-400"
+                            >JPG, PNG,
+                            GIF, WEBP
+                            (máx.
+                            2MB)</span
                         >
                     </div>
                 </div>
