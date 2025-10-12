@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import {
+    ref,
+    onMounted,
+    computed,
+} from "vue";
 import { useListsStore } from "../stores/lists";
 import { usePurchaseStore } from "../stores/purchase";
+import PageHeader from "@/components/PageHeader.vue";
 import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
 import ContextMenu from "../components/ContextMenu.vue";
 import ListItem from "../components/ListItem.vue";
 
 const store = useListsStore();
-const purchaseStore = usePurchaseStore();
+const purchaseStore =
+    usePurchaseStore();
 
-const openMenuForItemId = ref<number | null>(null);
+const openMenuForItemId = ref<
+    number | null
+>(null);
 const isLoadingPurchases = ref(true);
 
 onMounted(async () => {
@@ -19,19 +27,27 @@ onMounted(async () => {
 const loadPurchases = async () => {
     isLoadingPurchases.value = true;
     try {
-        await purchaseStore.getAll(undefined, { 
-            orderBy: "createdAt", 
-            order: "DESC",
-            limit: 100 
-        });
+        await purchaseStore.getAll(
+            undefined,
+            {
+                orderBy: "createdAt",
+                order: "DESC",
+                limit: 100,
+            },
+        );
     } catch (error) {
-        console.error("Error loading purchases:", error);
+        console.error(
+            "Error loading purchases:",
+            error,
+        );
     } finally {
         isLoadingPurchases.value = false;
     }
 };
 
-const purchases = computed(() => purchaseStore.purchases);
+const purchases = computed(
+    () => purchaseStore.purchases,
+);
 
 const handleMenuStateChange = (
     itemId: number,
@@ -61,22 +77,36 @@ const openPreviewHistorial = (
     store.openPreviewHistorialModal(id);
 };
 
-const onRestore = async (id: number) => {
+const onRestore = async (
+    id: number,
+) => {
     try {
         await purchaseStore.restore(id);
-        
+
         // Eliminar la compra del store después de restaurarla
-        purchaseStore.removePurchase(id);
-        
+        purchaseStore.removePurchase(
+            id,
+        );
+
         // Cerrar el modal si está abierto
-        if (store.previewingHistorialId === id) {
+        if (
+            store.previewingHistorialId ===
+            id
+        ) {
             store.closePreviewHistorialModal();
         }
-        
-        alert(`Lista restaurada exitosamente`);
+
+        alert(
+            `Lista restaurada exitosamente`,
+        );
     } catch (error) {
-        console.error("Error restoring purchase:", error);
-        alert("Error al restaurar la lista");
+        console.error(
+            "Error restoring purchase:",
+            error,
+        );
+        alert(
+            "Error al restaurar la lista",
+        );
     }
 };
 
@@ -101,35 +131,34 @@ const formatDateTime = (
         day: "numeric",
         month: "long",
         year: "numeric",
-        hour: '2-digit',
-        minute: '2-digit'
+        hour: "2-digit",
+        minute: "2-digit",
     });
 };
 
-const getPurchasedCount = (item: any) => {
-    return item.listItemArray?.filter((i: any) => i.purchased).length || 0;
+const getPurchasedCount = (
+    item: any,
+) => {
+    return (
+        item.listItemArray?.filter(
+            (i: any) => i.purchased,
+        ).length || 0
+    );
 };
 
 const getTotalCount = (item: any) => {
-    return item.listItemArray?.length || 0;
+    return (
+        item.listItemArray?.length || 0
+    );
 };
 </script>
 
 <template>
     <div class="py-6 px-6">
-        <div
-            class="flex items-center justify-between mb-6"
-        >
-            <div
-                class="flex items-center gap-4"
-            >
-                <h1
-                    class="text-xl font-semibold text-gray-800"
-                >
-                    Mis compras
-                </h1>
-            </div>
-        </div>
+        <PageHeader
+            title="Mis compras"
+            :show-add-button="false"
+        />
 
         <div class="space-y-3">
             <ListItem
@@ -174,7 +203,9 @@ const getTotalCount = (item: any) => {
 
         <div
             v-if="
-                purchases.length === 0 && !isLoadingPurchases
+                purchases.length ===
+                    0 &&
+                !isLoadingPurchases
             "
             class="text-center text-gray-500 mt-12"
         >
