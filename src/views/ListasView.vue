@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, inject, type Ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import { useShoppingList } from '@/composables/shoppingList'
 import { useShoppingListStore } from '@/stores/shoppingList'
@@ -14,6 +14,8 @@ import ContextMenu from '@/components/ContextMenu.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import type { ContextMenuItem } from '@/components/ContextMenu.vue'
 import type { ShoppingListData } from '@/api/shoppingList'
+import SearchEmptyState from '@/components/SearchEmptyState.vue'
+import { useSearchFilter } from '@/composables/search'
 
 const store = useListsStore()
 const shoppingListStore = useShoppingListStore()
@@ -24,11 +26,24 @@ const animatingFavorites = ref<Set<number>>(new Set())
 // Estado local para el modal de creación
 const showCreateListModal = ref(false)
 
-// Inject searchQuery from App.vue
-const searchQuery = inject<Ref<string>>(
-    "searchQuery",
-    ref(""),
-);
+const {
+    filteredItems: filteredShoppingLists,
+    isSearching,
+} = useSearchFilter(
+    shoppingLists,
+    (list, query) => {
+        const name =
+            list.name?.toLowerCase() ??
+            ''
+        const description =
+            list.description?.toLowerCase() ??
+            ''
+        return (
+            name.includes(query) ||
+            description.includes(query)
+        )
+    },
+)
 
 // Estado del modal de confirmación
 const showDeleteConfirm = ref(false);
@@ -47,26 +62,10 @@ const shareError = ref("");
 const shareSuccess = ref(false);
 
 const sortedLists = computed(() => {
-    let lists = [
-        ...shoppingLists.value,
+    const lists = [
+        ...filteredShoppingLists.value,
     ];
 
-    // Filter by search query if present
-    if (searchQuery.value.trim()) {
-        const query =
-            searchQuery.value.toLowerCase();
-        lists = lists.filter(
-            (list) =>
-                list.name
-                    .toLowerCase()
-                    .includes(query) ||
-                list.description
-                    ?.toLowerCase()
-                    .includes(query),
-        );
-    }
-
-    // Sort lists
     return lists.sort((a, b) => {
         // Primero por recurrentes
         const aRec =
@@ -452,20 +451,12 @@ const shareList = async () => {
             </transition-group>
         </div>
 
-        <div
-            v-if="
-                sortedLists.length === 0
-            "
-            class="text-center text-gray-500 mt-12"
-        >
-            <p class="text-lg">
-                No tienes listas todavía
-            </p>
-            <p class="text-sm">
-                Haz clic en el botón +
-                para crear una
-            </p>
-        </div>
+        <SearchEmptyState
+            :show="sortedLists.length === 0"
+            :is-searching="isSearching"
+            empty-title="No tienes listas todavía"
+            empty-subtitle="Haz clic en el botón + para crear una"
+        />
     </div>
 
   <!-- Modal para crear nueva lista -->

@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-    ref,
-    computed,
-    inject,
-    onMounted,
-    type Ref,
-} from "vue";
+import { ref, onMounted } from "vue";
 import PageHeader from "@/components/PageHeader.vue";
 import ListItem from "@/components/ListItem.vue";
 import ContextMenu, {
@@ -20,6 +14,8 @@ import { usePantry } from "@/composables/pantry";
 import { PantryApi } from "@/api/pantry";
 import { useUser } from "@/composables/user";
 import type { Pantry } from "@/api/pantry";
+import SearchEmptyState from "@/components/SearchEmptyState.vue";
+import { useSearchFilter } from "@/composables/search";
 
 const {
     pantries,
@@ -35,10 +31,15 @@ onMounted(async () => {
     }
 });
 
-// Inject searchQuery from App.vue
-const searchQuery = inject<Ref<string>>(
-    "searchQuery",
-    ref(""),
+const {
+    filteredItems: filteredPantries,
+    isSearching,
+} = useSearchFilter(
+    pantries,
+    (pantry, query) =>
+        pantry.name
+            ?.toLowerCase()
+            .includes(query) ?? false,
 );
 
 // Modal states
@@ -118,24 +119,6 @@ const closeShareModal = () => {
     selectedPantryId.value = undefined;
     selectedPantryName.value = "";
 };
-
-// Filter pantries based on search query
-const filteredPantries = computed(
-    () => {
-        if (!searchQuery.value.trim()) {
-            return pantries.value;
-        }
-
-        const query =
-            searchQuery.value.toLowerCase();
-        return pantries.value.filter(
-            (pantry) =>
-                pantry.name
-                    .toLowerCase()
-                    .includes(query),
-        );
-    },
-);
 
 const handleAddProductsFromPreview = (
     pantryId: number,
@@ -301,19 +284,12 @@ const getPantrySubtitle = (
             </ListItem>
         </div>
 
-        <div
-            v-if="pantries.length === 0"
-            class="text-center text-gray-500 mt-12"
-        >
-            <p class="text-lg">
-                No tienes despensas
-                todavía
-            </p>
-            <p class="text-sm">
-                Haz clic en el botón +
-                para crear una
-            </p>
-        </div>
+        <SearchEmptyState
+            :show="filteredPantries.length === 0"
+            :is-searching="isSearching"
+            empty-title="No tienes despensas todavía"
+            empty-subtitle="Haz clic en el botón + para crear una"
+        />
 
         <!-- Modal para crear nueva despensa -->
         <CreateItemModal

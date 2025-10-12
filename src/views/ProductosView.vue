@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-    computed,
-    ref,
-    inject,
-    watch,
-    type Ref,
-} from "vue";
+import { computed, ref } from "vue";
 import { useProduct } from "@/composables/product";
 import { useCategory } from "@/composables/category";
 import PageHeader from "@/components/PageHeader.vue";
@@ -14,15 +8,32 @@ import ProductCard from "@/components/ProductCard.vue";
 import CreateProductModal from "@/components/CreateProductModal.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import AddProductModal from "@/components/AddProductModal.vue";
+import SearchEmptyState from "@/components/SearchEmptyState.vue";
+import { useGlobalSearch } from "@/composables/search";
 import { ListItemApi } from "@/api/listItem";
 
 // Estado para loading
 const isLoading = ref(false);
 
-// Inyectar searchQuery del header principal
-const searchQuery = inject<Ref<string>>(
-    "searchQuery",
-    ref(""),
+// Inyectar y manejar searchQuery del header principal
+const {
+    searchQuery,
+    isSearching,
+    trimmedQuery,
+} = useGlobalSearch(
+    {
+        onSearch: async (query) => {
+            await getAllProducts({
+                name: query,
+                limit: 100,
+            });
+        },
+        onReset: async () => {
+            await getAllProducts({
+                limit: 100,
+            });
+        },
+    },
 );
 
 // Ref para el modal de producto
@@ -40,26 +51,10 @@ const {
 } = useProduct();
 const { categories } = useCategory();
 
-// Watch para buscar productos cuando cambia el query
-watch(searchQuery, async (newQuery) => {
-    if (newQuery.trim()) {
-        // Si hay búsqueda, hacer query con name
-        await getAllProducts({
-            name: newQuery,
-            limit: 100,
-        });
-    } else {
-        // Si no hay búsqueda, traer todos los productos
-        await getAllProducts({
-            limit: 100,
-        });
-    }
-});
-
 const productsByCategory = computed(
     () => {
         // Si hay búsqueda, no agrupar por categoría
-        if (searchQuery.value.trim()) {
+        if (isSearching.value) {
             return {
                 "Resultados de búsqueda":
                     products.value,
@@ -246,9 +241,9 @@ const handleAddProductToList = async (productId: number, quantity: number, unit:
 const handleCategoryDeleted =
     async () => {
         // Refrescar la lista de productos para reflejar los cambios
-        if (searchQuery.value.trim()) {
+        if (isSearching.value) {
             await getAllProducts({
-                name: searchQuery.value,
+                name: trimmedQuery.value,
                 limit: 100,
             });
         } else {
@@ -497,25 +492,12 @@ const handleSaveProduct =
             </CollapsibleSection>
         </div>
 
-        <div
-            v-if="products.length === 0"
-            class="text-center text-gray-500 mt-12"
-        >
-            <p class="text-lg">
-                {{
-                    searchQuery
-                        ? "No se encontraron productos"
-                        : "No tienes productos todavía"
-                }}
-            </p>
-            <p class="text-sm">
-                {{
-                    searchQuery
-                        ? "Intenta con otra búsqueda"
-                        : "Haz clic en el botón + para crear uno"
-                }}
-            </p>
-        </div>
+        <SearchEmptyState
+            :show="products.length === 0"
+            :is-searching="isSearching"
+            empty-title="No tienes productos todavía"
+            empty-subtitle="Haz clic en el botón + para crear uno"
+        />
 
         <!-- Modal Add/Edit Product -->
         <CreateProductModal

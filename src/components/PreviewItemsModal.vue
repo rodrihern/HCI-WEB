@@ -97,13 +97,32 @@ const displayItems = computed((): (ListItemData | PantryItem)[] => {
   return items
 })
 
+const existingProductIds = computed(() => {
+  const items = isListType.value ? listItems.value : pantryItems.value
+
+  return new Set(
+    items
+      .map(item => item.product?.id)
+      .filter((id): id is number => typeof id === 'number')
+  )
+})
+
 // Filter products based on search
 const filteredProducts = computed(() => {
+  const available = availableProducts.value.filter(product => {
+    const productId = product.id
+    if (productId === undefined || productId === null) {
+      return true
+    }
+    return !existingProductIds.value.has(productId)
+  })
+
   if (!searchProduct.value.trim()) {
-    return availableProducts.value
+    return available
   }
+
   const query = searchProduct.value.toLowerCase()
-  return availableProducts.value.filter(product => 
+  return available.filter(product => 
     product.name.toLowerCase().includes(query)
   )
 })

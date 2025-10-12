@@ -1,20 +1,28 @@
 <script setup lang="ts">
-import {
-    ref,
-    onMounted,
-    computed,
-} from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useListsStore } from "../stores/lists";
 import { usePurchaseStore } from "../stores/purchase";
 import PageHeader from "@/components/PageHeader.vue";
 import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
 import ListItem from "../components/ListItem.vue";
+import SearchEmptyState from "@/components/SearchEmptyState.vue";
+import { useSearchFilter } from "@/composables/search";
 
 const store = useListsStore();
-const purchaseStore =
-    usePurchaseStore();
+const purchaseStore = usePurchaseStore();
 
 const isLoadingPurchases = ref(true);
+
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(
+        "es-ES",
+        {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        },
+    );
+};
 
 onMounted(async () => {
     await loadPurchases();
@@ -23,14 +31,11 @@ onMounted(async () => {
 const loadPurchases = async () => {
     isLoadingPurchases.value = true;
     try {
-        await purchaseStore.getAll(
-            undefined,
-            {
-                orderBy: "createdAt",
-                order: "DESC",
-                limit: 100,
-            },
-        );
+        await purchaseStore.getAll(undefined, {
+            orderBy: "createdAt",
+            order: "DESC",
+            limit: 100,
+        });
     } catch (error) {
         console.error(
             "Error loading purchases:",
@@ -41,27 +46,37 @@ const loadPurchases = async () => {
     }
 };
 
-const purchases = computed(
-    () => purchaseStore.purchases,
+const {
+    filteredItems: filteredPurchases,
+    isSearching,
+} = useSearchFilter(
+    computed(() => purchaseStore.purchases),
+    (purchase, query) => {
+        const listName =
+            purchase.list?.name?.toLowerCase() ||
+            "";
+        const formattedDate = purchase.createdAt
+            ? formatDate(purchase.createdAt).toLowerCase()
+            : "";
+
+        return (
+            listName.includes(query) ||
+            formattedDate.includes(query)
+        );
+    },
 );
 
-const getItemClass = (
-    itemId: number,
-) => {
+const getItemClass = (itemId: number) => {
     const baseClasses =
         "cursor-pointer hover:scale-[1.02] transition-transform";
     return baseClasses;
 };
 
-const openPreviewHistorial = (
-    id: number,
-) => {
+const openPreviewHistorial = (id: number) => {
     store.openPreviewHistorialModal(id);
 };
 
-const onRestore = async (
-    id: number,
-) => {
+const onRestore = async (id: number) => {
     try {
         await purchaseStore.restore(id);
         // Lista restaurada exitosamente
@@ -71,18 +86,6 @@ const onRestore = async (
             error,
         );
     }
-};
-
-const formatDate = (
-    dateString: string,
-) => {
-    return new Date(
-        dateString,
-    ).toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-    });
 };
 </script>
 
@@ -95,7 +98,9 @@ const formatDate = (
 
         <div class="space-y-3">
             <ListItem
-                v-for="item in purchases"
+                v-for="
+                    item in filteredPurchases
+                "
                 :key="item.id"
                 :title="item.list.name"
                 :subtitle="`${formatDate(item.createdAt || '')}`"
@@ -124,23 +129,15 @@ const formatDate = (
             </ListItem>
         </div>
 
-        <div
-            v-if="
-                purchases.length ===
-                    0 &&
-                !isLoadingPurchases
+        <SearchEmptyState
+            :show="
+                !isLoadingPurchases &&
+                filteredPurchases.length === 0
             "
-            class="text-center text-gray-500 mt-12"
-        >
-            <p class="text-lg">
-                No tienes historial
-                todavía
-            </p>
-            <p class="text-sm">
-                Tus compras aparecerán
-                aquí
-            </p>
-        </div>
+            :is-searching="isSearching"
+            empty-title="No tienes historial todavía"
+            empty-subtitle="Tus compras aparecerán aquí"
+        />
 
         <div
             v-if="isLoadingPurchases"
