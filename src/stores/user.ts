@@ -71,6 +71,15 @@ export const useUserStore = defineStore(
         result.token,
         rememberMe,
       );
+      // Auto-load user profile after successful login
+      try {
+        await getProfile();
+      } catch (error) {
+        console.error(
+          "Error loading profile after login:",
+          error,
+        );
+      }
       return result;
     }
 
@@ -83,8 +92,11 @@ export const useUserStore = defineStore(
       }
     }
 
-    async function getProfile(): Promise<User> {
-      if (user.value) return user.value;
+    async function getProfile(
+      force: boolean = false,
+    ): Promise<User> {
+      if (user.value && !force)
+        return user.value;
       const result =
         await UserApi.getProfile();
       user.value = Object.assign(
