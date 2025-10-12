@@ -2,7 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
-import { useListsStore } from '../stores/lists'
+import { useProduct } from '@/composables/product'
+import { useCategory } from '@/composables/category'
 
 interface Props {
   show: boolean
@@ -13,28 +14,31 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   close: []
-  add: [productId: string, quantity: number, sectionId?: string]
+  add: [productId: number, quantity: number, sectionId?: string]
 }>()
 
-const store = useListsStore()
+const { products } = useProduct()
+const { categories: allCategories } = useCategory()
 
 const searchQuery = ref('')
-const selectedCategory = ref<string>('all')
-const selectedProduct = ref<string | null>(null)
+const selectedCategoryId = ref<number | null>(null)
+const selectedProduct = ref<number | null>(null)
 const quantity = ref(1)
 
-// Obtener categorías únicas
+// Obtener categorías únicas incluyendo la opción "Todos"
 const categories = computed(() => {
-  const cats = new Set(store.products.map(p => p.category))
-  return ['all', ...Array.from(cats)]
+  return [
+    { id: null, name: 'Todos' },
+    ...allCategories.value
+  ]
 })
 
 // Filtrar productos
 const filteredProducts = computed(() => {
-  return store.products.filter(product => {
+  return products.value.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = selectedCategory.value === 'all' || product.category === selectedCategory.value
+                         (product.category?.name || '').toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesCategory = selectedCategoryId.value === null || product.category_id === selectedCategoryId.value
     return matchesSearch && matchesCategory
   })
 })
@@ -48,21 +52,23 @@ const handleAdd = () => {
 
 const handleClose = () => {
   searchQuery.value = ''
-  selectedCategory.value = 'all'
+  selectedCategoryId.value = null
   selectedProduct.value = null
   quantity.value = 1
   emit('close')
 }
 
-const selectProduct = (productId: string) => {
-  selectedProduct.value = productId
+const selectProduct = (productId: number | undefined) => {
+  if (productId !== undefined) {
+    selectedProduct.value = productId
+  }
 }
 
 // Reset form when modal is opened
 watch(() => props.show, (newVal) => {
   if (newVal) {
     searchQuery.value = ''
-    selectedCategory.value = 'all'
+    selectedCategoryId.value = null
     selectedProduct.value = null
     quantity.value = 1
   }
@@ -97,14 +103,14 @@ watch(() => props.show, (newVal) => {
         <div class="flex gap-2 overflow-x-auto pb-2">
           <button
             v-for="category in categories"
-            :key="category"
-            @click="selectedCategory = category"
+            :key="category.id ?? 'all'"
+            @click="selectedCategoryId = category.id ?? null"
             class="px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors"
-            :class="selectedCategory === category
+            :class="selectedCategoryId === category.id
               ? 'bg-verde-sidebar text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
           >
-            {{ category === 'all' ? 'Todos' : category }}
+            {{ category.name }}
           </button>
         </div>
       </div>
@@ -125,18 +131,9 @@ watch(() => props.show, (newVal) => {
             :class="selectedProduct === product.id ? 'ring-2 ring-verde-contraste shadow-md' : ''"
           >
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-lg overflow-hidden bg-white/90 flex items-center justify-center flex-shrink-0">
-                <img
-                  v-if="product.image"
-                  :src="product.image"
-                  :alt="product.name"
-                  class="w-full h-full object-cover"
-                />
-                <span v-else class="text-2xl">{{ product.icon }}</span>
-              </div>
               <div class="flex-1 min-w-0">
                 <h3 class="text-white font-semibold">{{ product.name }}</h3>
-                <p class="text-white/80 text-sm">{{ product.category }}</p>
+                <p class="text-white/80 text-sm">{{ product.category?.name || 'Sin categoría' }}</p>
               </div>
               <div v-if="selectedProduct === product.id" class="flex-shrink-0">
                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
