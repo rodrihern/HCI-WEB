@@ -2,10 +2,11 @@
 import { computed, ref, inject, type Ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import { useShoppingList } from '@/composables/shoppingList'
+import { useShoppingListStore } from '@/stores/shoppingList'
 import { useUser } from '@/composables/user'
 import { ShoppingListApi } from '@/api/shoppingList'
 import PageHeader from '@/components/PageHeader.vue'
-import CreateListModal from '@/components/CreateListModal.vue'
+import CreateItemModal from '@/components/CreateItemModal.vue'
 import PreviewItemsModal from '@/components/PreviewItemsModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import ListItem from '@/components/ListItem.vue'
@@ -15,9 +16,13 @@ import type { ContextMenuItem } from '@/components/ContextMenu.vue'
 import type { ShoppingListData } from '@/api/shoppingList'
 
 const store = useListsStore()
+const shoppingListStore = useShoppingListStore()
 const { shoppingLists, deleteShoppingList, getAllShoppingLists } = useShoppingList()
 const { user } = useUser()
 const animatingFavorites = ref<Set<number>>(new Set())
+
+// Estado local para el modal de creación
+const showCreateListModal = ref(false)
 
 // Inject searchQuery from App.vue
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
@@ -62,7 +67,23 @@ const sortedLists = computed(() => {
 })
 
 const addNewList = () => {
-  store.openCreateListModal()
+  showCreateListModal.value = true
+}
+
+const handleCreateList = async (name: string) => {
+  try {
+    await shoppingListStore.add({
+      name,
+      description: 'Nueva lista',
+      recurring: false,
+      metadata: {}
+    })
+    await getAllShoppingLists()
+    showCreateListModal.value = false
+  } catch (error) {
+    console.error('Error creating list:', error)
+    alert('Error al crear la lista. Por favor intenta de nuevo.')
+  }
 }
 
 const openPreviewList = (listId: number) => {
@@ -287,7 +308,12 @@ const shareList = async () => {
   </div>
 
   <!-- Modal para crear nueva lista -->
-  <CreateListModal @close="store.closeCreateListModal" />
+  <CreateItemModal 
+    :show="showCreateListModal"
+    type="list"
+    @close="showCreateListModal = false"
+    @create="handleCreateList"
+  />
 
   <!-- Modal para vista previa de lista (nuevo genérico) -->
   <PreviewItemsModal 

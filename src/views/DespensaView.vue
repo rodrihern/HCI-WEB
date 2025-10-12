@@ -4,7 +4,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import ListItem from "@/components/ListItem.vue";
 import ContextMenu, { type ContextMenuItem } from "@/components/ContextMenu.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
-import CreatePantrySectionModal from "@/components/CreatePantrySectionModal.vue";
+import CreateItemModal from "@/components/CreateItemModal.vue";
 import PreviewItemsModal from "@/components/PreviewItemsModal.vue";
 import SharePantryModal from "@/components/SharePantryModal.vue";
 import AddProductsToPantryModal from "@/components/AddProductsToPantryModal.vue";
@@ -201,8 +201,9 @@ const getPantrySubtitle = (pantry: Pantry): string => {
         </div>
 
         <!-- Modal para crear nueva despensa -->
-        <CreatePantrySectionModal
+        <CreateItemModal
             :show="showCreatePantryModal"
+            type="pantry"
             @close="showCreatePantryModal = false"
             @create="handleCreatePantry"
         />

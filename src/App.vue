@@ -422,10 +422,7 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <span
-                            class="material-icons text-gray-700 text-2xl"
-                            >list</span
-                        >
+                        <span class="material-icons text-gray-700 text-2xl">format_list_bulleted</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="

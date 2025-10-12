@@ -14,17 +14,9 @@ import type { Product } from '@/api/product'
 import type { ListItemData } from '@/api/listItem'
 import type { PantryItem } from '@/api/pantry'
 import BaseModal from './BaseModal.vue'
-import QuantityControls from './QuantityControls.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
 import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
-
-interface ItemUser {
-  id: string
-  name: string
-  avatar: string
-  isOwner: boolean
-  email?: string
-}
+import ProductItemCard from './ProductItemCard.vue'
 
 type ItemType = 'list' | 'pantry'
 
@@ -56,6 +48,7 @@ const isLoadingProducts = ref(false)
 const isAddingProduct = ref(false)
 const isLoadingItems = ref(false)
 const currentItemId = ref<number | null>(null)
+const selectedCategoryId = ref<number | null>(null)
 
 // Items state (unified for both list and pantry)
 const listItems = ref<ListItemData[]>([])
@@ -63,15 +56,6 @@ const listItems = ref<ListItemData[]>([])
 // Modal state for adding product details
 const showAddProductModal = ref(false)
 const selectedProductToAdd = ref<Product | null>(null)
-
-// Estado para compartir
-const showShareInput = ref(false)
-const shareEmail = ref('')
-const isSharing = ref(false)
-const shareError = ref('')
-const shareSuccess = ref(false)
-const sharedUsers = ref<any[]>([])
-const isLoadingSharedUsers = ref(false)
 
 // Estado para eliminar
 const showDeleteConfirm = ref(false)
@@ -101,13 +85,16 @@ const isCurrentUserOwner = computed(() => {
   return currentUserId === ownerId
 })
 
-// Items for display (unified)
-const displayItems = computed(() => {
-  if (isListType.value) {
-    return listItems.value
-  } else {
-    return pantryItems.value
+// Items for display (unified) with category filter
+const displayItems = computed((): (ListItemData | PantryItem)[] => {
+  const items = isListType.value ? listItems.value : pantryItems.value
+  
+  // Apply category filter if selected
+  if (selectedCategoryId.value !== null) {
+    return items.filter(item => item.product.category?.id === selectedCategoryId.value)
   }
+  
+  return items
 })
 
 // Filter products based on search
@@ -121,40 +108,6 @@ const filteredProducts = computed(() => {
   )
 })
 
-// Users from the item (owner + shared users)
-const itemUsers = computed((): ItemUser[] => {
-  if (!currentItem.value) return []
-  
-  const users: ItemUser[] = []
-  
-  // Add owner
-  if (currentItem.value.owner) {
-    const ownerName = currentItem.value.owner.name || 
-                     currentItem.value.owner.email?.split('@')[0] || 
-                     'Propietario'
-    users.push({
-      id: currentItem.value.owner.id?.toString() || '',
-      name: ownerName,
-      avatar: '👤',
-      isOwner: true,
-      email: currentItem.value.owner.email
-    })
-  }
-  
-  // Add shared users
-  sharedUsers.value.forEach(user => {
-    users.push({
-      id: user.id?.toString() || '',
-      name: `${user.name || ''} ${user.surname || ''}`.trim() || user.email?.split('@')[0] || 'Usuario',
-      avatar: '👥',
-      isOwner: false,
-      email: user.email
-    })
-  })
-  
-  return users
-})
-
 const itemTypeLabel = computed(() => isListType.value ? 'lista' : 'despensa')
 const itemTypeLabelCapitalized = computed(() => isListType.value ? 'Lista' : 'Despensa')
 
@@ -162,10 +115,8 @@ const itemTypeLabelCapitalized = computed(() => isListType.value ? 'Lista' : 'De
 onMounted(async () => {
   await loadProducts()
   await loadItems()
-  await loadSharedUsers()
-  if (isPantryType.value) {
-    await getAllCategories({ page: 1, limit: 100, orderBy: 'name', order: 'ASC' })
-  }
+  // Load categories for both list and pantry
+  await getAllCategories({ page: 1, limit: 100, orderBy: 'name', order: 'ASC' })
 })
 
 // Watch for changes in itemId to reload items
@@ -174,7 +125,6 @@ watch(() => [props.show, props.itemId] as const, async (newVal, oldVal) => {
   const [oldShow, oldItemId] = oldVal || [false, undefined]
   if (show && itemId && itemId !== oldItemId) {
     await loadItems()
-    await loadSharedUsers()
   }
 }, { immediate: true })
 
@@ -218,35 +168,11 @@ const loadItems = async () => {
   }
 }
 
-const loadSharedUsers = async () => {
-  if (!props.itemId) return
-  
-  isLoadingSharedUsers.value = true
-  try {
-    if (isListType.value) {
-      const users = await ShoppingListApi.getSharedUsers(props.itemId)
-      sharedUsers.value = users || []
-    } else {
-      const users = await PantryApi.getSharedUsers(props.itemId)
-      sharedUsers.value = users || []
-    }
-  } catch (error) {
-    console.error('Error loading shared users:', error)
-    sharedUsers.value = []
-  } finally {
-    isLoadingSharedUsers.value = false
-  }
-}
-
 const closeModal = () => {
   searchProduct.value = ''
-  showShareInput.value = false
-  shareEmail.value = ''
-  shareError.value = ''
-  shareSuccess.value = false
+  selectedCategoryId.value = null
   currentItemId.value = null
   listItems.value = []
-  sharedUsers.value = []
   emit('close')
 }
 
@@ -299,14 +225,40 @@ const handleAddProductWithDetails = async (details: { quantity: number; unit: st
 const removeProduct = async (itemId: number | undefined) => {
   if (!itemId || !props.itemId) return
   
+  // Optimistic update: remover del UI inmediatamente
+  let removedItem: ListItemData | PantryItem | undefined = undefined
+  let removedIndex = -1
+  
+  if (isListType.value) {
+    removedIndex = listItems.value.findIndex(i => i.id === itemId)
+    if (removedIndex !== -1) {
+      removedItem = { ...listItems.value[removedIndex] } as ListItemData
+      listItems.value.splice(removedIndex, 1)
+    }
+  } else {
+    removedIndex = pantryItems.value.findIndex(i => i.id === itemId)
+    if (removedIndex !== -1) {
+      removedItem = { ...pantryItems.value[removedIndex] } as PantryItem
+      pantryItems.value.splice(removedIndex, 1)
+    }
+  }
+  
   try {
+    // Eliminar en el servidor en segundo plano
     if (isListType.value) {
       await deleteListItem(props.itemId, itemId)
     } else {
       await deletePantryItem(props.itemId, itemId)
     }
-    await loadItems()
   } catch (error) {
+    // Revertir si hay error: restaurar el item eliminado
+    if (removedItem && removedIndex !== -1) {
+      if (isListType.value) {
+        listItems.value.splice(removedIndex, 0, removedItem as ListItemData)
+      } else {
+        pantryItems.value.splice(removedIndex, 0, removedItem as PantryItem)
+      }
+    }
     alert('Error al eliminar el producto. Intenta de nuevo.')
   }
 }
@@ -314,7 +266,21 @@ const removeProduct = async (itemId: number | undefined) => {
 const incrementQuantity = async (item: ListItemData | PantryItem) => {
   if (!item.id || !props.itemId) return
   
+  // Optimistic update: actualizar UI inmediatamente
+  if (isListType.value) {
+    const index = listItems.value.findIndex(i => i.id === item.id)
+    if (index !== -1) {
+      listItems.value[index] = { ...listItems.value[index], quantity: item.quantity + 1 } as ListItemData
+    }
+  } else {
+    const index = pantryItems.value.findIndex(i => i.id === item.id)
+    if (index !== -1) {
+      pantryItems.value[index] = { ...pantryItems.value[index], quantity: item.quantity + 1 } as PantryItem
+    }
+  }
+  
   try {
+    // Actualizar en el servidor en segundo plano
     if (isListType.value) {
       await updateListItem(props.itemId, item.id, {
         quantity: item.quantity + 1,
@@ -328,16 +294,42 @@ const incrementQuantity = async (item: ListItemData | PantryItem) => {
         metadata: item.metadata
       })
     }
-    await loadItems()
   } catch (error) {
     console.error('Error updating quantity:', error)
+    // Revertir cambio si hay error
+    if (isListType.value) {
+      const index = listItems.value.findIndex(i => i.id === item.id)
+      if (index !== -1) {
+        listItems.value[index] = { ...listItems.value[index], quantity: item.quantity } as ListItemData
+      }
+    } else {
+      const index = pantryItems.value.findIndex(i => i.id === item.id)
+      if (index !== -1) {
+        pantryItems.value[index] = { ...pantryItems.value[index], quantity: item.quantity } as PantryItem
+      }
+    }
+    alert('Error al actualizar la cantidad. Intenta de nuevo.')
   }
 }
 
 const decrementQuantity = async (item: ListItemData | PantryItem) => {
   if (!item.id || !props.itemId || item.quantity <= 1) return
   
+  // Optimistic update: actualizar UI inmediatamente
+  if (isListType.value) {
+    const index = listItems.value.findIndex(i => i.id === item.id)
+    if (index !== -1) {
+      listItems.value[index] = { ...listItems.value[index], quantity: item.quantity - 1 } as ListItemData
+    }
+  } else {
+    const index = pantryItems.value.findIndex(i => i.id === item.id)
+    if (index !== -1) {
+      pantryItems.value[index] = { ...pantryItems.value[index], quantity: item.quantity - 1 } as PantryItem
+    }
+  }
+  
   try {
+    // Actualizar en el servidor en segundo plano
     if (isListType.value) {
       await updateListItem(props.itemId, item.id, {
         quantity: item.quantity - 1,
@@ -351,82 +343,43 @@ const decrementQuantity = async (item: ListItemData | PantryItem) => {
         metadata: item.metadata
       })
     }
-    await loadItems()
   } catch (error) {
     console.error('Error updating quantity:', error)
+    // Revertir cambio si hay error
+    if (isListType.value) {
+      const index = listItems.value.findIndex(i => i.id === item.id)
+      if (index !== -1) {
+        listItems.value[index] = { ...listItems.value[index], quantity: item.quantity } as ListItemData
+      }
+    } else {
+      const index = pantryItems.value.findIndex(i => i.id === item.id)
+      if (index !== -1) {
+        pantryItems.value[index] = { ...pantryItems.value[index], quantity: item.quantity } as PantryItem
+      }
+    }
+    alert('Error al actualizar la cantidad. Intenta de nuevo.')
   }
 }
 
 const togglePurchased = async (item: ListItemData) => {
   if (!item.id || !props.itemId || !isListType.value) return
   
-  try {
-    await toggleItemPurchased(props.itemId, item.id, !item.purchased)
-    await loadItems()
-  } catch (error) {
-    console.error('Error toggling purchased status:', error)
-  }
-}
-
-// Funcionalidad de compartir
-const toggleShareInput = () => {
-  showShareInput.value = !showShareInput.value
-  shareEmail.value = ''
-  shareError.value = ''
-  shareSuccess.value = false
-}
-
-const shareItem = async () => {
-  if (!props.itemId || !shareEmail.value.trim()) {
-    shareError.value = 'Por favor ingresa un email válido'
-    return
-  }
-
-  isSharing.value = true
-  shareError.value = ''
-  shareSuccess.value = false
-
-  try {
-    if (isListType.value) {
-      await ShoppingListApi.share(props.itemId, shareEmail.value.trim())
-    } else {
-      await PantryApi.share(props.itemId, shareEmail.value.trim())
-    }
-    shareSuccess.value = true
-    shareEmail.value = ''
-    
-    // Refresh shared users list
-    await loadSharedUsers()
-    
-    // Ocultar mensaje de éxito después de 2 segundos
-    setTimeout(() => {
-      shareSuccess.value = false
-      showShareInput.value = false
-    }, 2000)
-  } catch (error: any) {
-    shareError.value = error.message || `Error al compartir la ${itemTypeLabel.value}. Intenta de nuevo.`
-  } finally {
-    isSharing.value = false
-  }
-}
-
-const revokeShare = async (userId: number) => {
-  if (!props.itemId || !isCurrentUserOwner.value) {
-    alert('No tienes permisos para revocar accesos.')
-    return
+  // Optimistic update: actualizar UI inmediatamente
+  const index = listItems.value.findIndex(i => i.id === item.id)
+  if (index !== -1) {
+    listItems.value[index] = { ...listItems.value[index], purchased: !item.purchased } as ListItemData
   }
   
   try {
-    if (isListType.value) {
-      await ShoppingListApi.revokeShare(props.itemId, userId)
-    } else {
-      await PantryApi.revokeShare(props.itemId, userId)
-    }
-    // Refresh shared users list
-    await loadSharedUsers()
+    // Actualizar en el servidor en segundo plano
+    await toggleItemPurchased(props.itemId, item.id, !item.purchased)
   } catch (error) {
-    console.error('Error revoking share:', error)
-    alert('Error al revocar el acceso. Intenta de nuevo.')
+    console.error('Error toggling purchased status:', error)
+    // Revertir cambio si hay error
+    if (index !== -1) {
+      listItems.value[index] = { ...listItems.value[index], purchased: item.purchased } as ListItemData
+    }
+    alert('Error al actualizar el estado. Intenta de nuevo.')
   }
 }
 
@@ -478,82 +431,40 @@ const cancelDelete = () => {
       <!-- Columna Izquierda - Items -->
       <div class="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
         <div class="p-8 overflow-y-auto flex-1">
-          <!-- Información del item -->
-          <div class="mb-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-gray-800">{{ itemName }}</h3>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
-              </div>
-            </div>
-            
-            <!-- Usuarios -->
-            <div class="mb-6">
-              <h4 class="text-lg font-semibold text-gray-700 mb-3">Colaboradores</h4>
-              <div class="flex items-center gap-2 flex-wrap">
-                <div 
-                  v-for="user in itemUsers" 
-                  :key="user.id"
-                  class="flex items-center gap-2 bg-white rounded-full px-3 py-2 border border-gray-200 cursor-pointer"
-                  :title="user.isOwner ? 'Propietario' : 'Colaborador'"
-                >
-                  <span class="text-lg">{{ user.avatar }}</span>
-                  <span class="text-sm font-medium text-gray-700">{{ user.name }}</span>
-                  <span 
-                    v-if="user.isOwner" 
-                    class="text-xs bg-verde-sidebar text-white px-2 py-1 rounded-full font-medium"
-                  >
-                    Propietario
-                  </span>
-                  <button 
-                    v-if="!user.isOwner && isCurrentUserOwner"
-                    @click="revokeShare(parseInt(user.id))"
-                    class="text-gray-400 hover:text-red-500 ml-1"
-                    title="Revocar acceso"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <button 
-                  v-if="isCurrentUserOwner"
-                  @click="toggleShareInput"
-                  class="flex items-center justify-center w-8 h-8 bg-verde-sidebar text-white rounded-full hover:bg-verde-contraste transition-colors"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              </div>
-              
-              <!-- Input para compartir -->
-              <div v-if="showShareInput && isCurrentUserOwner" class="mt-4">
-                <div class="flex gap-2">
-                  <input 
-                    v-model="shareEmail"
-                    type="email" 
-                    placeholder="Email del colaborador"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:border-verde-sidebar focus:outline-none"
-                    @keyup.enter="shareItem"
-                  />
-                  <button 
-                    @click="shareItem"
-                    :disabled="isSharing || !shareEmail.trim()"
-                    class="px-4 py-2 bg-verde-sidebar text-white rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {{ isSharing ? 'Compartiendo...' : 'Compartir' }}
-                  </button>
-                </div>
-                <p v-if="shareError" class="text-red-500 text-sm mt-2">{{ shareError }}</p>
-                <p v-if="shareSuccess" class="text-green-600 text-sm mt-2">¡{{ itemTypeLabelCapitalized }} compartida exitosamente!</p>
-              </div>
-            </div>
-          </div>
-
           <!-- Productos -->
           <div>
-            <label class="block text-2xl font-bold text-gray-800 mb-4">Productos</label>
+            <div class="flex items-center justify-between mb-4">
+              <label class="text-2xl font-bold text-gray-800">Productos</label>
+              <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
+            </div>
+
+            <!-- Filtros de categorías -->
+            <div class="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+              <button
+                @click="selectedCategoryId = null"
+                :class="[
+                  'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                  selectedCategoryId === null
+                    ? 'bg-verde-sidebar text-white shadow-md' 
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                ]"
+              >
+                Todos
+              </button>
+              <button
+                v-for="category in categories"
+                :key="category.id"
+                @click="selectedCategoryId = category.id || null"
+                :class="[
+                  'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                  selectedCategoryId === category.id
+                    ? 'bg-verde-sidebar text-white shadow-md' 
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                ]"
+              >
+                {{ category.name }}
+              </button>
+            </div>
             
             <!-- Loading state -->
             <div v-if="isLoadingItems" class="text-center text-gray-400 py-12">
@@ -568,73 +479,15 @@ const cancelDelete = () => {
             
             <!-- Items -->
             <div v-else class="space-y-3">
-              <div 
+              <ProductItemCard
                 v-for="item in displayItems" 
                 :key="item.id"
-                class="flex items-center gap-3 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
-                :class="{ 'opacity-60': isListType && 'purchased' in item && item.purchased }"
-              >
-                <!-- Checkbox for purchased status (only for lists) -->
-                <button 
-                  v-if="isListType && 'purchased' in item"
-                  @click="togglePurchased(item as ListItemData)"
-                  class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
-                  :class="item.purchased ? 'bg-verde-sidebar border-verde-sidebar text-white' : 'border-gray-300 hover:border-verde-sidebar'"
-                >
-                  <svg v-if="item.purchased" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-
-                <!-- Imagen del producto (only for pantry) -->
-                <div v-if="isPantryType" class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                  <span class="text-2xl">{{ item.product.metadata?.icon || '📦' }}</span>
-                </div>
-                
-                <!-- Product info -->
-                <div class="flex-1 min-w-0">
-                  <p class="text-gray-800 font-semibold text-base truncate">{{ item.product.name }}</p>
-                  <p v-if="item.product.category" class="text-gray-500 text-sm">{{ item.product.category.name }}</p>
-                  <p v-if="item.metadata?.description" class="text-gray-400 text-xs mt-1">{{ item.metadata.description }}</p>
-                </div>
-                
-                <!-- Quantity controls -->
-                <div class="flex items-center gap-2">
-                  <button 
-                    @click="decrementQuantity(item)"
-                    :disabled="item.quantity <= 1"
-                    class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                    </svg>
-                  </button>
-                  
-                  <span class="text-gray-800 font-semibold text-lg min-w-[2rem] text-center">{{ item.quantity }}</span>
-                  
-                  <button 
-                    @click="incrementQuantity(item)"
-                    class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                  >
-                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-                
-                <!-- Unit -->
-                <span class="text-gray-500 text-sm font-medium">{{ item.unit }}</span>
-                
-                <!-- Delete button -->
-                <button 
-                  @click="removeProduct(item.id)"
-                  class="text-red-500 hover:bg-red-50 rounded-xl p-2 transition-colors"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
+                :item="item"
+                @increment="incrementQuantity(item)"
+                @decrement="decrementQuantity(item)"
+                @delete="removeProduct(item.id)"
+                @toggle-purchased="isListType && togglePurchased(item as ListItemData)"
+              />
             </div>
           </div>
         </div>
