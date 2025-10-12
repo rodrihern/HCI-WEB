@@ -371,23 +371,14 @@ defineExpose({
 
             <!-- Category selector -->
             <div class="relative">
-                <button
-                    type="button"
+                                <button
                     class="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-gray-300 bg-white text-gray-800 hover:border-verde-sidebar transition-colors"
                     @click="
                         isCategoryOpen =
                             !isCategoryOpen
                     "
                 >
-                    <svg
-                        class="w-5 h-5 text-gray-700"
-                        fill="none"
-                        stroke="currentColor"
-                    >
-                        <use
-                            href="@/assets/sprite.svg#search"
-                        />
-                    </svg>
+                    <span class="material-icons text-gray-700 text-xl">search</span>
                     <span
                         class="flex-1 text-left text-lg"
                         >{{
@@ -406,15 +397,7 @@ defineExpose({
                         "
                         aria-label="clear"
                     >
-                        <svg
-                            class="w-5 h-5 text-gray-700"
-                            fill="none"
-                            stroke="currentColor"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#close"
-                            />
-                        </svg>
+                        <span class="material-icons text-gray-700 text-xl">close</span>
                     </span>
                 </button>
 
@@ -428,15 +411,7 @@ defineExpose({
                     <div
                         class="px-4 py-3 bg-gray-50 flex items-center gap-2 border-b border-gray-200"
                     >
-                        <svg
-                            class="w-5 h-5 text-gray-500"
-                            fill="none"
-                            stroke="currentColor"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#search"
-                            />
-                        </svg>
+                        <span class="material-icons text-gray-500 text-xl">search</span>
                         <input
                             v-model="
                                 categorySearch
@@ -499,19 +474,7 @@ defineExpose({
                     <div
                         class="border-t-2 border-gray-200 px-4 py-3 flex items-center gap-2 bg-gray-50"
                     >
-                        <svg
-                            class="w-5 h-5 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 5v14m-7-7h14"
-                            />
-                        </svg>
+                        <span class="material-icons text-gray-600 text-xl">add</span>
                         <input
                             v-model="
                                 newCategoryName

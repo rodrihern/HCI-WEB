@@ -221,16 +221,7 @@ onMounted(() => {
                     "
                     class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                    <svg
-                        class="w-6 h-6 text-gray-700"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <use
-                            href="@/assets/sprite.svg#hamburger-menu"
-                        />
-                    </svg>
+                    <span class="material-icons text-gray-700">menu</span>
                 </button>
             </div>
 
@@ -252,15 +243,7 @@ onMounted(() => {
                     <button
                         class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     >
-                        <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#search"
-                            />
-                        </svg>
+                        <span class="material-icons text-xl">search</span>
                     </button>
                 </div>
             </div>
@@ -292,43 +275,7 @@ onMounted(() => {
                                 : 'bg-verde-sidebar'
                         "
                     >
-                        <!-- Avatar if exists -->
-                        <img
-                            v-if="
-                                currentUser
-                                    ?.metadata
-                                    ?.avatar
-                            "
-                            :src="
-                                currentUser
-                                    .metadata
-                                    .avatar
-                            "
-                            alt="Avatar"
-                            class="w-full h-full object-cover"
-                        />
-                        <!-- Initials if user exists but no avatar -->
-                        <span
-                            v-else-if="
-                                userInitials
-                            "
-                            class="text-white font-bold text-sm"
-                        >
-                            {{
-                                userInitials
-                            }}
-                        </span>
-                        <!-- Default icon -->
-                        <svg
-                            v-else
-                            class="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                        >
-                            <use
-                                href="@/assets/sprite.svg#user-profile"
-                            />
-                        </svg>
+                        <span class="material-icons text-white">account_circle</span>
                     </button>
 
                     <!-- Dropdown Menu -->
@@ -347,18 +294,8 @@ onMounted(() => {
                                 "
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
                             >
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <use
-                                        href="@/assets/sprite.svg#user-profile"
-                                    />
-                                </svg>
-                                Mi
-                                Perfil
+                                <span class="material-icons text-base">account_circle</span>
+                                Mi Perfil
                             </button>
                             <hr
                                 class="my-1 border-gray-200"

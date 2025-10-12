@@ -81,9 +81,9 @@ export function useUser() {
     }
   }
 
-  onMounted(async () => {
-    userStore.initialize();
-  });
+    onMounted(async () => {
+        userStore.initialize();
+    });
 
   return {
     user,

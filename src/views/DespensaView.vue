@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import PageHeader from "@/components/PageHeader.vue";
 import ListItem from "@/components/ListItem.vue";
 import ContextMenu, { type ContextMenuItem } from "@/components/ContextMenu.vue";
@@ -13,7 +13,14 @@ import { useUser } from "@/composables/user";
 import type { Pantry } from "@/api/pantry";
 
 const { pantries, createPantry, deletePantry } = usePantry();
-const { user } = useUser();
+const { user, getProfile } = useUser();
+
+// Load user profile on mount
+onMounted(async () => {
+    if (!user.value) {
+        await getProfile();
+    }
+});
 
 // Modal states
 const showCreatePantryModal = ref(false);
@@ -119,14 +126,22 @@ const getContextMenuItems = (pantryId: number, pantryName: string): ContextMenuI
 
 // Get subtitle for pantry based on ownership
 const getPantrySubtitle = (pantry: Pantry): string => {
-    if (pantry.owner && user.value) {
-        if (pantry.owner.id === user.value.id) {
-            return "Creada por mí";
-        } else {
-            return `Creada por ${pantry.owner.name} ${pantry.owner.surname || ''}`.trim();
-        }
+    if (!pantry.owner) {
+        return "Creada por mí"; // Si no hay owner, asumimos que es del usuario actual
     }
-    return "Mi despensa"; // fallback
+    
+    // Check if current user is the owner
+    // Convert both IDs to numbers for comparison in case one is a string
+    const currentUserId = user.value?.id ? Number(user.value.id) : null;
+    const ownerId = pantry.owner.id ? Number(pantry.owner.id) : null;
+    
+    if (currentUserId && ownerId && currentUserId === ownerId) {
+        return "Creada por mí";
+    }
+    
+    // Show owner name
+    const ownerName = pantry.owner.name || pantry.owner.email?.split('@')[0] || 'Usuario';
+    return `Creada por ${ownerName}`;
 };
 
 </script>
