@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useListsStore } from '@/stores/lists'
 import { usePurchaseStore } from '@/stores/purchase'
 import BaseModal from './BaseModal.vue'
+import ProductItemCard from './ProductItemCard.vue'
 
 const store = useListsStore()
 const purchaseStore = usePurchaseStore()
@@ -63,19 +64,6 @@ const formatShortDate = (dateString: string) => {
     month: 'short',
     year: 'numeric'
   })
-}
-
-const getProductIcon = (categoryName: string) => {
-  const categoryIcons: Record<string, string> = {
-    'Frutas': '🍌',
-    'Lácteos': '🥛',
-    'Bakery': '🍞',
-    'Verduras': '🥬',
-    'Carnes': '🍗',
-    'Snacks': '🥔',
-    'Galletas': '🍪'
-  }
-  return categoryIcons[categoryName] || '📦'
 }
 
 // Group products by month
@@ -187,43 +175,14 @@ const purchaseOwner = computed(() => {
               <div 
                 v-for="item in currentHistorial.listItemArray" 
                 :key="item.id"
-                class="flex items-center gap-3 rounded-xl p-3 border transition-colors"
-                :class="item.purchased ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'"
+                class="relative"
               >
-                <!-- Estado de compra -->
-                <div class="flex-shrink-0">
-                  <span v-if="item.purchased" class="text-lg" title="Comprado">✅</span>
-                  <span v-else class="text-lg" title="No comprado">⬜</span>
-                </div>
-
-                <!-- Icono del producto -->
-                <span class="text-lg">{{ item.product?.category ? getProductIcon(item.product.category.name) : '📦' }}</span>
-
-                <!-- Información del producto -->
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="text-gray-800 font-medium" :class="{ 'line-through text-gray-500': !item.purchased }">
-                      {{ item.product.name }}
-                    </span>
-                    <div class="relative group">
-                      <span class="text-xs text-gray-500 bg-white px-2 py-1 rounded-full cursor-help border border-gray-200">{{ item.unit }}</span>
-                      <!-- Tooltip -->
-                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                        unidad
-                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-if="item.product?.category" class="text-xs text-gray-500">{{ item.product.category.name }}</div>
-                </div>
-                
-                <!-- Cantidad -->
-                <div class="rounded-lg px-3 py-1" :class="item.purchased ? 'bg-green-100' : 'bg-gray-100'">
-                  <span class="font-semibold" :class="item.purchased ? 'text-green-700' : 'text-gray-700'">{{ item.quantity }}</span>
-                </div>
-
+                <ProductItemCard
+                  :item="item"
+                  mode="readonly"
+                />
                 <!-- Fecha específica de compra si existe -->
-                <div v-if="item.lastPurchasedAt" class="text-xs text-gray-500 text-right min-w-[80px]">
+                <div v-if="item.lastPurchasedAt" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 text-right min-w-[80px]">
                   {{ formatShortDate(item.lastPurchasedAt) }}
                 </div>
               </div>

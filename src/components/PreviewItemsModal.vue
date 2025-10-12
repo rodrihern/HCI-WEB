@@ -551,32 +551,13 @@ const cancelDelete = () => {
 
           <!-- Products grid -->
           <div v-else class="grid grid-cols-1 gap-3">
-            <div 
+            <ProductItemCard
               v-for="product in filteredProducts" 
               :key="product.id"
-              class="flex items-center gap-3 bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-verde-sidebar transition-colors"
-            >
-              <!-- Product icon/image -->
-              <div class="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                <span class="text-xl">{{ product.metadata?.icon || '📦' }}</span>
-              </div>
-              
-              <!-- Product info -->
-              <div class="flex-1 min-w-0">
-                <p class="text-gray-800 font-semibold text-base truncate">{{ product.name }}</p>
-                <p v-if="product.category" class="text-gray-500 text-sm">{{ product.category.name }}</p>
-              </div>
-              
-              <!-- Add button -->
-              <button 
-                @click="openAddProductModal(product)"
-                class="flex-shrink-0 w-10 h-10 rounded-full bg-verde-sidebar hover:bg-verde-contraste text-white flex items-center justify-center transition-colors"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
+              :product="product"
+              mode="addable"
+              @add="openAddProductModal(product)"
+            />
           </div>
         </div>
       </div>
