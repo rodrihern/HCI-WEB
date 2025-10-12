@@ -9,6 +9,9 @@ interface Props {
   show: boolean
   productId: number
   productName: string
+  productImage?: string
+  productIcon?: string
+  productCategory?: string
 }
 
 const props = defineProps<Props>()
@@ -146,6 +149,9 @@ const handleAddProductWithDetails = async (details: { quantity: number; unit: st
       :show="showDetailsModal"
       :product-name="productName"
       :product-id="productId"
+      :product-image="productImage"
+      :product-icon="productIcon"
+      :product-category="productCategory"
       :is-loading="isAddingProduct"
       @close="showDetailsModal = false"
       @confirm="handleAddProductWithDetails"

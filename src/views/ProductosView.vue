@@ -127,6 +127,9 @@ const productToEdit = ref<
 const productToAddToList = ref<{
     id: number;
     name: string;
+    image?: string;
+    icon?: string;
+    category?: string;
 } | null>(null);
 
 const openAddProductModal = () => {
@@ -204,6 +207,9 @@ const handleAddToList = (
         productToAddToList.value = {
             id: product.id,
             name: product.name,
+            image: product.metadata?.image,
+            icon: product.metadata?.icon,
+            category: product.category?.name,
         };
         showAddToListModal.value = true;
     }
@@ -508,6 +514,15 @@ const handleSaveProduct =
             "
             :product-name="
                 productToAddToList.name
+            "
+            :product-image="
+                productToAddToList.image
+            "
+            :product-icon="
+                productToAddToList.icon
+            "
+            :product-category="
+                productToAddToList.category
             "
             @close="closeAddToListModal"
         />
