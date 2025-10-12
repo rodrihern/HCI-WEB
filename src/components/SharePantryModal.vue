@@ -102,7 +102,7 @@ const handleRevokeShare = async (userId: number) => {
     :show="show" 
     :title="`Compartir: ${pantryName}`"
     max-width="xl"
-    height="90vh"
+    height="auto"
     @close="closeModal"
   >
     <div class="p-6 space-y-5">

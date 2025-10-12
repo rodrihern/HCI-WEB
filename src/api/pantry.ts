@@ -47,7 +47,9 @@ export interface PaginatedResponse<T> {
 }
 
 export interface AddPantryItemData {
-    product_id: number;
+    product: {
+        id: number;
+    };
     quantity: number;
     unit: string;
     metadata?: Record<string, any>;

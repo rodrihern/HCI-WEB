@@ -241,7 +241,9 @@ await createPantry('Heladera', { color: 'blue' });
 
 // Agregar item
 await addItemToPantry(1, {
-    product_id: 5,
+    product: {
+        id: 5
+    },
     quantity: 2,
     unit: 'kg',
     metadata: {}
@@ -273,7 +275,9 @@ const {
 
 // Agregar item a lista
 await addItemToList(1, {
-    product_id: 5,
+    product: {
+        id: 5
+    },
     quantity: 2,
     unit: 'kg',
     metadata: {}

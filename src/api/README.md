@@ -213,7 +213,9 @@ import { ListItemApi, type ListItemData } from '@/api';
 
 // Agregar item a lista
 const newItem = await ListItemApi.add(1, {
-  product_id: 10,
+  product: {
+    id: 10
+  },
   quantity: 2,
   unit: 'kg',
   metadata: {}
@@ -283,7 +285,9 @@ await PantryApi.revokeShare(1, 3);
 
 // Agregar item
 const pantryItem = await PantryApi.addItem(1, {
-  product_id: 10,
+  product: {
+    id: 10
+  },
   quantity: 5,
   unit: 'kg',
   metadata: {}

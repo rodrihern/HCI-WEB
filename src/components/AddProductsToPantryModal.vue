@@ -30,6 +30,10 @@ const productQuantity = ref(1)
 const productUnit = ref('')
 const showUnitDropdown = ref(false)
 
+// Success message
+const showSuccessMessage = ref(false)
+const successProductName = ref('')
+
 // Available units
 const availableUnits = ref([
   'kg',
@@ -109,15 +113,29 @@ const toggleUnitDropdown = () => {
 
 const addProductToPantry = async () => {
   if (props.pantryId && selectedProduct.value && productUnit.value) {
+    const productName = selectedProduct.value.name
+    
     await addItemToPantry(props.pantryId, {
-      product_id: selectedProduct.value.id,
+      product: {
+        id: selectedProduct.value.id
+      },
       quantity: productQuantity.value,
       unit: productUnit.value,
       metadata: {}
     })
+    
     // Refresh pantry items
     await getPantryItems(props.pantryId, { page: 1, limit: 100, orderBy: 'createdAt', order: 'DESC' })
     closeAddProductModal()
+    
+    // Show success message
+    successProductName.value = productName
+    showSuccessMessage.value = true
+    
+    // Auto-hide success message after 3 seconds
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
   }
 }
 </script>
@@ -346,6 +364,33 @@ const addProductToPantry = async () => {
       </div>
     </div>
   </BaseModal>
+
+  <!-- Success Message Toast -->
+  <Transition
+    enter-active-class="transition-all duration-300 ease-out"
+    leave-active-class="transition-all duration-200 ease-in"
+    enter-from-class="opacity-0 -translate-y-4"
+    enter-to-class="opacity-100 translate-y-0"
+    leave-from-class="opacity-100 translate-y-0"
+    leave-to-class="opacity-0 -translate-y-4"
+  >
+    <div 
+      v-if="showSuccessMessage"
+      class="fixed top-8 left-1/2 -translate-x-1/2 z-[9999] max-w-md w-full mx-4"
+    >
+      <div class="bg-verde-sidebar text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold text-lg">¡Producto agregado!</p>
+          <p class="text-white/90 text-sm">{{ successProductName }} se agregó a la despensa</p>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>

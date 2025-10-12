@@ -2,14 +2,18 @@
 import { ref } from "vue";
 import PageHeader from "@/components/PageHeader.vue";
 import ListItem from "@/components/ListItem.vue";
+import ContextMenu, { type ContextMenuItem } from "@/components/ContextMenu.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import CreatePantrySectionModal from "@/components/CreatePantrySectionModal.vue";
 import PreviewPantryModal from "@/components/PreviewPantryModal.vue";
 import SharePantryModal from "@/components/SharePantryModal.vue";
 import AddProductsToPantryModal from "@/components/AddProductsToPantryModal.vue";
 import { usePantry } from "@/composables/pantry";
+import { useUser } from "@/composables/user";
+import type { Pantry } from "@/api/pantry";
 
 const { pantries, createPantry, deletePantry } = usePantry();
+const { user } = useUser();
 
 // Modal states
 const showCreatePantryModal = ref(false);
@@ -97,6 +101,34 @@ const handleDeletePantry = async () => {
     showDeleteConfirm.value = false;
 };
 
+// Context menu items for each pantry
+const getContextMenuItems = (pantryId: number, pantryName: string): ContextMenuItem[] => {
+    return [
+        {
+            label: "Compartir",
+            onClick: () => openShareModal(pantryId, pantryName),
+            variant: "default"
+        },
+        {
+            label: "Eliminar",
+            onClick: () => confirmDelete(pantryId),
+            variant: "danger"
+        }
+    ];
+};
+
+// Get subtitle for pantry based on ownership
+const getPantrySubtitle = (pantry: Pantry): string => {
+    if (pantry.owner && user.value) {
+        if (pantry.owner.id === user.value.id) {
+            return "Creada por mí";
+        } else {
+            return `Creada por ${pantry.owner.name} ${pantry.owner.surname || ''}`.trim();
+        }
+    }
+    return "Mi despensa"; // fallback
+};
+
 </script>
 
 <template>
@@ -112,29 +144,15 @@ const handleDeletePantry = async () => {
                 v-for="pantry in pantries"
                 :key="pantry.id"
                 :title="pantry.name"
-                subtitle="Mi despensa"
+                :subtitle="getPantrySubtitle(pantry)"
                 @click="openPreviewPantry(pantry.id!, pantry.name)"
                 class="cursor-pointer hover:scale-[1.02] transition-transform"
             >
                 <template #actions>
-                    <button
-                        @click.stop="openShareModal(pantry.id!, pantry.name)"
-                        class="p-2 hover:scale-110 transition-transform duration-200"
-                    >
-                        <svg
-                            class="w-7 h-7 text-white opacity-60 hover:opacity-100 transition-all duration-200"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                            />
-                        </svg>
-                    </button>
+                    <ContextMenu
+                        :items="getContextMenuItems(pantry.id!, pantry.name)"
+                        icon-color="text-white"
+                    />
                 </template>
             </ListItem>
         </div>
