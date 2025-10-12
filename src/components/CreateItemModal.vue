@@ -51,13 +51,13 @@ watch(() => props.show, (newVal) => {
     :show="show"
     :title="`Nueva ${itemTypeLabel}`"
     max-width="xl"
-    height="90vh"
+    height="auto"
     @close="handleClose"
   >
-    <div class="p-8">
+    <div class="p-4">
       <!-- Input para el nombre -->
       <div class="mb-6">
-        <label for="item-name" class="block text-sm font-medium text-gray-700 mb-2">
+        <label for="item-name" class="block font-medium text-gray-700 mb-2">
           Nombre de la {{ itemTypeLabel }}
         </label>
         <input
@@ -75,14 +75,14 @@ watch(() => props.show, (newVal) => {
       <div class="flex justify-end gap-3">
         <button
           @click="handleClose"
-          class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+          class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
         >
           Cancelar
         </button>
         <button
           @click="handleCreate"
           :disabled="!itemName.trim()"
-          class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Crear {{ itemTypeLabelCapitalized }}
         </button>

@@ -508,14 +508,14 @@ watch(() => props.show, async (show) => {
       <div class="flex justify-end gap-3">
         <button
           @click="handleClose"
-          class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+          class="px-6 py-2.5 rounded-xl hover:cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
         >
           Cancelar
         </button>
         <button
           @click="handleAdd"
           :disabled="quantity < 1"
-          class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer over:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Agregar
         </button>

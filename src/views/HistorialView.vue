@@ -138,23 +138,11 @@ const onRestore = async (id: number) => {
         </div>
 
         <SearchEmptyState
-            :show="
-                !isLoadingPurchases &&
-                filteredPurchases.length === 0
-            "
+            :show="filteredPurchases.length === 0"
             :is-searching="isSearching"
             empty-title="No tienes historial todavía"
             empty-subtitle="Tus compras aparecerán aquí"
         />
-
-        <div
-            v-if="isLoadingPurchases"
-            class="text-center text-gray-500 mt-12"
-        >
-            <p class="text-lg">
-                Cargando historial...
-            </p>
-        </div>
 
         <!-- Modal para vista previa de historial -->
         <PreviewHistorialModal

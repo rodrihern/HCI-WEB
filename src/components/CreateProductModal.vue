@@ -414,7 +414,7 @@ defineExpose({
             <!-- Category selector -->
             <div class="relative">
                 <button
-                    class="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-gray-300 bg-white text-gray-800 hover:border-verde-sidebar transition-colors"
+                    class="w-full flex hover:cursor-pointer items-center gap-2 px-4 py-3 rounded-2xl border-2 border-gray-300 bg-white text-gray-800 hover:border-verde-sidebar transition-colors"
                     @click="
                         isCategoryOpen =
                             !isCategoryOpen
@@ -453,7 +453,7 @@ defineExpose({
                     v-if="
                         isCategoryOpen
                     "
-                    class="absolute left-0 right-0 mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-xl overflow-hidden z-10"
+                    class="absolute left-0 right-0 mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-xl overflow-hidden z-9999"
                     @click.stop
                 >
                     <div
@@ -721,13 +721,13 @@ defineExpose({
                 class="flex justify-end gap-3 pt-4"
             >
                 <button
-                    class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+                    class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
                     @click="closeModal"
                 >
                     Cancelar
                 </button>
                 <button
-                    class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-6 py-2.5 rhover:cursor-pointe rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="
                         !productName.trim()
                     "

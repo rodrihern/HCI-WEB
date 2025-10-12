@@ -220,7 +220,7 @@ onMounted(() => {
                     @click="
                         toggleSidebar
                     "
-                    class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    class="p-2 hover:bg-gray-100 hover:cursor-pointer rounded-lg transition-colors"
                 >
                     <span
                         class="material-icons text-gray-700"
@@ -277,7 +277,7 @@ onMounted(() => {
                         @click="
                             toggleProfileMenu
                         "
-                        class="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+                        class="w-10 h-10 hover:cursor-pointer rounded-full flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
                         :class="
                             currentUser
                                 ?.metadata

@@ -1,30 +1,32 @@
 <template>
     <div
         v-if="show"
-        class="text-center text-gray-500 mt-12"
+        class="flex items-center justify-center min-h-[30vh] text-center text-gray-500"
     >
-        <p class="text-lg">
-            {{
-                isSearching
-                    ? searchTitle
-                    : emptyTitle
-            }}
-        </p>
-        <p
-            v-if="
-                (isSearching
-                    ? searchSubtitle
-                    : emptySubtitle
-                )?.length
-            "
-            class="text-sm"
-        >
-            {{
-                isSearching
-                    ? searchSubtitle
-                    : emptySubtitle
-            }}
-        </p>
+        <div>
+            <p class="text-lg">
+                {{
+                    isSearching
+                        ? searchTitle
+                        : emptyTitle
+                }}
+            </p>
+            <p
+                v-if="
+                    (isSearching
+                        ? searchSubtitle
+                        : emptySubtitle
+                    )?.length
+                "
+                class="text-sm mt-2"
+            >
+                {{
+                    isSearching
+                        ? searchSubtitle
+                        : emptySubtitle
+                }}
+            </p>
+        </div>
     </div>
 </template>
 

@@ -50,7 +50,7 @@ const updateCustomUnit = () => {
         :key="unit"
         type="button"
         @click="selectUnit(unit)"
-        class="px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors"
+        class="px-4 py-2 rounded-full hover:cursor-pointer font-medium whitespace-nowrap transition-colors"
         :class="modelValue === unit && !isCustom
           ? 'bg-verde-sidebar text-white'
           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
@@ -60,7 +60,7 @@ const updateCustomUnit = () => {
       <button
         type="button"
         @click="enableCustomInput"
-        class="px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors"
+        class="px-4 py-2 rounded-full fhover:cursor-pointe ront-medium whitespace-nowrap transition-colors"
         :class="isCustom
           ? 'bg-verde-sidebar text-white'
           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"

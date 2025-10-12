@@ -517,7 +517,7 @@ const togglePurchased = (item: ListItemData) => {
             <button
               @click="selectedCategoryId = null"
               :class="[
-                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                'px-4 py-2 hover:cursor-pointer rounded-full font-medium transition-all whitespace-nowrap',
                 selectedCategoryId === null
                   ? 'bg-verde-sidebar text-white shadow-md' 
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -530,7 +530,7 @@ const togglePurchased = (item: ListItemData) => {
               :key="category.id"
               @click="selectedCategoryId = category.id || null"
               :class="[
-                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                'px-4 py-2 hover:cursor-pointer rounded-full font-medium transition-all whitespace-nowrap',
                 selectedCategoryId === category.id
                   ? 'bg-verde-sidebar text-white shadow-md' 
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -572,7 +572,7 @@ const togglePurchased = (item: ListItemData) => {
         <div class="p-6 bg-gray-50 flex justify-center items-center border-t border-gray-200 flex-shrink-0">
           <button 
             @click="saveAndClose"
-            class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors" 
+            class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors" 
           >
             Guardar y Salir
           </button>

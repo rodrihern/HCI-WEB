@@ -388,7 +388,7 @@ const closeShareModal = () => {
                                 <!-- Outline Star (Not Recurring) -->
                                 <svg
                                     v-else
-                                    class="w-7 h-7 text-white opacity-60 hover:opacity-100 transition-all duration-200"
+                                    class="w-7 h-7 hover:cursor-pointer text-white opacity-60 hover:opacity-100 transition-all duration-200"
                                     fill="none"
                                     stroke="currentColor"
                                     stroke-width="2"

@@ -15,7 +15,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   class: '',
   showBackground: true,
-  buttonClass: 'text-gray-600 hover:text-verde-sidebar font-bold text-xl w-8 h-8 flex items-center justify-center',
+  buttonClass: 'text-gray-600 hover:text-verde-sidebar hover:cursor-pointer font-bold text-xl w-8 h-8 flex items-center justify-center',
   quantityClass: 'text-gray-800 font-bold min-w-[3rem] text-center text-lg'
 })
 

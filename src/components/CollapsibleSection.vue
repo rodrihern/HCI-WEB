@@ -30,7 +30,7 @@ const toggleCollapse = () => {
       <div class="flex items-center gap-3">
         <button
           @click="toggleCollapse"
-          class="flex items-center justify-center w-8 h-8 hover:bg-gray-50 rounded-lg transition-colors"
+          class="flex items-center hover:cursor-pointer justify-center w-8 h-8 hover:bg-gray-50 rounded-lg transition-colors"
         >
           <svg 
             class="w-5 h-5 text-gray-600 transition-transform duration-200 origin-center"
