@@ -33,6 +33,8 @@ const emit = defineEmits<{
   click: []
 }>()
 
+const hasOpenMenu = ref(false)
+
 const handleQuantityChange = (change: number) => {
   emit('quantityChange', change)
 }
@@ -40,12 +42,22 @@ const handleQuantityChange = (change: number) => {
 const handleClick = () => {
   emit('click')
 }
+
+const handleMenuStateChange = (isOpen: boolean) => {
+  hasOpenMenu.value = isOpen
+}
 </script>
 
 <template>
   <div
     class="bg-verde-claro rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative"
-    :class="[props.class, { 'scale-[1.02] shadow-lg': isAnimating }]"
+    :class="[
+      props.class, 
+      { 
+        'scale-[1.02] shadow-lg': isAnimating,
+        'z-50': hasOpenMenu
+      }
+    ]"
     @click="handleClick"
   >
     <div class="flex items-center justify-between">
@@ -73,7 +85,7 @@ const handleClick = () => {
         />
 
         <!-- Slot para acciones personalizadas (estrella, menú contextual, etc) -->
-        <slot name="actions" />
+        <slot name="actions" :on-menu-state-change="handleMenuStateChange" />
       </div>
     </div>
   </div>

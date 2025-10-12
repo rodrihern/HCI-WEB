@@ -368,7 +368,7 @@ const shareList = async () => {
                     "
                     class="cursor-pointer hover:scale-[1.02] transition-transform"
                 >
-                    <template #actions>
+                    <template #actions="{ onMenuStateChange }">
                         <div
                             class="flex items-center gap-1"
                         >
@@ -443,6 +443,7 @@ const shareList = async () => {
                                         )
                                     "
                                     icon-color="text-white opacity-60 hover:opacity-100"
+                                    @menu-state-change="onMenuStateChange"
                                 />
                             </div>
                         </div>

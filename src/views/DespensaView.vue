@@ -270,7 +270,7 @@ const getPantrySubtitle = (
                 "
                 class="cursor-pointer hover:scale-[1.02] transition-transform"
             >
-                <template #actions>
+                <template #actions="{ onMenuStateChange }">
                     <ContextMenu
                         :items="
                             getContextMenuItems(
@@ -279,6 +279,7 @@ const getPantrySubtitle = (
                             )
                         "
                         icon-color="text-white"
+                        @menu-state-change="onMenuStateChange"
                     />
                 </template>
             </ListItem>
