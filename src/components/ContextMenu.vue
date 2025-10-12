@@ -30,17 +30,37 @@ const emit = defineEmits<{
 }>();
 
 const showMenu = ref(false);
+const CONTEXT_MENU_OPEN_EVENT =
+    "context-menu-open";
+const menuId = Symbol(
+    "context-menu",
+);
+
+const openMenu = () => {
+    if (showMenu.value) return;
+    showMenu.value = true;
+    emit("menuStateChange", true);
+};
 
 const toggleMenu = (event: Event) => {
     event.stopPropagation();
-    showMenu.value = !showMenu.value;
-    emit(
-        "menuStateChange",
-        showMenu.value,
-    );
+    if (showMenu.value) {
+        closeMenu();
+    } else {
+        window.dispatchEvent(
+            new CustomEvent(
+                CONTEXT_MENU_OPEN_EVENT,
+                {
+                    detail: menuId,
+                },
+            ),
+        );
+        openMenu();
+    }
 };
 
 const closeMenu = () => {
+    if (!showMenu.value) return;
     showMenu.value = false;
     emit("menuStateChange", false);
 };
@@ -58,6 +78,16 @@ const onKeydown = (
     if (e.key === "Escape") closeMenu();
 };
 
+const handleExternalMenuOpen = (
+    event: Event,
+) => {
+    const customEvent =
+        event as CustomEvent<symbol>;
+    if (customEvent.detail !== menuId) {
+        closeMenu();
+    }
+};
+
 onMounted(() => {
     window.addEventListener(
         "click",
@@ -66,6 +96,10 @@ onMounted(() => {
     window.addEventListener(
         "keydown",
         onKeydown,
+    );
+    window.addEventListener(
+        CONTEXT_MENU_OPEN_EVENT,
+        handleExternalMenuOpen,
     );
 });
 
@@ -77,6 +111,10 @@ onBeforeUnmount(() => {
     window.removeEventListener(
         "keydown",
         onKeydown,
+    );
+    window.removeEventListener(
+        CONTEXT_MENU_OPEN_EVENT,
+        handleExternalMenuOpen,
     );
 });
 </script>
