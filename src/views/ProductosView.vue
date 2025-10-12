@@ -13,7 +13,8 @@ import CollapsibleSection from "@/components/CollapsibleSection.vue";
 import ProductCard from "@/components/ProductCard.vue";
 import CreateProductModal from "@/components/CreateProductModal.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
-import AddToListModal from "@/components/AddToListModal.vue";
+import AddProductModal from "@/components/AddProductModal.vue";
+import { ListItemApi } from "@/api/listItem";
 
 // Estado para loading
 const isLoading = ref(false);
@@ -221,6 +222,24 @@ const handleAddToList = (
 const closeAddToListModal = () => {
     showAddToListModal.value = false;
     productToAddToList.value = null;
+};
+
+const handleAddProductToList = async (productId: number, quantity: number, unit: string, listId?: number) => {
+    if (!listId) return;
+    
+    try {
+        await ListItemApi.add(listId, {
+            product: { id: productId },
+            quantity,
+            unit,
+            metadata: {}
+        });
+        
+        closeAddToListModal();
+    } catch (error) {
+        console.error('Error adding product to list:', error);
+        alert('Error al agregar el producto a la lista');
+    }
 };
 
 // Manejar eliminación de categoría
@@ -529,25 +548,18 @@ const handleSaveProduct =
         />
 
         <!-- Modal Añadir a Lista -->
-        <AddToListModal
+        <AddProductModal
             v-if="productToAddToList"
             :show="showAddToListModal"
-            :product-id="
-                productToAddToList.id
-            "
-            :product-name="
-                productToAddToList.name
-            "
-            :product-image="
-                productToAddToList.image
-            "
-            :product-icon="
-                productToAddToList.icon
-            "
-            :product-category="
-                productToAddToList.category
-            "
+            mode="select-destination"
+            type="list"
+            :product-id="productToAddToList.id"
+            :product-name="productToAddToList.name"
+            :product-image="productToAddToList.image"
+            :product-icon="productToAddToList.icon"
+            :product-category="productToAddToList.category"
             @close="closeAddToListModal"
+            @add="handleAddProductToList"
         />
 
         <!-- Loading Overlay (solo cuando no hay modal abierto) -->

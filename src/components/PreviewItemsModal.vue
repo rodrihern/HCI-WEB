@@ -15,7 +15,7 @@ import type { ListItemData } from '@/api/listItem'
 import type { PantryItem } from '@/api/pantry'
 import BaseModal from './BaseModal.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
-import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
+import AddProductModal from './AddProductModal.vue'
 import ProductItemCard from './ProductItemCard.vue'
 
 type ItemType = 'list' | 'pantry'
@@ -183,8 +183,8 @@ const openAddProductModal = (product: Product) => {
 }
 
 // Handle confirming addition with details
-const handleAddProductWithDetails = async (details: { quantity: number; unit: string; description: string }) => {
-  if (!props.itemId || !selectedProductToAdd.value?.id) {
+const handleAddProductWithDetails = async (productId: number, quantity: number, unit: string) => {
+  if (!props.itemId) {
     return
   }
 
@@ -192,15 +192,14 @@ const handleAddProductWithDetails = async (details: { quantity: number; unit: st
   
   try {
     const itemId = props.itemId
-    const productId = selectedProductToAdd.value.id
     
     const itemData = {
       product: {
         id: productId
       },
-      quantity: details.quantity,
-      unit: details.unit,
-      metadata: details.description ? { description: details.description } : {}
+      quantity: quantity,
+      unit: unit,
+      metadata: {}
     }
     
     if (isListType.value) {
@@ -577,15 +576,18 @@ const cancelDelete = () => {
   />
 
   <!-- Modal para añadir producto con detalles -->
-  <AddProductToListDetailsModal
+  <AddProductModal
     :show="showAddProductModal"
-    :productName="selectedProductToAdd?.name || ''"
+    mode="enter-details"
+    :type="type"
     :productId="selectedProductToAdd?.id"
+    :productName="selectedProductToAdd?.name || ''"
     :productImage="selectedProductToAdd?.metadata?.image"
     :productIcon="selectedProductToAdd?.metadata?.icon"
     :productCategory="selectedProductToAdd?.category?.name"
-    :isLoading="isAddingProduct"
+    :pantryId="isPantryType ? itemId : undefined"
+    :listId="isListType ? itemId : undefined"
     @close="showAddProductModal = false"
-    @confirm="handleAddProductWithDetails"
+    @add="handleAddProductWithDetails"
   />
 </template>

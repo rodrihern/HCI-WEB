@@ -15,8 +15,9 @@ import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import CreateItemModal from "@/components/CreateItemModal.vue";
 import PreviewItemsModal from "@/components/PreviewItemsModal.vue";
 import SharePantryModal from "@/components/SharePantryModal.vue";
-import AddProductsToPantryModal from "@/components/AddProductsToPantryModal.vue";
+import AddProductModal from "@/components/AddProductModal.vue";
 import { usePantry } from "@/composables/pantry";
+import { PantryApi } from "@/api/pantry";
 import { useUser } from "@/composables/user";
 import type { Pantry } from "@/api/pantry";
 
@@ -160,6 +161,24 @@ const closeAddProductsModal = () => {
         selectedPantryName.value
     ) {
         showPreviewItemsModal.value = true;
+    }
+};
+
+const handleAddProduct = async (productId: number, quantity: number, unit: string) => {
+    if (!selectedPantryId.value) return;
+    
+    try {
+        await PantryApi.addItem(selectedPantryId.value, {
+            product: { id: productId },
+            quantity,
+            unit,
+            metadata: {}
+        });
+        
+        closeAddProductsModal();
+    } catch (error) {
+        console.error('Error adding product to pantry:', error);
+        alert('Error al agregar el producto a la despensa');
     }
 };
 
@@ -318,17 +337,13 @@ const getPantrySubtitle = (
         />
 
         <!-- Modal para agregar productos -->
-        <AddProductsToPantryModal
+        <AddProductModal
             :show="showAddProductsModal"
-            :pantry-id="
-                selectedPantryId
-            "
-            :pantry-name="
-                selectedPantryName
-            "
-            @close="
-                closeAddProductsModal
-            "
+            mode="select-product"
+            type="pantry"
+            :pantry-id="selectedPantryId"
+            @close="closeAddProductsModal"
+            @add="handleAddProduct"
         />
 
         <!-- Modal para compartir despensa -->
