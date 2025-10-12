@@ -193,7 +193,10 @@ onMounted(() => {
     <div
         v-if="
             route.path === '/login' ||
-            route.path === '/register'
+            route.path ===
+                '/register' ||
+            route.path ===
+                '/forgot-password'
         "
         class="min-h-screen bg-[#FEFFF7]"
     >
