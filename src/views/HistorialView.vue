@@ -98,13 +98,13 @@ const onRestore = async (id: number) => {
 </script>
 
 <template>
-    <div class="py-6 px-6">
+    <div class="py-6 px-6 relative min-h-full">
         <PageHeader
             title="Mis compras"
             :show-add-button="false"
         />
 
-        <div class="space-y-3">
+        <div class="space-y-3 pb-20">
             <ListItem
                 v-for="
                     item in filteredPurchases
