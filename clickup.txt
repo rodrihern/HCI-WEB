@@ -20,5 +20,8 @@ controller
 store? ese lists.ts va o no?
 
 
+codigo repetido en reset, login y register
+
+
 
 

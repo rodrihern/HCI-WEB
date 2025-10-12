@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useListsStore } from '@/stores/lists'
+import { usePurchaseStore } from '@/stores/purchase'
 import BaseModal from './BaseModal.vue'
 
 const store = useListsStore()
+const purchaseStore = usePurchaseStore()
 
 const emit = defineEmits<{
   close: []
@@ -13,7 +15,10 @@ const closeModal = () => {
   emit('close')
 }
 
-const currentHistorial = computed(() => store.getPreviewingHistorial())
+const currentHistorial = computed(() => {
+  if (!store.previewingHistorialId) return null
+  return purchaseStore.purchases.find(p => p.id === store.previewingHistorialId)
+})
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('es-ES', {
@@ -43,7 +48,10 @@ const productsByMonth = computed(() => {
   const grouped: Record<string, any[]> = {}
   
   currentHistorial.value.listItemArray.forEach(item => {
-    const date = new Date(item.lastPurchasedAt || item.createdAt)
+    const dateStr = item.lastPurchasedAt || item.createdAt || currentHistorial.value?.createdAt
+    if (!dateStr) return
+    
+    const date = new Date(dateStr)
     const monthKey = date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
     
     if (!grouped[monthKey]) {

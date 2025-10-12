@@ -11,7 +11,7 @@ import {
     provide,
     watch,
 } from "vue";
-import { useUserStore } from "@/stores2/user";
+import { useUserStore } from "@/stores/user";
 import { useUser } from "@/composables/user";
 
 const route = useRoute();

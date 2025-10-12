@@ -100,7 +100,7 @@ const toggleRecurringWithAnimation = async (id: number) => {
       }
       
       // Actualizar en API
-      const { useShoppingListStore } = await import('@/stores2/shoppingList')
+      const { useShoppingListStore } = await import('@/stores/shoppingList')
       const shoppingListStore = useShoppingListStore()
       await shoppingListStore.modify(updatedList)
     } catch (error) {

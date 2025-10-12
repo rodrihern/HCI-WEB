@@ -4,7 +4,7 @@ import { useListsStore } from '@/stores/lists'
 import { useShoppingList } from '@/composables/shoppingList'
 import { ShoppingListApi } from '@/api/shoppingList'
 import type { ShoppingListData } from '@/api/shoppingList'
-import { useProductStore } from '@/stores2/product'
+import { useProductStore } from '@/stores/product'
 import type { Product } from '@/api/product'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
@@ -157,7 +157,7 @@ const createList = async () => {
     }
     
     // Import the API and store
-    const { useShoppingListStore } = await import('@/stores2/shoppingList')
+    const { useShoppingListStore } = await import('@/stores/shoppingList')
     const shoppingListStore = useShoppingListStore()
     
     const createdList = await shoppingListStore.add(newList)

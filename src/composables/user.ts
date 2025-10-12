@@ -8,7 +8,7 @@ import {
   type UserData,
   type ChangePasswordData,
 } from "@/api/user";
-import { useUserStore } from "@/stores2/user";
+import { useUserStore } from "@/stores/user";
 import { useLog } from "./log";
 
 export function useUser() {

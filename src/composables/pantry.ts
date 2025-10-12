@@ -1,6 +1,6 @@
 import { computed, onMounted, ref } from "vue";
 import { Pantry, PantryItem, type PantryData, type AddPantryItemData, type UpdatePantryItemData } from "@/api/pantry";
-import { usePantryStore } from "@/stores2/pantry";
+import { usePantryStore } from "@/stores/pantry";
 import { useLog } from "./log";
 import { useUser } from "./user";
 

@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import { ListItem, type AddListItemData } from "@/api/listItem";
-import { useListItemStore } from "@/stores2/listItem";
+import { useListItemStore } from "@/stores/listItem";
 import { useLog } from "./log";
 
 export function useListItem() {

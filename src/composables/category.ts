@@ -8,7 +8,7 @@ import {
   CategoryMetadata,
   type CategoryData,
 } from "@/api/category";
-import { useCategoryStore } from "@/stores2/category";
+import { useCategoryStore } from "@/stores/category";
 import { useLog } from "./log";
 import { useUser } from "./user";
 

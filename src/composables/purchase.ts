@@ -1,6 +1,6 @@
 import { computed, onMounted } from "vue";
 import { Purchase } from "@/api/purchase";
-import { usePurchaseStore } from "@/stores2/purchase";
+import { usePurchaseStore } from "@/stores/purchase";
 import { useLog } from "./log";
 import { useUser } from "./user";
 

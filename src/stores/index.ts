@@ -6,3 +6,4 @@ export { useProductStore } from "./product";
 export { usePantryStore } from "./pantry";
 export { useListItemStore } from "./listItem";
 export { usePurchaseStore } from "./purchase";
+export { useListsStore } from "./lists";

@@ -1,6 +1,6 @@
 import { computed, onMounted } from "vue";
 import { ShoppingList, type ShoppingListData } from "@/api/shoppingList";
-import { useShoppingListStore } from "@/stores2/shoppingList";
+import { useShoppingListStore } from "@/stores/shoppingList";
 import { useLog } from "./log";
 import { useUser } from "./user";
 

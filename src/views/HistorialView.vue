@@ -1,21 +1,40 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useListsStore } from "../stores/lists";
+import { usePurchaseStore } from "../stores/purchase";
+import { usePurchase } from "../composables/purchase";
 import ConfirmationModal from "../components/ConfirmationModal.vue";
 import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
 import ContextMenu from "../components/ContextMenu.vue";
 import ListItem from "../components/ListItem.vue";
 
 const store = useListsStore();
+const purchaseStore = usePurchaseStore();
+const { getAllPurchases, restorePurchase } = usePurchase();
 
 const showDeleteConfirm = ref(false);
-const itemToDelete = ref<number | null>(
-    null,
-);
+const itemToDelete = ref<number | null>(null);
+const openMenuForItemId = ref<number | null>(null);
+const isLoadingPurchases = ref(false);
 
-const openMenuForItemId = ref<
-    number | null
->(null);
+onMounted(async () => {
+    await loadPurchases();
+});
+
+const loadPurchases = async () => {
+    isLoadingPurchases.value = true;
+    try {
+        await getAllPurchases({ 
+            orderBy: "createdAt", 
+            order: "DESC",
+            limit: 100 
+        });
+    } catch (error) {
+        console.error("Error loading purchases:", error);
+    } finally {
+        isLoadingPurchases.value = false;
+    }
+};
 
 const handleMenuStateChange = (
     itemId: number,
@@ -45,9 +64,15 @@ const openPreviewHistorial = (
     store.openPreviewHistorialModal(id);
 };
 
-const onRestore = (id: number) => {
-    // Implementar lógica de restaurar
-    alert("Restaurar " + id);
+const onRestore = async (id: number) => {
+    try {
+        await restorePurchase(id);
+        alert(`Lista restaurada exitosamente`);
+        await loadPurchases();
+    } catch (error) {
+        console.error("Error restoring purchase:", error);
+        alert("Error al restaurar la lista");
+    }
 };
 
 const confirmDelete = (id: number) => {
@@ -57,10 +82,10 @@ const confirmDelete = (id: number) => {
 
 const onDelete = () => {
     if (itemToDelete.value) {
-        // Implementar lógica de eliminación en el store
+        // Note: La API no tiene endpoint para eliminar compras del historial
+        // Por ahora solo mostramos un mensaje
         alert(
-            "Eliminar " +
-                itemToDelete.value,
+            "Las compras del historial no se pueden eliminar"
         );
     }
     showDeleteConfirm.value = false;
@@ -98,18 +123,18 @@ const formatDate = (
 
         <div class="space-y-3">
             <ListItem
-                v-for="item in store.history"
+                v-for="item in purchaseStore.purchases"
                 :key="item.id"
                 :title="item.list.name"
-                :subtitle="`${formatDate(item.list.lastPurchasedAt)} • ${item.listItemArray.length} productos`"
+                :subtitle="`${formatDate(item.createdAt || '')} • ${item.listItemArray.length} productos`"
                 :class="
                     getItemClass(
-                        item.id,
+                        item.id!,
                     )
                 "
                 @click="
                     openPreviewHistorial(
-                        item.id,
+                        item.id!,
                     )
                 "
             >
@@ -121,7 +146,7 @@ const formatDate = (
                                 onClick:
                                     () =>
                                         onRestore(
-                                            item.id,
+                                            item.id!,
                                         ),
                             },
                             {
@@ -129,7 +154,7 @@ const formatDate = (
                                 onClick:
                                     () =>
                                         confirmDelete(
-                                            item.id,
+                                            item.id!,
                                         ),
                                 variant:
                                     'danger',
@@ -138,7 +163,7 @@ const formatDate = (
                         @menu-state-change="
                             (isOpen) =>
                                 handleMenuStateChange(
-                                    item.id,
+                                    item.id!,
                                     isOpen,
                                 )
                         "
@@ -149,8 +174,7 @@ const formatDate = (
 
         <div
             v-if="
-                store.history.length ===
-                0
+                purchaseStore.purchases.length === 0 && !isLoadingPurchases
             "
             class="text-center text-gray-500 mt-12"
         >
@@ -161,6 +185,15 @@ const formatDate = (
             <p class="text-sm">
                 Tus compras aparecerán
                 aquí
+            </p>
+        </div>
+
+        <div
+            v-if="isLoadingPurchases"
+            class="text-center text-gray-500 mt-12"
+        >
+            <p class="text-lg">
+                Cargando historial...
             </p>
         </div>
 

@@ -6,7 +6,7 @@ import {
   Product,
   type ProductData,
 } from "@/api/product";
-import { useProductStore } from "@/stores2/product";
+import { useProductStore } from "@/stores/product";
 import { useLog } from "./log";
 import { useUser } from "./user";
 
