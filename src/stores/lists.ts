@@ -5,7 +5,13 @@ export const useListsStore = defineStore('lists', () => {
   // Modal state for creating new list
   const isCreatingList = ref(false)
   const newListName = ref('')
-  const newListProducts = ref<Array<{ name: string; quantity: number }>>([])
+  const newListProducts = ref<Array<{ 
+    name: string; 
+    quantity: number; 
+    id?: number; 
+    unit?: string; 
+    description?: string 
+  }>>([])
 
   // Modal state for previewing list
   const isPreviewingList = ref(false)
@@ -34,6 +40,16 @@ export const useListsStore = defineStore('lists', () => {
     if (name.trim()) {
       newListProducts.value.push({ name: name.trim(), quantity: 1 })
     }
+  }
+
+  const addProductWithDetailsToNewList = (product: { 
+    name: string; 
+    quantity: number; 
+    id?: number; 
+    unit?: string; 
+    description?: string 
+  }) => {
+    newListProducts.value.push(product)
   }
 
   const removeProductFromNewList = (index: number) => {
@@ -81,6 +97,7 @@ export const useListsStore = defineStore('lists', () => {
     closeCreateListModal,
     setNewListName,
     addProductToNewList,
+    addProductWithDetailsToNewList,
     removeProductFromNewList,
     updateNewListProductQuantity,
     openPreviewListModal,

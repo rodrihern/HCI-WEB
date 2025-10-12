@@ -6,6 +6,7 @@ import { ShoppingListApi } from '@/api/shoppingList'
 import type { ShoppingListData } from '@/api/shoppingList'
 import { useProductStore } from '@/stores/product'
 import type { Product } from '@/api/product'
+import { useListItem } from '@/composables/listItem'
 import BaseModal from './BaseModal.vue'
 import QuantityControls from './QuantityControls.vue'
 import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
@@ -13,6 +14,7 @@ import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
 const store = useListsStore()
 const { getAllShoppingLists } = useShoppingList()
 const productStore = useProductStore()
+const { addItemToList } = useListItem()
 const searchProduct = ref('')
 const isCreating = ref(false)
 const emailToShare = ref('')
@@ -79,15 +81,14 @@ const openAddProductModal = (product: Product) => {
 
 // Handle confirming addition with details
 const handleAddProductWithDetails = (details: { quantity: number; unit: string; description: string }) => {
-  // Modal functionality - no API integration yet
   if (selectedProductToAdd.value) {
-    store.newListProducts.push({
+    store.addProductWithDetailsToNewList({
       name: selectedProductToAdd.value.name,
       quantity: details.quantity,
       unit: details.unit,
       description: details.description,
       id: selectedProductToAdd.value.id
-    } as any)
+    })
   }
   showAddProductModal.value = false
   selectedProductToAdd.value = null
@@ -161,6 +162,30 @@ const createList = async () => {
     const shoppingListStore = useShoppingListStore()
     
     const createdList = await shoppingListStore.add(newList)
+    
+    // Add products to the list if any were added locally
+    if (store.newListProducts.length > 0 && createdList.id) {
+      for (const product of store.newListProducts) {
+        try {
+          // Only add products that have an ID (from the product catalog)
+          if (product.id) {
+            const itemData = {
+              product: {
+                id: product.id
+              },
+              quantity: product.quantity,
+              unit: product.unit || 'unidad',
+              metadata: product.description ? { description: product.description } : {}
+            }
+            
+            await addItemToList(createdList.id, itemData)
+          }
+        } catch (error) {
+          console.error(`Error adding product ${product.name} to list:`, error)
+          // Continue with other products even if one fails
+        }
+      }
+    }
     
     // Share list with collaborators if any (excluding owner)
     const collaboratorsToShare = collaborators.value.filter(c => !c.isOwner && c.email)

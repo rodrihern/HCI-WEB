@@ -50,5 +50,6 @@ export const useShoppingListStore = defineStore("shoppingList", () => {
         return result;
     }
 
+
     return { shoppingLists, pagination, add, modify, remove, get, getAll };
 });

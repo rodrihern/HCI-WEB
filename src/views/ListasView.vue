@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, inject, type Ref } from 'vue'
 import { useListsStore } from '../stores/lists'
 import { useShoppingList } from '@/composables/shoppingList'
 import { useUser } from '@/composables/user'
@@ -19,9 +19,13 @@ const { shoppingLists, deleteShoppingList, getAllShoppingLists } = useShoppingLi
 const { user } = useUser()
 const animatingFavorites = ref<Set<number>>(new Set())
 
+// Inject searchQuery from App.vue
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
+
 // Estado del modal de confirmación
 const showDeleteConfirm = ref(false)
 const listToDelete = ref<number | null>(null)
+
 
 // Estado del modal de compartir
 const showShareModal = ref(false)
@@ -32,7 +36,19 @@ const shareError = ref('')
 const shareSuccess = ref(false)
 
 const sortedLists = computed(() => {
-  return [...shoppingLists.value].sort((a, b) => {
+  let lists = [...shoppingLists.value]
+  
+  // Filter by search query if present
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    lists = lists.filter(list => 
+      list.name.toLowerCase().includes(query) ||
+      list.description?.toLowerCase().includes(query)
+    )
+  }
+  
+  // Sort lists
+  return lists.sort((a, b) => {
     // Primero por recurrentes
     const aRec = a.recurring === true ? 1 : 0
     const bRec = b.recurring === true ? 1 : 0
@@ -55,7 +71,7 @@ const openPreviewList = (listId: number) => {
 
 const getListSubtitle = (list: ShoppingListData): string => {
   if (!list.owner) {
-    return list.description || 'Sin descripción'
+    return "Creada por mí"; // Si no hay owner, asumimos que es del usuario actual
   }
   
   // Check if current user is the owner
@@ -83,6 +99,17 @@ const deleteList = async () => {
     listToDelete.value = null
   }
   showDeleteConfirm.value = false
+}
+
+
+const isListOwner = (listId: number): boolean => {
+  const list = shoppingLists.value.find(l => l.id === listId)
+  if (!list?.owner || !user.value?.id) return false
+  
+  const currentUserId = Number(user.value.id)
+  const ownerId = Number(list.owner.id)
+  
+  return currentUserId === ownerId
 }
 
 const toggleRecurringWithAnimation = async (id: number) => {
@@ -116,21 +143,29 @@ const toggleRecurringWithAnimation = async (id: number) => {
 
 // Funciones del menú de contexto
 const getContextMenuItems = (listId: number): ContextMenuItem[] => {
-  return [
+  const items: ContextMenuItem[] = [
     {
       label: 'Editar',
       onClick: () => openPreviewList(listId)
     },
-    {
-      label: 'Compartir',
-      onClick: () => openShareModal(listId)
-    },
-    {
-      label: 'Eliminar',
-      onClick: () => confirmDelete(listId),
-      variant: 'danger'
-    }
   ]
+  
+  // Only show share and delete options for owners
+  if (isListOwner(listId)) {
+    items.push(
+      {
+        label: 'Compartir',
+        onClick: () => openShareModal(listId)
+      },
+      {
+        label: 'Eliminar',
+        onClick: () => confirmDelete(listId),
+        variant: 'danger'
+      }
+    )
+  }
+  
+  return items
 }
 
 // Modal de compartir
@@ -202,7 +237,8 @@ const shareList = async () => {
             <div class="flex items-center gap-1">
               <!-- Star Button -->
               <button
-                @click.stop="list.id && toggleRecurringWithAnimation(list.id)"
+                v-if="list.id && isListOwner(list.id)"
+                @click.stop="toggleRecurringWithAnimation(list.id)"
                 class="p-2 hover:scale-110 transition-transform duration-200"
                 :title="list.recurring ? 'Lista recurrente' : 'Hacer recurrente'"
               >
@@ -339,4 +375,5 @@ const shareList = async () => {
       </div>
     </div>
   </BaseModal>
+
 </template>

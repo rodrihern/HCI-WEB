@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, inject, onMounted, type Ref } from "vue";
 import PageHeader from "@/components/PageHeader.vue";
 import ListItem from "@/components/ListItem.vue";
 import ContextMenu, { type ContextMenuItem } from "@/components/ContextMenu.vue";
@@ -21,6 +21,9 @@ onMounted(async () => {
         await getProfile();
     }
 });
+
+// Inject searchQuery from App.vue
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
 // Modal states
 const showCreatePantryModal = ref(false);
@@ -76,6 +79,18 @@ const closeShareModal = () => {
     selectedPantryId.value = undefined;
     selectedPantryName.value = "";
 };
+
+// Filter pantries based on search query
+const filteredPantries = computed(() => {
+    if (!searchQuery.value.trim()) {
+        return pantries.value;
+    }
+    
+    const query = searchQuery.value.toLowerCase();
+    return pantries.value.filter(pantry => 
+        pantry.name.toLowerCase().includes(query)
+    );
+});
 
 const handleAddProductsFromPreview = (pantryId: number) => {
     const pantry = pantries.value.find(p => p.id === pantryId);
@@ -156,7 +171,7 @@ const getPantrySubtitle = (pantry: Pantry): string => {
 
         <div class="space-y-3 pb-20">
             <ListItem
-                v-for="pantry in pantries"
+                v-for="pantry in filteredPantries"
                 :key="pantry.id"
                 :title="pantry.name"
                 :subtitle="getPantrySubtitle(pantry)"

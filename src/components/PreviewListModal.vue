@@ -6,6 +6,7 @@ import { useShoppingList } from '@/composables/shoppingList'
 import { useShoppingListStore } from '@/stores/shoppingList'
 import { useProductStore } from '@/stores/product'
 import { useListItem } from '@/composables/listItem'
+import { useUser } from '@/composables/user'
 import type { Product } from '@/api/product'
 import type { ListItemData } from '@/api/listItem'
 import BaseModal from './BaseModal.vue'
@@ -13,11 +14,20 @@ import QuantityControls from './QuantityControls.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
 import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
 
+interface ListUser {
+  id: string
+  name: string
+  avatar: string
+  isOwner: boolean
+  email?: string
+}
+
 const store = useListsStore()
 const shoppingListStore = useShoppingListStore()
 const { getAllShoppingLists } = useShoppingList()
 const productStore = useProductStore()
 const { addItemToList, getListItems, toggleItemPurchased, deleteListItem, updateListItem } = useListItem()
+const { user } = useUser()
 const searchProduct = ref('')
 const availableProducts = ref<Product[]>([])
 const isLoadingProducts = ref(false)
@@ -36,6 +46,8 @@ const shareEmail = ref('')
 const isSharing = ref(false)
 const shareError = ref('')
 const shareSuccess = ref(false)
+const sharedUsers = ref<any[]>([])
+const isLoadingSharedUsers = ref(false)
 
 // Estado para eliminar
 const showDeleteConfirm = ref(false)
@@ -49,12 +61,14 @@ const emit = defineEmits<{
 onMounted(async () => {
   await loadProducts()
   await loadListItems()
+  await loadSharedUsers()
 })
 
 // Watch for changes in previewingListId to reload items
 watch(() => store.previewingListId, async (newListId, oldListId) => {
   if (newListId && newListId !== oldListId && store.isPreviewingList) {
     await loadListItems()
+    await loadSharedUsers()
   }
 })
 
@@ -92,6 +106,21 @@ const loadListItems = async () => {
   }
 }
 
+const loadSharedUsers = async () => {
+  if (!currentList.value?.id) return
+  
+  isLoadingSharedUsers.value = true
+  try {
+    const users = await ShoppingListApi.getSharedUsers(currentList.value.id)
+    sharedUsers.value = users || []
+  } catch (error) {
+    console.error('Error loading shared users:', error)
+    sharedUsers.value = []
+  } finally {
+    isLoadingSharedUsers.value = false
+  }
+}
+
 const closeModal = () => {
   searchProduct.value = ''
   showShareInput.value = false
@@ -100,6 +129,7 @@ const closeModal = () => {
   shareSuccess.value = false
   currentListId.value = null
   listItems.value = []
+  sharedUsers.value = []
   emit('close')
 }
 
@@ -107,6 +137,16 @@ const currentList = computed(() => {
   if (!store.previewingListId) return null
   const listId = parseInt(store.previewingListId)
   return shoppingListStore.shoppingLists.find(list => list.id === listId) || null
+})
+
+// Check if current user is the owner of the list
+const isCurrentUserOwner = computed(() => {
+  if (!currentList.value?.owner || !user.value?.id) return false
+  
+  const currentUserId = Number(user.value.id)
+  const ownerId = Number(currentList.value.owner.id)
+  
+  return currentUserId === ownerId
 })
 
 // Filter products based on search
@@ -221,14 +261,37 @@ const togglePurchased = async (item: ListItemData) => {
 
 
 // Users from the list (owner + shared users)
-const listUsers = computed(() => {
+const listUsers = computed((): ListUser[] => {
   if (!currentList.value) return []
   
-  // TODO: Get actual shared users from API
-  // For now, just show owner
-  return [
-    { id: '1', name: 'Yo', avatar: '👤', isOwner: true }
-  ]
+  const users: ListUser[] = []
+  
+  // Add owner
+  if (currentList.value.owner) {
+    const ownerName = currentList.value.owner.name || 
+                     currentList.value.owner.email?.split('@')[0] || 
+                     'Propietario'
+    users.push({
+      id: currentList.value.owner.id?.toString() || '',
+      name: ownerName,
+      avatar: '👤',
+      isOwner: true,
+      email: currentList.value.owner.email
+    })
+  }
+  
+  // Add shared users
+  sharedUsers.value.forEach(user => {
+    users.push({
+      id: user.id?.toString() || '',
+      name: `${user.name || ''} ${user.surname || ''}`.trim() || user.email?.split('@')[0] || 'Usuario',
+      avatar: '👥',
+      isOwner: false,
+      email: user.email
+    })
+  })
+  
+  return users
 })
 
 // Funcionalidad de compartir
@@ -255,6 +318,9 @@ const shareList = async () => {
     shareSuccess.value = true
     shareEmail.value = ''
     
+    // Refresh shared users list
+    await loadSharedUsers()
+    
     // Ocultar mensaje de éxito después de 2 segundos
     setTimeout(() => {
       shareSuccess.value = false
@@ -267,13 +333,32 @@ const shareList = async () => {
   }
 }
 
+const revokeShare = async (userId: number) => {
+  if (!currentList.value?.id || !isCurrentUserOwner.value) {
+    alert('No tienes permisos para revocar accesos.')
+    return
+  }
+  
+  try {
+    await ShoppingListApi.revokeShare(currentList.value.id, userId)
+    // Refresh shared users list
+    await loadSharedUsers()
+  } catch (error) {
+    console.error('Error revoking share:', error)
+    alert('Error al revocar el acceso. Intenta de nuevo.')
+  }
+}
+
 // Funcionalidad de eliminar
 const confirmDeleteList = () => {
   showDeleteConfirm.value = true
 }
 
 const deleteList = async () => {
-  if (!currentList.value?.id) return
+  if (!currentList.value?.id || !isCurrentUserOwner.value) {
+    alert('No tienes permisos para eliminar esta lista.')
+    return
+  }
 
   isDeleting.value = true
 
@@ -323,12 +408,30 @@ const cancelDelete = () => {
                 <div 
                   v-for="user in listUsers" 
                   :key="user.id"
-                  class="flex items-center gap-2 bg-white rounded-full px-3 py-2 border border-gray-200"
+                  class="flex items-center gap-2 bg-white rounded-full px-3 py-2 border border-gray-200 cursor-pointer"
+                  :title="user.isOwner ? 'Propietario' : 'Colaborador'"
                 >
                   <span class="text-lg">{{ user.avatar }}</span>
                   <span class="text-sm font-medium text-gray-700">{{ user.name }}</span>
+                  <span 
+                    v-if="user.isOwner" 
+                    class="text-xs bg-verde-sidebar text-white px-2 py-1 rounded-full font-medium"
+                  >
+                    Propietario
+                  </span>
+                  <button 
+                    v-if="!user.isOwner && isCurrentUserOwner"
+                    @click="revokeShare(parseInt(user.id))"
+                    class="text-gray-400 hover:text-red-500 ml-1"
+                    title="Revocar acceso"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
                 <button 
+                  v-if="isCurrentUserOwner"
                   @click="toggleShareInput"
                   class="flex items-center justify-center w-8 h-8 bg-verde-sidebar text-white rounded-full hover:bg-verde-contraste transition-colors"
                 >
@@ -339,7 +442,7 @@ const cancelDelete = () => {
               </div>
               
               <!-- Input para compartir -->
-              <div v-if="showShareInput" class="mt-4">
+              <div v-if="showShareInput && isCurrentUserOwner" class="mt-4">
                 <div class="flex gap-2">
                   <input 
                     v-model="shareEmail"
@@ -447,6 +550,7 @@ const cancelDelete = () => {
         <!-- Botones de acción en la columna izquierda -->
         <div class="p-6 bg-gray-50 flex justify-between items-center border-t border-gray-200">
           <button 
+            v-if="isCurrentUserOwner"
             @click="confirmDeleteList"
             class="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors" 
           >

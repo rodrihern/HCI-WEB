@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useListsStore } from '@/stores/lists'
+import { useShoppingList } from '@/composables/shoppingList'
+import { useListItem } from '@/composables/listItem'
 import BaseModal from './BaseModal.vue'
+import AddProductToListDetailsModal from './AddProductToListDetailsModal.vue'
 
 interface Props {
   show: boolean
-  productId: string
+  productId: number
   productName: string
 }
 
@@ -15,27 +17,59 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const store = useListsStore()
+const { shoppingLists } = useShoppingList()
+const { addItemToList } = useListItem()
 const searchQuery = ref('')
+const showDetailsModal = ref(false)
+const selectedListId = ref<number | null>(null)
+const isAddingProduct = ref(false)
 
 // Filtrar listas según la búsqueda
 const filteredLists = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return store.lists
-  return store.lists.filter(list => 
+  if (!query) return shoppingLists.value
+  return shoppingLists.value.filter(list => 
     list.name.toLowerCase().includes(query)
   )
 })
 
 const closeModal = () => {
   searchQuery.value = ''
+  showDetailsModal.value = false
+  selectedListId.value = null
   emit('close')
 }
 
-const addProductToList = (listId: string) => {
-  // Agregar el producto a la lista seleccionada
-  store.addItemToList(listId, props.productId, 1)
-  closeModal()
+const selectList = (listId: number) => {
+  selectedListId.value = listId
+  showDetailsModal.value = true
+}
+
+const handleAddProductWithDetails = async (details: { quantity: number; unit: string; description: string }) => {
+  if (!selectedListId.value) return
+
+  isAddingProduct.value = true
+  
+  try {
+    const itemData = {
+      product: {
+        id: props.productId
+      },
+      quantity: details.quantity,
+      unit: details.unit,
+      metadata: details.description ? { description: details.description } : {}
+    }
+    
+    await addItemToList(selectedListId.value, itemData)
+    
+    // Close both modals
+    showDetailsModal.value = false
+    closeModal()
+  } catch (error) {
+    alert('Error al agregar el producto a la lista. Intenta de nuevo.')
+  } finally {
+    isAddingProduct.value = false
+  }
 }
 </script>
 
@@ -75,7 +109,7 @@ const addProductToList = (listId: string) => {
             v-for="list in filteredLists"
             :key="list.id"
             class="w-full bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between group"
-            @click="addProductToList(list.id)"
+            @click="list.id && selectList(list.id)"
           >
             <div class="flex items-center gap-3 flex-1 min-w-0">
               <!-- Icono de lista -->
@@ -89,7 +123,7 @@ const addProductToList = (listId: string) => {
               <div class="flex-1 min-w-0 text-left">
                 <h3 class="text-gray-800 font-semibold text-lg truncate">{{ list.name }}</h3>
                 <p class="text-gray-500 text-sm">
-                  {{ list.items.length }} {{ list.items.length === 1 ? 'producto' : 'productos' }}
+                  {{ list.description || 'Sin descripción' }}
                 </p>
               </div>
             </div>
@@ -106,5 +140,15 @@ const addProductToList = (listId: string) => {
         </div>
       </div>
     </div>
+
+    <!-- Add Product Details Modal -->
+    <AddProductToListDetailsModal
+      :show="showDetailsModal"
+      :product-name="productName"
+      :product-id="productId"
+      :is-loading="isAddingProduct"
+      @close="showDetailsModal = false"
+      @confirm="handleAddProductWithDetails"
+    />
   </BaseModal>
 </template>

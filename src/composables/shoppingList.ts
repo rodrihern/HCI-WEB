@@ -45,6 +45,7 @@ export function useShoppingList() {
         }
     }
 
+
     async function getAllShoppingLists(options = {}): Promise<any> {
         try {
             const shoppingLists = await shoppingListStore.getAll(undefined, options);

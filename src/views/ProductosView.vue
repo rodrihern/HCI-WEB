@@ -504,9 +504,7 @@ const handleSaveProduct =
             v-if="productToAddToList"
             :show="showAddToListModal"
             :product-id="
-                String(
-                    productToAddToList.id,
-                )
+                productToAddToList.id
             "
             :product-name="
                 productToAddToList.name

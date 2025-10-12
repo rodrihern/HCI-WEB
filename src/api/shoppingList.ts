@@ -87,9 +87,6 @@ export class ShoppingListApi {
         return await Api.post<void>(ShoppingListApi.getUrl(`${id}/reset`), true, undefined, controller);
     }
 
-    static async moveToPantry(id: number, controller?: AbortController): Promise<void> {
-        return await Api.post<void>(ShoppingListApi.getUrl(`${id}/move-to-pantry`), true, undefined, controller);
-    }
 
     static async share(id: number, email: string, controller?: AbortController): Promise<void> {
         return await Api.post<void>(ShoppingListApi.getUrl(`${id}/share`), true, { email }, controller);
