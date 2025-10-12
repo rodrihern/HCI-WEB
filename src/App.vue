@@ -221,12 +221,19 @@ onMounted(() => {
                     "
                     class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                    <span class="material-icons text-gray-700">menu</span>
+                    <span
+                        class="material-icons text-gray-700"
+                        >menu</span
+                    >
                 </button>
             </div>
 
             <!-- Center: Search bar -->
             <div
+                v-if="
+                    route.path !==
+                    '/profile'
+                "
                 class="flex-1 max-w-2xl mx-auto px-4"
             >
                 <div class="relative">
@@ -243,7 +250,10 @@ onMounted(() => {
                     <button
                         class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     >
-                        <span class="material-icons text-xl">search</span>
+                        <span
+                            class="material-icons text-xl"
+                            >search</span
+                        >
                     </button>
                 </div>
             </div>
@@ -275,7 +285,34 @@ onMounted(() => {
                                 : 'bg-verde-sidebar'
                         "
                     >
-                        <span class="material-icons text-white">account_circle</span>
+                        <!-- Avatar image if available -->
+                        <div
+                            v-if="
+                                currentUser
+                                    ?.metadata
+                                    ?.avatar
+                            "
+                            class="w-full h-full bg-cover bg-center"
+                            :style="{
+                                backgroundImage: `url(${currentUser.metadata.avatar})`,
+                            }"
+                        ></div>
+                        <!-- Initials if no avatar but has name -->
+                        <span
+                            v-else-if="
+                                userInitials
+                            "
+                            class="text-white font-bold text-sm"
+                            >{{
+                                userInitials
+                            }}</span
+                        >
+                        <!-- Default icon -->
+                        <span
+                            v-else
+                            class="material-icons text-white"
+                            >account_circle</span
+                        >
                     </button>
 
                     <!-- Dropdown Menu -->
@@ -294,8 +331,12 @@ onMounted(() => {
                                 "
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
                             >
-                                <span class="material-icons text-base">account_circle</span>
-                                Mi Perfil
+                                <span
+                                    class="material-icons text-base"
+                                    >account_circle</span
+                                >
+                                Mi
+                                Perfil
                             </button>
                             <hr
                                 class="my-1 border-gray-200"
@@ -381,7 +422,10 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <span class="material-icons text-gray-700 text-2xl">list</span>
+                        <span
+                            class="material-icons text-gray-700 text-2xl"
+                            >list</span
+                        >
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
@@ -405,7 +449,10 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <span class="material-icons text-gray-700 text-2xl">shopping_bag</span>
+                        <span
+                            class="material-icons text-gray-700 text-2xl"
+                            >shopping_bag</span
+                        >
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
@@ -429,7 +476,10 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <span class="material-icons text-gray-700 text-2xl">kitchen</span>
+                        <span
+                            class="material-icons text-gray-700 text-2xl"
+                            >kitchen</span
+                        >
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
@@ -453,7 +503,10 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >
-                        <span class="material-icons text-gray-700 text-2xl">history</span>
+                        <span
+                            class="material-icons text-gray-700 text-2xl"
+                            >history</span
+                        >
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="
