@@ -13,6 +13,7 @@ import {
 } from "vue";
 import { useUserStore } from "@/stores/user";
 import { useUser } from "@/composables/user";
+import NotificationCenter from "@/components/NotificationCenter.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -556,6 +557,7 @@ onMounted(() => {
             </div>
         </div>
     </div>
+    <NotificationCenter />
 </template>
 
 <style scoped>

@@ -8,6 +8,7 @@ import {
 import { useRouter } from "vue-router";
 import { useUser } from "@/composables/user";
 import ChangePasswordModal from "@/components/ChangePasswordModal.vue";
+import { useNotifications } from "@/composables/notifications";
 
 const router = useRouter();
 const {
@@ -16,6 +17,10 @@ const {
     changePassword: changeUserPassword,
     getProfile,
 } = useUser();
+const {
+    success: notifySuccess,
+    error: notifyError,
+} = useNotifications();
 
 const profileData = ref({
     name: "",
@@ -29,16 +34,8 @@ const isEditingSurname = ref(false);
 const tempName = ref("");
 const tempSurname = ref("");
 const loading = ref(false);
-const error = ref("");
-const success = ref("");
 const showChangePasswordModal =
     ref(false);
-
-// Ref para el modal de cambio de contraseña
-const changePasswordModalRef =
-    ref<InstanceType<
-        typeof ChangePasswordModal
-    > | null>(null);
 
 // Load user profile on mount
 onMounted(async () => {
@@ -72,8 +69,9 @@ const loadProfile = async () => {
             "Error loading profile:",
             e,
         );
-        error.value =
-            "Error al cargar el perfil";
+        notifyError(
+            "Error al cargar el perfil",
+        );
     } finally {
         loading.value = false;
     }
@@ -95,11 +93,9 @@ const handleFileChange = async (
             file.size >
             2 * 1024 * 1024
         ) {
-            error.value =
-                "La imagen no puede superar los 2MB";
-            setTimeout(() => {
-                error.value = "";
-            }, 3000);
+            notifyError(
+                "La imagen no puede superar los 2MB",
+            );
             return;
         }
 
@@ -109,11 +105,9 @@ const handleFileChange = async (
                 "image/",
             )
         ) {
-            error.value =
-                "Solo se permiten imágenes";
-            setTimeout(() => {
-                error.value = "";
-            }, 3000);
+            notifyError(
+                "Solo se permiten imágenes",
+            );
             return;
         }
 
@@ -127,8 +121,6 @@ const handleFileChange = async (
             // Guardar en el backend
             try {
                 loading.value = true;
-                error.value = "";
-                success.value = "";
 
                 await updateProfile({
                     name: profileData
@@ -145,19 +137,23 @@ const handleFileChange = async (
                     },
                 });
 
-                success.value =
-                    "Foto de perfil actualizada exitosamente";
-                setTimeout(() => {
-                    success.value = "";
-                }, 3000);
+                notifySuccess(
+                    "Foto de perfil actualizada exitosamente",
+                );
             } catch (e: any) {
                 console.error(
                     "Error updating avatar:",
                     e,
                 );
-                error.value =
-                    e.message ||
-                    "Error al actualizar la foto de perfil";
+                const message =
+                    typeof e?.message === "string" &&
+                    e.message
+                        .toLowerCase()
+                        .includes("failed to fetch")
+                        ? "No pudimos actualizar tu foto. Verificá tu conexión e intentá nuevamente."
+                        : e?.message ||
+                          "Error al actualizar la foto de perfil";
+                notifyError(message);
                 profileData.value.avatar =
                     currentUser.value
                         ?.metadata
@@ -187,15 +183,14 @@ const startEditingName = () => {
 
 const saveName = async () => {
     if (!tempName.value.trim()) {
-        error.value =
-            "El nombre no puede estar vacío";
+        notifyError(
+            "El nombre no puede estar vacío",
+        );
         return;
     }
 
     try {
         loading.value = true;
-        error.value = "";
-        success.value = "";
 
         await updateProfile({
             name: tempName.value.trim(),
@@ -207,20 +202,18 @@ const saveName = async () => {
         profileData.value.name =
             tempName.value.trim();
         isEditingName.value = false;
-        success.value =
-            "Nombre actualizado exitosamente";
-
-        setTimeout(() => {
-            success.value = "";
-        }, 3000);
+        notifySuccess(
+            "Nombre actualizado exitosamente",
+        );
     } catch (e: any) {
         console.error(
             "Error updating name:",
             e,
         );
-        error.value =
+        notifyError(
             e.message ||
-            "Error al actualizar el nombre";
+                "Error al actualizar el nombre",
+        );
     } finally {
         loading.value = false;
     }
@@ -230,7 +223,6 @@ const cancelEditName = () => {
     isEditingName.value = false;
     tempName.value =
         profileData.value.name;
-    error.value = "";
 };
 
 const startEditingSurname = () => {
@@ -241,15 +233,14 @@ const startEditingSurname = () => {
 
 const saveSurname = async () => {
     if (!tempSurname.value.trim()) {
-        error.value =
-            "El apellido no puede estar vacío";
+        notifyError(
+            "El apellido no puede estar vacío",
+        );
         return;
     }
 
     try {
         loading.value = true;
-        error.value = "";
-        success.value = "";
 
         await updateProfile({
             name: profileData.value
@@ -261,20 +252,18 @@ const saveSurname = async () => {
         profileData.value.surname =
             tempSurname.value.trim();
         isEditingSurname.value = false;
-        success.value =
-            "Apellido actualizado exitosamente";
-
-        setTimeout(() => {
-            success.value = "";
-        }, 3000);
+        notifySuccess(
+            "Apellido actualizado exitosamente",
+        );
     } catch (e: any) {
         console.error(
             "Error updating surname:",
             e,
         );
-        error.value =
+        notifyError(
             e.message ||
-            "Error al actualizar el apellido";
+                "Error al actualizar el apellido",
+        );
     } finally {
         loading.value = false;
     }
@@ -284,7 +273,6 @@ const cancelEditSurname = () => {
     isEditingSurname.value = false;
     tempSurname.value =
         profileData.value.surname;
-    error.value = "";
 };
 
 const openChangePasswordModal = () => {
@@ -311,25 +299,18 @@ const handleChangePassword =
             });
 
             closeChangePasswordModal();
-            success.value =
-                "Contraseña cambiada exitosamente";
-            setTimeout(() => {
-                success.value = "";
-            }, 3000);
+            notifySuccess(
+                "Contraseña cambiada exitosamente",
+            );
         } catch (e: any) {
             console.error(
                 "Error changing password:",
                 e,
             );
-            // Mostrar error en el modal
-            if (
-                changePasswordModalRef.value
-            ) {
-                changePasswordModalRef.value.showError(
-                    e.message ||
-                        "Error al cambiar la contraseña. Verificá que la contraseña actual sea correcta.",
-                );
-            }
+            notifyError(
+                e.message ||
+                    "Error al cambiar la contraseña. Verificá que la contraseña actual sea correcta.",
+            );
         } finally {
             loading.value = false;
         }
@@ -383,30 +364,6 @@ const initials = computed(() => {
             </div>
 
             <template v-else>
-                <!-- Error message -->
-                <div
-                    v-if="error"
-                    class="p-4 bg-red-50 border border-red-200 rounded-lg"
-                >
-                    <p
-                        class="text-sm text-red-600 text-center"
-                    >
-                        {{ error }}
-                    </p>
-                </div>
-
-                <!-- Success message -->
-                <div
-                    v-if="success"
-                    class="p-4 bg-green-50 border border-green-200 rounded-lg"
-                >
-                    <p
-                        class="text-sm text-green-600 text-center"
-                    >
-                        {{ success }}
-                    </p>
-                </div>
-
                 <!-- Avatar Section -->
                 <div
                     class="flex flex-col items-center gap-4"
@@ -690,7 +647,6 @@ const initials = computed(() => {
 
         <!-- Change Password Modal -->
         <ChangePasswordModal
-            ref="changePasswordModalRef"
             :show="
                 showChangePasswordModal
             "

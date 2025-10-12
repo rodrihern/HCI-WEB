@@ -11,6 +11,7 @@ import AddProductModal from "@/components/AddProductModal.vue";
 import SearchEmptyState from "@/components/SearchEmptyState.vue";
 import { useGlobalSearch } from "@/composables/search";
 import { ListItemApi } from "@/api/listItem";
+import { useNotifications } from "@/composables/notifications";
 
 // Estado para loading
 const isLoading = ref(false);
@@ -50,6 +51,7 @@ const {
     getAllProducts,
 } = useProduct();
 const { categories } = useCategory();
+const { success: notifySuccess, error: notifyError } = useNotifications();
 
 const productsByCategory = computed(
     () => {
@@ -154,6 +156,9 @@ const confirmDelete = async () => {
             await deleteProductApi(
                 productToDelete.value,
             );
+            notifySuccess(
+                "Producto eliminado exitosamente",
+            );
         } catch (error: any) {
             // Mostrar error si falla la eliminación
             if (
@@ -164,6 +169,10 @@ const confirmDelete = async () => {
                         "Error al eliminar el producto",
                 );
             }
+            notifyError(
+                error.message ||
+                    "Error al eliminar el producto",
+            );
         } finally {
             isLoading.value = false;
         }
@@ -233,7 +242,7 @@ const handleAddProductToList = async (productId: number, quantity: number, unit:
         closeAddToListModal();
     } catch (error) {
         console.error('Error adding product to list:', error);
-        alert('Error al agregar el producto a la lista');
+        notifyError('Error al agregar el producto a la lista');
     }
 };
 
@@ -298,6 +307,9 @@ const handleSaveProduct =
                         metadata,
                     },
                 );
+                notifySuccess(
+                    "Producto actualizado exitosamente",
+                );
             } else {
                 // Modo creación
                 const metadata: Record<
@@ -327,6 +339,9 @@ const handleSaveProduct =
                         ? metadata
                         : undefined,
                 );
+                notifySuccess(
+                    "Producto creado exitosamente",
+                );
             }
 
             closeModal();
@@ -335,14 +350,23 @@ const handleSaveProduct =
             let errorMsg =
                 "Ocurrió un error al guardar el producto. Por favor intenta de nuevo.";
 
-            if (
-                error.message ===
-                "Product already exists"
-            ) {
+            const rawMessage =
+                typeof error?.message ===
+                "string"
+                    ? error.message
+                    : "";
+
+            if (rawMessage === "Product already exists") {
                 errorMsg = `Ya existe un producto con el nombre "${productData.name}". Por favor usa otro nombre.`;
-            } else if (error.message) {
+            } else if (
+                rawMessage.toLowerCase().includes(
+                    "failed to fetch",
+                )
+            ) {
                 errorMsg =
-                    error.message;
+                    "No pudimos guardar el producto. Verificá tu conexión e intentá nuevamente.";
+            } else if (rawMessage) {
+                errorMsg = rawMessage;
             }
 
             // Mostrar error en el modal usando el ref

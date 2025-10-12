@@ -16,6 +16,7 @@ import { useUser } from "@/composables/user";
 import type { Pantry } from "@/api/pantry";
 import SearchEmptyState from "@/components/SearchEmptyState.vue";
 import { useSearchFilter } from "@/composables/search";
+import { useNotifications } from "@/composables/notifications";
 
 const {
     pantries,
@@ -23,6 +24,10 @@ const {
     deletePantry,
 } = usePantry();
 const { user, getProfile } = useUser();
+const {
+    success: notifySuccess,
+    error: notifyError,
+} = useNotifications();
 
 // Load user profile on mount
 onMounted(async () => {
@@ -68,8 +73,21 @@ const openCreatePantryModal = () => {
 const handleCreatePantry = async (
     name: string,
 ) => {
-    await createPantry(name, {});
-    showCreatePantryModal.value = false;
+    try {
+        await createPantry(name, {});
+        notifySuccess(
+            "Despensa creada exitosamente",
+        );
+        showCreatePantryModal.value = false;
+    } catch (error) {
+        console.error(
+            "Error creating pantry:",
+            error,
+        );
+        notifyError(
+            "Error al crear la despensa. Intenta de nuevo.",
+        );
+    }
 };
 
 const openPreviewPantry = (
@@ -161,7 +179,7 @@ const handleAddProduct = async (productId: number, quantity: number, unit: strin
         closeAddProductsModal();
     } catch (error) {
         console.error('Error adding product to pantry:', error);
-        alert('Error al agregar el producto a la despensa');
+        notifyError('Error al agregar el producto a la despensa');
     }
 };
 
@@ -172,10 +190,24 @@ const confirmDelete = (id: number) => {
 
 const handleDeletePantry = async () => {
     if (pantryToDelete.value) {
-        await deletePantry(
-            pantryToDelete.value,
-        );
-        pantryToDelete.value = null;
+        try {
+            await deletePantry(
+                pantryToDelete.value,
+            );
+            notifySuccess(
+                "Despensa eliminada exitosamente",
+            );
+        } catch (error) {
+            console.error(
+                "Error deleting pantry:",
+                error,
+            );
+            notifyError(
+                "No se pudo eliminar la despensa. Intenta de nuevo.",
+            );
+        } finally {
+            pantryToDelete.value = null;
+        }
     }
     showDeleteConfirm.value = false;
 };

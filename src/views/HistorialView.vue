@@ -7,9 +7,14 @@ import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
 import ListItem from "../components/ListItem.vue";
 import SearchEmptyState from "@/components/SearchEmptyState.vue";
 import { useSearchFilter } from "@/composables/search";
+import { useNotifications } from "@/composables/notifications";
 
 const store = useListsStore();
 const purchaseStore = usePurchaseStore();
+const {
+    success: notifySuccess,
+    error: notifyError,
+} = useNotifications();
 
 const isLoadingPurchases = ref(true);
 
@@ -79,11 +84,14 @@ const openPreviewHistorial = (id: number) => {
 const onRestore = async (id: number) => {
     try {
         await purchaseStore.restore(id);
-        // Lista restaurada exitosamente
+        notifySuccess("Compra restaurada exitosamente");
     } catch (error) {
         console.error(
             "Error restoring purchase:",
             error,
+        );
+        notifyError(
+            "No se pudo restaurar la compra. Intenta de nuevo.",
         );
     }
 };

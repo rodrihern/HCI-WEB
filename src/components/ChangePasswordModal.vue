@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import BaseModal from './BaseModal.vue';
+import { useNotifications } from '@/composables/notifications';
 
 interface Props {
     show: boolean;
@@ -19,10 +20,10 @@ const emit = defineEmits<{
 const currentPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
-const error = ref('');
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
+const { error: notifyError } = useNotifications();
 
 // Watch para resetear el formulario cuando se abre/cierra el modal
 watch(() => props.show, (newVal) => {
@@ -35,7 +36,6 @@ const resetForm = () => {
     currentPassword.value = '';
     newPassword.value = '';
     confirmPassword.value = '';
-    error.value = '';
     showCurrentPassword.value = false;
     showNewPassword.value = false;
     showConfirmPassword.value = false;
@@ -49,37 +49,36 @@ const closeModal = () => {
 const handleSave = () => {
     // Validaciones
     if (!currentPassword.value.trim()) {
-        error.value = 'Por favor ingresa tu contraseña actual';
+        notifyError('Por favor ingresa tu contraseña actual');
         return;
     }
 
     if (!newPassword.value.trim()) {
-        error.value = 'Por favor ingresa tu nueva contraseña';
+        notifyError('Por favor ingresa tu nueva contraseña');
         return;
     }
 
     if (newPassword.value.length < 6) {
-        error.value = 'La nueva contraseña debe tener al menos 6 caracteres';
+        notifyError('La nueva contraseña debe tener al menos 6 caracteres');
         return;
     }
 
     if (!confirmPassword.value.trim()) {
-        error.value = 'Por favor confirma tu nueva contraseña';
+        notifyError('Por favor confirma tu nueva contraseña');
         return;
     }
 
     if (newPassword.value !== confirmPassword.value) {
-        error.value = 'Las contraseñas no coinciden';
+        notifyError('Las contraseñas no coinciden');
         return;
     }
 
     if (currentPassword.value === newPassword.value) {
-        error.value = 'La nueva contraseña debe ser diferente a la actual';
+        notifyError('La nueva contraseña debe ser diferente a la actual');
         return;
     }
 
     // Si todas las validaciones pasan, emitir evento
-    error.value = '';
     emit('save', {
         currentPassword: currentPassword.value,
         newPassword: newPassword.value
@@ -88,7 +87,7 @@ const handleSave = () => {
 
 // Función para mostrar error desde el componente padre
 const showError = (message: string) => {
-    error.value = message;
+    notifyError(message);
 };
 
 defineExpose({ showError });
@@ -103,14 +102,6 @@ defineExpose({ showError });
         @close="closeModal"
     >
         <div class="p-8 flex flex-col gap-6">
-            <!-- Error Message -->
-            <div
-                v-if="error"
-                class="p-4 bg-red-50 border border-red-200 rounded-lg"
-            >
-                <p class="text-sm text-red-600 text-center">{{ error }}</p>
-            </div>
-
             <!-- Current Password -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-gray-700">

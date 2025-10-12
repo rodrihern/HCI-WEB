@@ -10,6 +10,7 @@ import { usePantry } from '@/composables/pantry'
 import { useCategory } from '@/composables/category'
 import { useUser } from '@/composables/user'
 import { PantryApi } from '@/api/pantry'
+import { useNotifications } from '@/composables/notifications'
 import type { Product } from '@/api/product'
 import type { ListItemData } from '@/api/listItem'
 import type { PantryItem } from '@/api/pantry'
@@ -40,6 +41,7 @@ const { addItemToList, getListItems, toggleItemPurchased, deleteListItem, update
 const { pantryItems, getPantryItems, updatePantryItem, deletePantryItem, pantries } = usePantry()
 const { categories, getAllCategories } = useCategory()
 const { user } = useUser()
+const { success: notifySuccess, error: notifyError } = useNotifications()
 
 // State
 const searchProduct = ref('')
@@ -251,6 +253,11 @@ const saveAllChanges = async () => {
     
     // Reload items to get fresh data from server
     await loadItems()
+    notifySuccess(
+      isListType.value
+        ? 'Lista guardada exitosamente'
+        : 'Despensa guardada exitosamente'
+    )
   } catch (error) {
     console.error('Error saving changes:', error)
     throw error
@@ -280,7 +287,7 @@ const saveAndClose = async () => {
     try {
       await saveAllChanges()
     } catch (error) {
-      alert(`Error al guardar los cambios. Intenta de nuevo.`)
+      notifyError(`Error al guardar los cambios. Intenta de nuevo.`)
       return
     }
   }
@@ -326,7 +333,7 @@ const handleAddProductWithDetails = async (productId: number, quantity: number, 
   try {
     const product = availableProducts.value.find(p => p.id === productId)
     if (!product) {
-      alert('Producto no encontrado')
+      notifyError('Producto no encontrado')
       return
     }
 
@@ -363,7 +370,7 @@ const handleAddProductWithDetails = async (productId: number, quantity: number, 
     showAddProductModal.value = false
     selectedProductToAdd.value = null
   } catch (error) {
-    alert(`Error al agregar el producto a la ${itemTypeLabel.value}. Intenta de nuevo.`)
+    notifyError(`Error al agregar el producto a la ${itemTypeLabel.value}. Intenta de nuevo.`)
   } finally {
     isAddingProduct.value = false
   }

@@ -9,6 +9,7 @@ import ConfirmationModal from "./ConfirmationModal.vue";
 import type { Product } from "@/api/product";
 import type { Category } from "@/api/category";
 import { useCategory } from "@/composables/category";
+import { useNotifications } from "@/composables/notifications";
 
 interface Props {
     show: boolean;
@@ -55,13 +56,13 @@ const existingImage = ref<
 const imagePreview = ref<
     string | undefined
 >(undefined);
-const errorMessage = ref("");
 const showDeleteCategoryConfirmation =
     ref(false);
 const categoryToDelete = ref<{
     id: number;
     name: string;
 } | null>(null);
+const { error: notifyError } = useNotifications();
 
 // Modo edición
 const isEditMode = computed(
@@ -116,7 +117,6 @@ watch(
             imagePreview.value =
                 undefined;
             isCategoryOpen.value = false;
-            errorMessage.value = "";
         } else {
             // Limpiar todos los campos cuando no hay producto a editar
             productName.value = "";
@@ -132,17 +132,9 @@ watch(
             imagePreview.value =
                 undefined;
             isCategoryOpen.value = false;
-            errorMessage.value = "";
         }
     },
 );
-
-// Limpiar error cuando el usuario empiece a escribir
-watch(productName, () => {
-    if (errorMessage.value) {
-        errorMessage.value = "";
-    }
-});
 
 const filteredCategories = computed(
     () => {
@@ -172,7 +164,6 @@ const closeModal = () => {
     existingImage.value = undefined;
     imagePreview.value = undefined;
     isCategoryOpen.value = false;
-    errorMessage.value = "";
     emit("close");
 };
 
@@ -186,8 +177,9 @@ const onFileChange = (e: Event) => {
         // Validar tamaño (máximo 2MB)
         const maxSize = 2 * 1024 * 1024; // 2MB en bytes
         if (file.size > maxSize) {
-            errorMessage.value =
-                "La imagen es demasiado grande. El tamaño máximo es 2MB.";
+            notifyError(
+                "La imagen es demasiado grande. El tamaño máximo es 2MB.",
+            );
             selectedFile.value = null;
             imagePreview.value =
                 undefined;
@@ -211,8 +203,9 @@ const onFileChange = (e: Event) => {
                 file.type,
             )
         ) {
-            errorMessage.value =
-                "Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, GIF, WEBP).";
+            notifyError(
+                "Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, GIF, WEBP).",
+            );
             selectedFile.value = null;
             imagePreview.value =
                 undefined;
@@ -221,9 +214,6 @@ const onFileChange = (e: Event) => {
             ).value = "";
             return;
         }
-
-        // Limpiar error si había uno
-        errorMessage.value = "";
 
         selectedFile.value = file;
         // Crear preview de la imagen
@@ -244,7 +234,6 @@ const removeImage = () => {
     selectedFile.value = null;
     imagePreview.value = undefined;
     existingImage.value = undefined;
-    errorMessage.value = "";
 };
 
 const chooseCategory = (
@@ -287,9 +276,6 @@ const submitProduct = async () => {
     const name =
         productName.value.trim();
     if (!name) return;
-
-    // Limpiar error previo
-    errorMessage.value = "";
 
     const description =
         productDescription.value.trim();
@@ -340,7 +326,7 @@ const submitProduct = async () => {
 
 // Función para mostrar error (llamada desde el padre)
 const showError = (message: string) => {
-    errorMessage.value = message;
+    notifyError(message);
 };
 
 const handleDeleteCategory = (
@@ -376,9 +362,10 @@ const confirmDeleteCategory =
                 // Emitir evento para que el padre refresque los productos
                 emit("categoryDeleted");
             } catch (error: any) {
-                errorMessage.value =
+                notifyError(
                     error.message ||
-                    "Error al eliminar la categoría";
+                        "Error al eliminar la categoría",
+                );
             }
         }
         showDeleteCategoryConfirmation.value = false;
@@ -412,18 +399,6 @@ defineExpose({
         <div
             class="p-8 space-y-4 bg-gray-50"
         >
-            <!-- Error message -->
-            <div
-                v-if="errorMessage"
-                class="p-3 bg-red-50 border border-red-200 rounded-lg"
-            >
-                <p
-                    class="text-sm text-red-600 text-center"
-                >
-                    {{ errorMessage }}
-                </p>
-            </div>
-
             <!-- Name input -->
             <div>
                 <input

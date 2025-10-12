@@ -15,12 +15,14 @@ import type { ContextMenuItem } from '@/components/ContextMenu.vue'
 import type { ShoppingListData } from '@/api/shoppingList'
 import SearchEmptyState from '@/components/SearchEmptyState.vue'
 import { useSearchFilter } from '@/composables/search'
+import { useNotifications } from '@/composables/notifications'
 
 const store = useListsStore()
 const shoppingListStore = useShoppingListStore()
 const { shoppingLists, deleteShoppingList, getAllShoppingLists } = useShoppingList()
 const { user } = useUser()
 const animatingFavorites = ref<Set<number>>(new Set())
+const { success: notifySuccess, error: notifyError } = useNotifications()
 
 // Estado local para el modal de creación
 const showCreateListModal = ref(false)
@@ -100,9 +102,10 @@ const handleCreateList = async (name: string) => {
     })
     await getAllShoppingLists()
     showCreateListModal.value = false
+    notifySuccess('Lista creada exitosamente')
   } catch (error) {
     console.error('Error creating list:', error)
-    alert('Error al crear la lista. Por favor intenta de nuevo.')
+    notifyError('Error al crear la lista. Por favor intenta de nuevo.')
   }
 }
 
@@ -155,10 +158,24 @@ const confirmDelete = (id: number) => {
 
 const deleteList = async () => {
     if (listToDelete.value) {
-        await deleteShoppingList(
-            listToDelete.value,
-        );
-        listToDelete.value = null;
+        try {
+            await deleteShoppingList(
+                listToDelete.value,
+            );
+            notifySuccess(
+                "Lista eliminada exitosamente",
+            );
+        } catch (error) {
+            console.error(
+                "Error deleting list:",
+                error,
+            );
+            notifyError(
+                "No se pudo eliminar la lista. Intenta de nuevo.",
+            );
+        } finally {
+            listToDelete.value = null;
+        }
     }
     showDeleteConfirm.value = false;
 };

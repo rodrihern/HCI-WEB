@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue'
 import BaseModal from './BaseModal.vue'
 import { usePantry } from '@/composables/pantry'
 import { useShoppingList } from '@/composables/shoppingList'
+import { useNotifications } from '@/composables/notifications'
 
 const props = defineProps<{
   show: boolean
@@ -21,10 +22,9 @@ const { shareShoppingList, getSharedUsers: getListSharedUsers, revokeShare: revo
 
 const email = ref('')
 const isLoading = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
 const sharedUsers = ref<any[]>([])
 const loadingUsers = ref(false)
+const { success: notifySuccess, error: notifyError } = useNotifications()
 
 // Computed properties for dynamic text
 const itemTypeLabel = computed(() => props.type === 'pantry' ? 'Despensa' : 'Lista')
@@ -32,8 +32,6 @@ const itemTypeLower = computed(() => props.type === 'pantry' ? 'despensa' : 'lis
 
 const closeModal = () => {
   email.value = ''
-  errorMessage.value = ''
-  successMessage.value = ''
   emit('close')
 }
 
@@ -58,12 +56,10 @@ const handleShare = async () => {
   // Simple email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email.value)) {
-    errorMessage.value = 'Por favor ingresa un email válido'
+    notifyError('Por favor ingresa un email válido')
     return
   }
 
-  errorMessage.value = ''
-  successMessage.value = ''
   isLoading.value = true
 
   try {
@@ -75,7 +71,7 @@ const handleShare = async () => {
     }
     
     if (success) {
-      successMessage.value = `${itemTypeLabel.value} compartida con ${email.value}`
+      notifySuccess(`${itemTypeLabel.value} compartida con ${email.value}`)
       email.value = ''
       // Reload shared users
       if (props.type === 'pantry') {
@@ -86,16 +82,11 @@ const handleShare = async () => {
         sharedUsers.value = users || []
       }
       emit('shared')
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        successMessage.value = ''
-      }, 3000)
     } else {
-      errorMessage.value = `No se pudo compartir la ${itemTypeLower.value}. Intenta nuevamente.`
+      notifyError(`No se pudo compartir la ${itemTypeLower.value}. Intenta nuevamente.`)
     }
   } catch (error: any) {
-    errorMessage.value = error.message || `Error al compartir la ${itemTypeLower.value}`
+    notifyError(error.message || `Error al compartir la ${itemTypeLower.value}`)
   } finally {
     isLoading.value = false
   }
@@ -126,7 +117,7 @@ const handleRevokeShare = async (userId: number) => {
       }
     }
   } catch (error: any) {
-    errorMessage.value = 'Error al revocar acceso'
+    notifyError('Error al revocar acceso')
   }
 }
 </script>
@@ -173,16 +164,6 @@ const handleRevokeShare = async (userId: number) => {
               </svg>
             </span>
           </button>
-        </div>
-
-        <!-- Error message -->
-        <div v-if="errorMessage" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <p class="text-red-600 text-sm">{{ errorMessage }}</p>
-        </div>
-
-        <!-- Success message -->
-        <div v-if="successMessage" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-          <p class="text-green-600 text-sm">{{ successMessage }}</p>
         </div>
       </div>
 
