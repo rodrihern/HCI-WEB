@@ -524,7 +524,7 @@ defineExpose({
                                 c.name
                             }}</span>
                             <button
-                                class="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-100 rounded transition-all"
+                                class="p-1 opacity-0 group-hover:opacity-100 rounded transition-all cursor-pointer"
                                 @click="
                                     handleDeleteCategory(
                                         c.id!,
@@ -535,7 +535,7 @@ defineExpose({
                                 title="Eliminar categoría"
                             >
                                 <span
-                                    class="material-icons text-red-600 text-lg"
+                                    class="material-icons text-gray-500 hover:text-red-600 text-lg transition-colors"
                                     >close</span
                                 >
                             </button>
