@@ -5,7 +5,7 @@ import ListItem from "@/components/ListItem.vue";
 import ContextMenu, { type ContextMenuItem } from "@/components/ContextMenu.vue";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import CreatePantrySectionModal from "@/components/CreatePantrySectionModal.vue";
-import PreviewPantryModal from "@/components/PreviewPantryModal.vue";
+import PreviewItemsModal from "@/components/PreviewItemsModal.vue";
 import SharePantryModal from "@/components/SharePantryModal.vue";
 import AddProductsToPantryModal from "@/components/AddProductsToPantryModal.vue";
 import { usePantry } from "@/composables/pantry";
@@ -27,7 +27,7 @@ const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
 // Modal states
 const showCreatePantryModal = ref(false);
-const showPreviewPantryModal = ref(false);
+const showPreviewItemsModal = ref(false);
 const showSharePantryModal = ref(false);
 const showDeleteConfirm = ref(false);
 const showAddProductsModal = ref(false);
@@ -49,11 +49,11 @@ const handleCreatePantry = async (name: string) => {
 const openPreviewPantry = (pantryId: number, pantryName: string) => {
     selectedPantryId.value = pantryId;
     selectedPantryName.value = pantryName;
-    showPreviewPantryModal.value = true;
+    showPreviewItemsModal.value = true;
 };
 
 const closePreviewPantry = () => {
-    showPreviewPantryModal.value = false;
+    showPreviewItemsModal.value = false;
     selectedPantryId.value = undefined;
     selectedPantryName.value = "";
 };
@@ -70,7 +70,7 @@ const handleShareFromPreview = (pantryId: number) => {
         selectedPantryId.value = pantryId;
         selectedPantryName.value = pantry.name;
         showSharePantryModal.value = true;
-        showPreviewPantryModal.value = false;
+        showPreviewItemsModal.value = false;
     }
 };
 
@@ -98,7 +98,7 @@ const handleAddProductsFromPreview = (pantryId: number) => {
         selectedPantryId.value = pantryId;
         selectedPantryName.value = pantry.name;
         showAddProductsModal.value = true;
-        showPreviewPantryModal.value = false;
+        showPreviewItemsModal.value = false;
     }
 };
 
@@ -106,7 +106,7 @@ const closeAddProductsModal = () => {
     showAddProductsModal.value = false;
     // Reopen preview modal
     if (selectedPantryId.value && selectedPantryName.value) {
-        showPreviewPantryModal.value = true;
+        showPreviewItemsModal.value = true;
     }
 };
 
@@ -207,13 +207,13 @@ const getPantrySubtitle = (pantry: Pantry): string => {
             @create="handleCreatePantry"
         />
 
-        <!-- Modal para vista previa de despensa -->
-        <PreviewPantryModal
-            :show="showPreviewPantryModal"
-            :pantry-id="selectedPantryId"
-            :pantry-name="selectedPantryName"
+        <!-- Modal para vista previa de despensa (genérico unificado) -->
+        <PreviewItemsModal
+            :show="showPreviewItemsModal"
+            :item-id="selectedPantryId"
+            :item-name="selectedPantryName"
+            type="pantry"
             @close="closePreviewPantry"
-            @add-products="handleAddProductsFromPreview"
         />
 
         <!-- Modal para agregar productos -->
