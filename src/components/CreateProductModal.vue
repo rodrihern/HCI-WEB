@@ -5,6 +5,7 @@ import {
     watch,
 } from "vue";
 import BaseModal from "./BaseModal.vue";
+import ConfirmationModal from "./ConfirmationModal.vue";
 import type { Product } from "@/api/product";
 import type { Category } from "@/api/category";
 import { useCategory } from "@/composables/category";
@@ -27,10 +28,12 @@ const emit = defineEmits<{
             image?: string;
         },
     ];
+    categoryDeleted: [];
 }>();
 
 const {
     createCategory: createCategoryApi,
+    deleteCategory: deleteCategoryApi,
     categories: allCategories,
 } = useCategory();
 
@@ -53,6 +56,12 @@ const imagePreview = ref<
     string | undefined
 >(undefined);
 const errorMessage = ref("");
+const showDeleteCategoryConfirmation =
+    ref(false);
+const categoryToDelete = ref<{
+    id: number;
+    name: string;
+} | null>(null);
 
 // Modo edición
 const isEditMode = computed(
@@ -323,6 +332,53 @@ const showError = (message: string) => {
     errorMessage.value = message;
 };
 
+const handleDeleteCategory = (
+    categoryId: number,
+    categoryName: string,
+    event: Event,
+) => {
+    event.stopPropagation();
+    categoryToDelete.value = {
+        id: categoryId,
+        name: categoryName,
+    };
+    showDeleteCategoryConfirmation.value = true;
+};
+
+const confirmDeleteCategory =
+    async () => {
+        if (categoryToDelete.value) {
+            try {
+                await deleteCategoryApi(
+                    categoryToDelete
+                        .value.id,
+                );
+                // Si la categoría eliminada era la seleccionada, limpiar selección
+                if (
+                    selectedCategoryId.value ===
+                    categoryToDelete
+                        .value.id
+                ) {
+                    selectedCategoryId.value =
+                        undefined;
+                }
+                // Emitir evento para que el padre refresque los productos
+                emit("categoryDeleted");
+            } catch (error: any) {
+                errorMessage.value =
+                    error.message ||
+                    "Error al eliminar la categoría";
+            }
+        }
+        showDeleteCategoryConfirmation.value = false;
+        categoryToDelete.value = null;
+    };
+
+const cancelDeleteCategory = () => {
+    showDeleteCategoryConfirmation.value = false;
+    categoryToDelete.value = null;
+};
+
 // Exponer función para que el padre pueda llamarla
 defineExpose({
     showError,
@@ -371,14 +427,17 @@ defineExpose({
 
             <!-- Category selector -->
             <div class="relative">
-                                <button
+                <button
                     class="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-gray-300 bg-white text-gray-800 hover:border-verde-sidebar transition-colors"
                     @click="
                         isCategoryOpen =
                             !isCategoryOpen
                     "
                 >
-                    <span class="material-icons text-gray-700 text-xl">search</span>
+                    <span
+                        class="material-icons text-gray-700 text-xl"
+                        >search</span
+                    >
                     <span
                         class="flex-1 text-left text-lg"
                         >{{
@@ -397,7 +456,10 @@ defineExpose({
                         "
                         aria-label="clear"
                     >
-                        <span class="material-icons text-gray-700 text-xl">close</span>
+                        <span
+                            class="material-icons text-gray-700 text-xl"
+                            >close</span
+                        >
                     </span>
                 </button>
 
@@ -411,7 +473,10 @@ defineExpose({
                     <div
                         class="px-4 py-3 bg-gray-50 flex items-center gap-2 border-b border-gray-200"
                     >
-                        <span class="material-icons text-gray-500 text-xl">search</span>
+                        <span
+                            class="material-icons text-gray-500 text-xl"
+                            >search</span
+                        >
                         <input
                             v-model="
                                 categorySearch
@@ -445,18 +510,36 @@ defineExpose({
                     <div
                         class="max-h-48 overflow-auto"
                     >
-                        <button
+                        <div
                             v-for="c in filteredCategories"
                             :key="c.id"
-                            class="w-full text-left px-5 py-3 hover:bg-verde-claro hover:text-white border-b border-gray-100 last:border-b-0 transition-colors text-gray-800"
+                            class="w-full text-left px-5 py-3 hover:bg-verde-claro hover:text-white border-b border-gray-100 last:border-b-0 transition-colors text-gray-800 flex items-center justify-between group cursor-pointer"
                             @click="
                                 chooseCategory(
                                     c.id!,
                                 )
                             "
                         >
-                            {{ c.name }}
-                        </button>
+                            <span>{{
+                                c.name
+                            }}</span>
+                            <button
+                                class="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-100 rounded transition-all"
+                                @click="
+                                    handleDeleteCategory(
+                                        c.id!,
+                                        c.name,
+                                        $event,
+                                    )
+                                "
+                                title="Eliminar categoría"
+                            >
+                                <span
+                                    class="material-icons text-red-600 text-lg"
+                                    >close</span
+                                >
+                            </button>
+                        </div>
                         <div
                             v-if="
                                 filteredCategories.length ===
@@ -474,7 +557,10 @@ defineExpose({
                     <div
                         class="border-t-2 border-gray-200 px-4 py-3 flex items-center gap-2 bg-gray-50"
                     >
-                        <span class="material-icons text-gray-600 text-xl">add</span>
+                        <span
+                            class="material-icons text-gray-600 text-xl"
+                            >add</span
+                        >
                         <input
                             v-model="
                                 newCategoryName
@@ -524,9 +610,9 @@ defineExpose({
             </div>
 
             <!-- Media drop area -->
-            <label class="block">
+            <div class="block">
                 <div
-                    class="w-full h-40 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-verde-sidebar transition-colors bg-white overflow-hidden relative group"
+                    class="w-full h-40 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-verde-sidebar transition-colors bg-white overflow-hidden relative group"
                 >
                     <!-- Preview de la imagen -->
                     <div
@@ -547,7 +633,7 @@ defineExpose({
                             @click.stop="
                                 removeImage
                             "
-                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors z-10"
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors z-20"
                             type="button"
                             aria-label="Eliminar imagen"
                         >
@@ -566,11 +652,11 @@ defineExpose({
                             </svg>
                         </button>
                         <!-- Overlay al hover para cambiar imagen -->
-                        <div
-                            class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        <label
+                            class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10"
                         >
                             <div
-                                class="text-white text-center"
+                                class="text-white text-center pointer-events-none"
                             >
                                 <svg
                                     class="w-10 h-10 mb-2 mx-auto"
@@ -591,16 +677,24 @@ defineExpose({
                                     imagen</span
                                 >
                             </div>
-                        </div>
+                            <input
+                                type="file"
+                                class="hidden"
+                                @change="
+                                    onFileChange
+                                "
+                                accept="image/*"
+                            />
+                        </label>
                     </div>
 
                     <!-- Estado vacío (sin imagen) -->
-                    <div
+                    <label
                         v-else
-                        class="text-gray-500 flex flex-col items-center group-hover:text-verde-sidebar transition-colors"
+                        class="text-gray-500 flex flex-col items-center group-hover:text-verde-sidebar transition-colors cursor-pointer w-full h-full justify-center"
                     >
                         <svg
-                            class="w-10 h-10 mb-2"
+                            class="w-10 h-10 mb-2 pointer-events-none"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -613,28 +707,28 @@ defineExpose({
                             />
                         </svg>
                         <span
-                            class="text-sm font-medium"
+                            class="text-sm font-medium pointer-events-none"
                             >Añadir
                             Multimedia</span
                         >
                         <span
-                            class="text-xs mt-2 text-gray-400"
+                            class="text-xs mt-2 text-gray-400 pointer-events-none"
                             >JPG, PNG,
                             GIF, WEBP
                             (máx.
                             2MB)</span
                         >
-                    </div>
+                        <input
+                            type="file"
+                            class="hidden"
+                            @change="
+                                onFileChange
+                            "
+                            accept="image/*"
+                        />
+                    </label>
                 </div>
-                <input
-                    type="file"
-                    class="hidden"
-                    @change="
-                        onFileChange
-                    "
-                    accept="image/*"
-                />
-            </label>
+            </div>
 
             <!-- Botones de acción -->
             <div
@@ -660,4 +754,30 @@ defineExpose({
             </div>
         </div>
     </BaseModal>
+
+    <!-- Confirmation Modal for Category Deletion -->
+    <ConfirmationModal
+        :show="
+            showDeleteCategoryConfirmation
+        "
+        title="Eliminar categoría"
+        :message="`¿Estás seguro que deseas eliminar la categoría '${categoryToDelete?.name}'?`"
+        confirm-text="Eliminar"
+        cancel-text="Cancelar"
+        variant="danger"
+        @confirm="confirmDeleteCategory"
+        @cancel="cancelDeleteCategory"
+    >
+        <template #details>
+            <p
+                class="text-sm text-gray-600 mt-2"
+            >
+                Los productos asociados
+                a esta categoría no se
+                eliminarán, pero
+                quedarán sin categoría
+                asignada.
+            </p>
+        </template>
+    </ConfirmationModal>
 </template>

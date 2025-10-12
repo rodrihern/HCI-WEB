@@ -207,9 +207,12 @@ const handleAddToList = (
         productToAddToList.value = {
             id: product.id,
             name: product.name,
-            image: product.metadata?.image,
-            icon: product.metadata?.icon,
-            category: product.category?.name,
+            image: product.metadata
+                ?.image,
+            icon: product.metadata
+                ?.icon,
+            category:
+                product.category?.name,
         };
         showAddToListModal.value = true;
     }
@@ -219,6 +222,22 @@ const closeAddToListModal = () => {
     showAddToListModal.value = false;
     productToAddToList.value = null;
 };
+
+// Manejar eliminación de categoría
+const handleCategoryDeleted =
+    async () => {
+        // Refrescar la lista de productos para reflejar los cambios
+        if (searchQuery.value.trim()) {
+            await getAllProducts({
+                name: searchQuery.value,
+                limit: 100,
+            });
+        } else {
+            await getAllProducts({
+                limit: 100,
+            });
+        }
+    };
 
 // Manejar creación/edición de producto desde el modal
 const handleSaveProduct =
@@ -489,6 +508,9 @@ const handleSaveProduct =
             :loading="isLoading"
             @close="closeModal"
             @save="handleSaveProduct"
+            @category-deleted="
+                handleCategoryDeleted
+            "
         />
 
         <!-- Modal Confirmación de Eliminación -->
