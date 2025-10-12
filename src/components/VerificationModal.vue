@@ -3,11 +3,11 @@
         <Transition name="modal">
             <div
                 v-if="show"
-                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto"
                 @click.self="close"
             >
                 <div
-                    class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8"
+                    class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8 my-auto"
                 >
                     <div
                         class="text-center mb-6"

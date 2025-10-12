@@ -3,13 +3,15 @@
         <Transition name="modal">
             <div
                 v-if="show"
-                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto"
                 @click.self="close"
             >
                 <div
-                    class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8"
+                    class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8 my-auto"
                 >
-                    <div class="text-center mb-6">
+                    <div
+                        class="text-center mb-6"
+                    >
                         <div
                             class="mx-auto w-16 h-16 bg-verde-sidebar bg-opacity-10 rounded-full flex items-center justify-center mb-4"
                         >
@@ -29,16 +31,25 @@
                         <h2
                             class="text-2xl font-bold text-gray-900 mb-2"
                         >
-                            Recuperar Contraseña
+                            Recuperar
+                            Contraseña
                         </h2>
-                        <p class="text-gray-600">
-                            Ingresá el código que enviamos a
+                        <p
+                            class="text-gray-600"
+                        >
+                            Ingresá el
+                            código que
+                            enviamos a
                             <br />
-                            <span class="font-semibold">{{
-                                email
-                            }}</span>
+                            <span
+                                class="font-semibold"
+                                >{{
+                                    email
+                                }}</span
+                            >
                             <br />
-                            y tu nueva contraseña
+                            y tu nueva
+                            contraseña
                         </p>
                     </div>
 
@@ -62,7 +73,9 @@
                         <p
                             class="text-sm text-green-600 text-center"
                         >
-                            {{ success }}
+                            {{
+                                success
+                            }}
                         </p>
                     </div>
 
@@ -75,12 +88,18 @@
                             Verificación
                         </label>
                         <input
-                            v-model="code"
+                            v-model="
+                                code
+                            "
                             type="text"
                             placeholder="xxxxxxxxxxxx"
-                            :disabled="loading"
+                            :disabled="
+                                loading
+                            "
                             class="w-full px-4 py-3 text-center text-lg font-mono tracking-wider border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            @keyup.enter="resetPassword"
+                            @keyup.enter="
+                                resetPassword
+                            "
                         />
                     </div>
 
@@ -89,20 +108,29 @@
                         <label
                             class="block text-sm font-medium text-gray-700 mb-2"
                         >
-                            Nueva Contraseña
+                            Nueva
+                            Contraseña
                         </label>
-                        <div class="relative">
+                        <div
+                            class="relative"
+                        >
                             <input
-                                v-model="newPassword"
+                                v-model="
+                                    newPassword
+                                "
                                 :type="
                                     showNewPassword
                                         ? 'text'
                                         : 'password'
                                 "
                                 placeholder="Mínimo 6 caracteres"
-                                :disabled="loading"
+                                :disabled="
+                                    loading
+                                "
                                 class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                @keyup.enter="resetPassword"
+                                @keyup.enter="
+                                    resetPassword
+                                "
                             />
                             <button
                                 type="button"
@@ -111,7 +139,9 @@
                                         !showNewPassword
                                 "
                                 class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                :disabled="loading"
+                                :disabled="
+                                    loading
+                                "
                             >
                                 <svg
                                     v-if="
@@ -158,20 +188,29 @@
                         <label
                             class="block text-sm font-medium text-gray-700 mb-2"
                         >
-                            Confirmar Contraseña
+                            Confirmar
+                            Contraseña
                         </label>
-                        <div class="relative">
+                        <div
+                            class="relative"
+                        >
                             <input
-                                v-model="confirmPassword"
+                                v-model="
+                                    confirmPassword
+                                "
                                 :type="
                                     showConfirmPassword
                                         ? 'text'
                                         : 'password'
                                 "
                                 placeholder="Repetí tu nueva contraseña"
-                                :disabled="loading"
+                                :disabled="
+                                    loading
+                                "
                                 class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                @keyup.enter="resetPassword"
+                                @keyup.enter="
+                                    resetPassword
+                                "
                             />
                             <button
                                 type="button"
@@ -180,7 +219,9 @@
                                         !showConfirmPassword
                                 "
                                 class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                :disabled="loading"
+                                :disabled="
+                                    loading
+                                "
                             >
                                 <svg
                                     v-if="
@@ -223,15 +264,23 @@
                     </div>
 
                     <!-- Actions -->
-                    <div class="space-y-3">
+                    <div
+                        class="space-y-3"
+                    >
                         <button
-                            @click="resetPassword"
+                            @click="
+                                resetPassword
+                            "
                             :disabled="
-                                !isFormValid || loading
+                                !isFormValid ||
+                                loading
                             "
                             class="w-full bg-verde-sidebar hover:bg-verde-contraste text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span v-if="!loading"
+                            <span
+                                v-if="
+                                    !loading
+                                "
                                 >Cambiar
                                 Contraseña</span
                             >
@@ -264,24 +313,38 @@
                         </button>
 
                         <button
-                            @click="resendCode"
+                            @click="
+                                resendCode
+                            "
                             :disabled="
-                                loading || resendDisabled
+                                loading ||
+                                resendDisabled
                             "
                             class="w-full text-gray-700 hover:text-verde-sidebar font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span v-if="!resendDisabled"
-                                >Reenviar código</span
+                            <span
+                                v-if="
+                                    !resendDisabled
+                                "
+                                >Reenviar
+                                código</span
                             >
                             <span v-else
-                                >Reenviar en
-                                {{ resendCountdown }}s</span
+                                >Reenviar
+                                en
+                                {{
+                                    resendCountdown
+                                }}s</span
                             >
                         </button>
 
                         <button
-                            @click="close"
-                            :disabled="loading"
+                            @click="
+                                close
+                            "
+                            :disabled="
+                                loading
+                            "
                             class="w-full text-gray-500 hover:text-gray-700 font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Cancelar
@@ -294,7 +357,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import {
+    ref,
+    computed,
+    watch,
+} from "vue";
 
 interface Props {
     show: boolean;
@@ -326,18 +393,23 @@ const error = ref("");
 const success = ref("");
 const resendDisabled = ref(false);
 const resendCountdown = ref(60);
-let countdownInterval: number | null = null;
+let countdownInterval: number | null =
+    null;
 
 const isFormValid = computed(() => {
     return (
         code.value.trim().length > 0 &&
         newPassword.value.length >= 6 &&
-        newPassword.value === confirmPassword.value
+        newPassword.value ===
+            confirmPassword.value
     );
 });
 
 const resetPassword = async () => {
-    if (!isFormValid.value || loading.value)
+    if (
+        !isFormValid.value ||
+        loading.value
+    )
         return;
 
     // Validate manually
@@ -363,7 +435,8 @@ const resetPassword = async () => {
     }
 
     if (
-        newPassword.value !== confirmPassword.value
+        newPassword.value !==
+        confirmPassword.value
     ) {
         error.value =
             "Las contraseñas no coinciden";
@@ -383,7 +456,10 @@ const resetPassword = async () => {
 };
 
 const resendCode = () => {
-    if (resendDisabled.value || loading.value)
+    if (
+        resendDisabled.value ||
+        loading.value
+    )
         return;
 
     error.value = "";
@@ -395,16 +471,23 @@ const resendCode = () => {
     resendDisabled.value = true;
     resendCountdown.value = 60;
 
-    countdownInterval = window.setInterval(() => {
-        resendCountdown.value--;
-        if (resendCountdown.value <= 0) {
-            resendDisabled.value = false;
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
+    countdownInterval =
+        window.setInterval(() => {
+            resendCountdown.value--;
+            if (
+                resendCountdown.value <=
+                0
+            ) {
+                resendDisabled.value = false;
+                if (countdownInterval) {
+                    clearInterval(
+                        countdownInterval,
+                    );
+                    countdownInterval =
+                        null;
+                }
             }
-        }
-    }, 1000);
+        }, 1000);
 };
 
 const close = () => {
@@ -417,7 +500,9 @@ const setError = (message: string) => {
     success.value = "";
 };
 
-const setSuccess = (message: string) => {
+const setSuccess = (
+    message: string,
+) => {
     success.value = message;
     error.value = "";
 };
@@ -437,8 +522,11 @@ watch(
             loading.value = false;
             resendDisabled.value = false;
             if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
+                clearInterval(
+                    countdownInterval,
+                );
+                countdownInterval =
+                    null;
             }
         }
     },
