@@ -48,7 +48,8 @@ const isLoadingProducts = ref(false)
 const isAddingProduct = ref(false)
 const isLoadingItems = ref(false)
 const currentItemId = ref<number | null>(null)
-const selectedCategoryId = ref<number | null>(null)
+const selectedCategoryId = ref<number | null>(null) // For left side (items)
+const selectedCategoryIdRight = ref<number | null>(null) // For right side (available products)
 
 // Items state (unified for both list and pantry)
 const listItems = ref<ListItemData[]>([])
@@ -121,7 +122,7 @@ const existingProductIds = computed(() => {
 
 // Filter products based on search
 const filteredProducts = computed(() => {
-  const available = availableProducts.value.filter(product => {
+  let available = availableProducts.value.filter(product => {
     const productId = product.id
     if (productId === undefined || productId === null) {
       return true
@@ -129,6 +130,12 @@ const filteredProducts = computed(() => {
     return !existingProductIds.value.has(productId)
   })
 
+  // Apply category filter for right side
+  if (selectedCategoryIdRight.value !== null) {
+    available = available.filter(product => product.category?.id === selectedCategoryIdRight.value)
+  }
+
+  // Apply search filter
   if (!searchProduct.value.trim()) {
     return available
   }
@@ -260,6 +267,7 @@ const closeModal = () => {
   // Reset all state and close
   searchProduct.value = ''
   selectedCategoryId.value = null
+  selectedCategoryIdRight.value = null
   currentItemId.value = null
   listItems.value = []
   pendingChanges.value = []
@@ -280,6 +288,7 @@ const saveAndClose = async () => {
   // Reset all state and close
   searchProduct.value = ''
   selectedCategoryId.value = null
+  selectedCategoryIdRight.value = null
   currentItemId.value = null
   listItems.value = []
   pendingChanges.value = []
@@ -291,6 +300,7 @@ const discardChanges = () => {
   // Reset all state and close without saving
   searchProduct.value = ''
   selectedCategoryId.value = null
+  selectedCategoryIdRight.value = null
   currentItemId.value = null
   listItems.value = []
   pendingChanges.value = []
@@ -481,76 +491,78 @@ const togglePurchased = (item: ListItemData) => {
   <BaseModal 
     :show="show" 
     :title="itemName || 'Vista previa'"
+    :contentScrollable="false"
     @close="closeModal"
   >
     <!-- Contenido del Modal - Dos columnas -->
     <div class="flex h-full overflow-hidden">
       <!-- Columna Izquierda - Items -->
       <div class="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
-        <div class="p-8 overflow-y-auto flex-1">
-          <!-- Productos -->
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <label class="text-2xl font-bold text-gray-800">Productos</label>
-              <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
-            </div>
+        <div class="p-8 pb-4 flex-shrink-0">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4">
+            <label class="text-2xl font-bold text-gray-800">Productos</label>
+            <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
+          </div>
 
-            <!-- Filtros de categorías -->
-            <div class="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
-              <button
-                @click="selectedCategoryId = null"
-                :class="[
-                  'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
-                  selectedCategoryId === null
-                    ? 'bg-verde-sidebar text-white shadow-md' 
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                ]"
-              >
-                Todos
-              </button>
-              <button
-                v-for="category in categories"
-                :key="category.id"
-                @click="selectedCategoryId = category.id || null"
-                :class="[
-                  'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
-                  selectedCategoryId === category.id
-                    ? 'bg-verde-sidebar text-white shadow-md' 
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                ]"
-              >
-                {{ category.name }}
-              </button>
-            </div>
-            
-            <!-- Loading state -->
-            <div v-if="isLoadingItems" class="text-center text-gray-400 py-12">
-              <p class="text-lg">Cargando productos...</p>
-            </div>
-            
-            <!-- Empty state -->
-            <div v-else-if="displayItems.length === 0" class="text-center text-gray-400 py-12">
-              <p class="text-lg">No hay productos en la {{ itemTypeLabel }}</p>
-              <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
-            </div>
-            
-            <!-- Items -->
-            <div v-else class="space-y-3">
-              <ProductItemCard
-                v-for="item in displayItems" 
-                :key="item.id"
-                :item="item"
-                @increment="incrementQuantity(item)"
-                @decrement="decrementQuantity(item)"
-                @delete="removeProduct(item.id)"
-                @toggle-purchased="isListType && togglePurchased(item as ListItemData)"
-              />
-            </div>
+          <!-- Filtros de categorías -->
+          <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              @click="selectedCategoryId = null"
+              :class="[
+                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                selectedCategoryId === null
+                  ? 'bg-verde-sidebar text-white shadow-md' 
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              ]"
+            >
+              Todos
+            </button>
+            <button
+              v-for="category in categories"
+              :key="category.id"
+              @click="selectedCategoryId = category.id || null"
+              :class="[
+                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                selectedCategoryId === category.id
+                  ? 'bg-verde-sidebar text-white shadow-md' 
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              ]"
+            >
+              {{ category.name }}
+            </button>
           </div>
         </div>
 
-        <!-- Botones de acción en la columna izquierda -->
-        <div class="p-6 bg-gray-50 flex justify-end items-center border-t border-gray-200">
+        <!-- Scrollable items area -->
+        <div class="flex-1 min-h-0 overflow-y-auto px-8 py-4">
+          <!-- Loading state -->
+          <div v-if="isLoadingItems" class="text-center text-gray-400 py-12">
+            <p class="text-lg">Cargando productos...</p>
+          </div>
+          
+          <!-- Empty state -->
+          <div v-else-if="displayItems.length === 0" class="text-center text-gray-400 py-12">
+            <p class="text-lg">No hay productos en la {{ itemTypeLabel }}</p>
+            <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
+          </div>
+          
+          <!-- Items -->
+          <div v-else class="space-y-3">
+            <ProductItemCard
+              v-for="item in displayItems" 
+              :key="item.id"
+              :item="item"
+              @increment="incrementQuantity(item)"
+              @decrement="decrementQuantity(item)"
+              @delete="removeProduct(item.id)"
+              @toggle-purchased="isListType && togglePurchased(item as ListItemData)"
+            />
+          </div>
+        </div>
+
+        <!-- Botones de acción en la columna izquierda - Fixed at bottom -->
+        <div class="p-6 bg-gray-50 flex justify-center items-center border-t border-gray-200 flex-shrink-0">
           <button 
             @click="saveAndClose"
             class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors" 
@@ -562,10 +574,10 @@ const togglePurchased = (item: ListItemData) => {
 
       <!-- Columna Derecha - Buscar y Agregar Productos -->
       <div class="w-1/2 flex flex-col bg-white">
-        <div class="p-8 pb-6">
+        <div class="p-8 pb-4 flex-shrink-0">
           <!-- Buscador de productos -->
-          <div class="flex gap-3 items-center mb-6">
-            <div class="flex-1 relative">
+          <div class="mb-4">
+            <div class="relative">
               <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -576,18 +588,39 @@ const togglePurchased = (item: ListItemData) => {
                 class="w-full pl-12 pr-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800"
               />
             </div>
-            <button 
-              class="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+          </div>
+
+          <!-- Filtros de categorías -->
+          <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              @click="selectedCategoryIdRight = null"
+              :class="[
+                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                selectedCategoryIdRight === null
+                  ? 'bg-verde-sidebar text-white shadow-md' 
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              ]"
             >
-              <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
+              Todos
+            </button>
+            <button
+              v-for="category in categories"
+              :key="category.id"
+              @click="selectedCategoryIdRight = category.id || null"
+              :class="[
+                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                selectedCategoryIdRight === category.id
+                  ? 'bg-verde-sidebar text-white shadow-md' 
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              ]"
+            >
+              {{ category.name }}
             </button>
           </div>
         </div>
 
         <!-- Lista de productos disponibles (scroll) -->
-        <div class="flex-1 overflow-y-auto px-8 pb-8">
+        <div class="flex-1 min-h-0 overflow-y-auto px-8 py-4">
           <!-- Loading state -->
           <div v-if="isLoadingProducts" class="text-center text-gray-400 py-12">
             <p class="text-lg">Cargando productos...</p>

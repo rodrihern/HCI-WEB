@@ -19,6 +19,7 @@ interface Props {
         | "6xl";
     height?: string;
     closeOnClickOutside?: boolean;
+    contentScrollable?: boolean;
 }
 
 const props = withDefaults(
@@ -27,6 +28,7 @@ const props = withDefaults(
         maxWidth: "6xl",
         height: "85vh",
         closeOnClickOutside: false,
+        contentScrollable: true,
     },
 );
 
@@ -95,6 +97,7 @@ const maxWidthClasses = {
                     'w-full overflow-hidden flex flex-col my-auto',
                 ]"
                 :style="{
+                    height: height,
                     maxHeight: height,
                 }"
                 class="bg-white rounded-3xl shadow-2xl"
@@ -137,7 +140,12 @@ const maxWidthClasses = {
 
                 <!-- Contenido del Modal - Completamente personalizable con slots -->
                 <div
-                    class="flex-1 overflow-y-auto"
+                    :class="[
+                        'flex-1 min-h-0',
+                        contentScrollable
+                            ? 'overflow-y-auto'
+                            : 'overflow-hidden',
+                    ]"
                 >
                     <slot />
                 </div>
