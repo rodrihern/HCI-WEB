@@ -160,15 +160,8 @@ const unit = computed(() => {
   <!-- Mode: readonly - Display only for history (image, name, category, unit, quantity) -->
   <div
     v-else-if="mode === 'readonly'"
-    class="flex items-center gap-4 rounded-2xl p-4 border-2 shadow-sm hover:shadow-md transition-all"
-    :class="isPurchased ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'"
+    class="flex items-center gap-4 rounded-2xl p-4 border-2 bg-white border-gray-200 shadow-sm hover:shadow-md transition-all"
   >
-    <!-- Estado de compra (if available) -->
-    <div v-if="item && 'purchased' in item" class="flex-shrink-0">
-      <span v-if="isPurchased" class="text-lg" title="Comprado">✅</span>
-      <span v-else class="text-lg" title="No comprado">⬜</span>
-    </div>
-
     <!-- Icono del producto -->
     <div class="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
       <img 
@@ -182,10 +175,7 @@ const unit = computed(() => {
 
     <!-- Información del producto -->
     <div class="flex-1 min-w-0">
-      <h4 
-        class="font-semibold text-gray-800 text-base truncate"
-        :class="{ 'line-through text-gray-500': item && 'purchased' in item && !item.purchased }"
-      >
+      <h4 class="font-semibold text-gray-800 text-base truncate">
         {{ productName }}
       </h4>
       <p class="text-sm text-gray-500 truncate">
@@ -201,13 +191,9 @@ const unit = computed(() => {
     <!-- Cantidad -->
     <div 
       v-if="quantity"
-      class="rounded-lg px-3 py-1" 
-      :class="isPurchased ? 'bg-green-100' : 'bg-gray-100'"
+      class="rounded-lg px-3 py-1 bg-gray-100"
     >
-      <span 
-        class="font-semibold" 
-        :class="isPurchased ? 'text-green-700' : 'text-gray-700'"
-      >
+      <span class="font-semibold text-gray-700">
         {{ quantity }}
       </span>
     </div>

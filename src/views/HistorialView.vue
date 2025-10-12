@@ -8,16 +8,12 @@ import { useListsStore } from "../stores/lists";
 import { usePurchaseStore } from "../stores/purchase";
 import PageHeader from "@/components/PageHeader.vue";
 import PreviewHistorialModal from "../components/PreviewHistorialModal.vue";
-import ContextMenu from "../components/ContextMenu.vue";
 import ListItem from "../components/ListItem.vue";
 
 const store = useListsStore();
 const purchaseStore =
     usePurchaseStore();
 
-const openMenuForItemId = ref<
-    number | null
->(null);
 const isLoadingPurchases = ref(true);
 
 onMounted(async () => {
@@ -49,26 +45,12 @@ const purchases = computed(
     () => purchaseStore.purchases,
 );
 
-const handleMenuStateChange = (
-    itemId: number,
-    isOpen: boolean,
-) => {
-    openMenuForItemId.value = isOpen
-        ? itemId
-        : null;
-};
-
 const getItemClass = (
     itemId: number,
 ) => {
     const baseClasses =
         "cursor-pointer hover:scale-[1.02] transition-transform";
-    const activeClasses =
-        openMenuForItemId.value ===
-        itemId
-            ? " relative z-50"
-            : "";
-    return baseClasses + activeClasses;
+    return baseClasses;
 };
 
 const openPreviewHistorial = (
@@ -82,30 +64,11 @@ const onRestore = async (
 ) => {
     try {
         await purchaseStore.restore(id);
-
-        // Eliminar la compra del store después de restaurarla
-        purchaseStore.removePurchase(
-            id,
-        );
-
-        // Cerrar el modal si está abierto
-        if (
-            store.previewingHistorialId ===
-            id
-        ) {
-            store.closePreviewHistorialModal();
-        }
-
-        alert(
-            `Lista restaurada exitosamente`,
-        );
+        // Lista restaurada exitosamente
     } catch (error) {
         console.error(
             "Error restoring purchase:",
             error,
-        );
-        alert(
-            "Error al restaurar la lista",
         );
     }
 };
@@ -121,36 +84,6 @@ const formatDate = (
         year: "numeric",
     });
 };
-
-const formatDateTime = (
-    dateString: string,
-) => {
-    return new Date(
-        dateString,
-    ).toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
-
-const getPurchasedCount = (
-    item: any,
-) => {
-    return (
-        item.listItemArray?.filter(
-            (i: any) => i.purchased,
-        ).length || 0
-    );
-};
-
-const getTotalCount = (item: any) => {
-    return (
-        item.listItemArray?.length || 0
-    );
-};
 </script>
 
 <template>
@@ -164,8 +97,8 @@ const getTotalCount = (item: any) => {
             <ListItem
                 v-for="item in purchases"
                 :key="item.id"
-                :title="`Compra de: ${item.list.name}`"
-                :subtitle="`${formatDateTime(item.createdAt || '')} • ${getPurchasedCount(item)}/${getTotalCount(item)} productos comprados`"
+                :title="item.list.name"
+                :subtitle="`${formatDate(item.createdAt || '')}`"
                 :class="
                     getItemClass(
                         item.id!,
@@ -178,25 +111,15 @@ const getTotalCount = (item: any) => {
                 "
             >
                 <template #actions>
-                    <ContextMenu
-                        :items="[
-                            {
-                                label: 'Restaurar',
-                                onClick:
-                                    () =>
-                                        onRestore(
-                                            item.id!,
-                                        ),
-                            },
-                        ]"
-                        @menu-state-change="
-                            (isOpen) =>
-                                handleMenuStateChange(
-                                    item.id!,
-                                    isOpen,
-                                )
-                        "
-                    />
+                    <button
+                        @click.stop="onRestore(item.id!)"
+                        class="text-white hover:bg-verde-contraste/60 rounded-lg transition-colors p-2 cursor-pointer flex items-center justify-center"
+                        title="Restaurar compra"
+                    >
+                        <span class="material-icons text-xl">
+                            repeat
+                        </span>
+                    </button>
                 </template>
             </ListItem>
         </div>

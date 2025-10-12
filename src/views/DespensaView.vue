@@ -247,6 +247,7 @@ const getPantrySubtitle = (
             :onAddClick="
                 openCreatePantryModal
             "
+            :show-add-button="true"
         />
 
         <div class="space-y-3 pb-20">

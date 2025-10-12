@@ -354,6 +354,7 @@ const handleSaveProduct =
             :onAddClick="
                 openAddProductModal
             "
+            :show-add-button="true"
         />
 
         <div class="space-y-6 pb-20">
