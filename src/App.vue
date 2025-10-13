@@ -414,8 +414,9 @@ onMounted(() => {
                                 ? 'bg-verde-sidebar/50'
                                 : 'hover:bg-gray-200'
                         "
-                    >
-                        <span class="material-icons text-gray-700 text-2xl">format_list_bulleted</span>
+                    >   
+                        <!-- format_list_bulleted la opción anterior-->
+                        <span class="material-icons text-gray-700 text-2xl">view_list</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="

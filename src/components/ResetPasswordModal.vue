@@ -123,7 +123,8 @@
                                         ? 'text'
                                         : 'password'
                                 "
-                                placeholder="Mínimo 6 caracteres"
+                                placeholder="Mínimo 8 caracteres"
+                                minlength="8"
                                 :disabled="
                                     loading
                                 "
@@ -204,6 +205,7 @@
                                         : 'password'
                                 "
                                 placeholder="Repetí tu nueva contraseña"
+                                minlength="8"
                                 :disabled="
                                     loading
                                 "
@@ -399,7 +401,7 @@ let countdownInterval: number | null =
 const isFormValid = computed(() => {
     return (
         code.value.trim().length > 0 &&
-        newPassword.value.length >= 6 &&
+        newPassword.value.length >= 8 &&
         newPassword.value ===
             confirmPassword.value
     );
@@ -428,9 +430,9 @@ const resetPassword = async () => {
         return;
     }
 
-    if (newPassword.value.length < 6) {
+    if (newPassword.value.length < 8) {
         error.value =
-            "La contraseña debe tener al menos 6 caracteres";
+            "La contraseña debe tener al menos 8 caracteres";
         return;
     }
 

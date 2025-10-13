@@ -58,8 +58,8 @@ const handleSave = () => {
         return;
     }
 
-    if (newPassword.value.length < 6) {
-        notifyError('La nueva contraseña debe tener al menos 6 caracteres');
+    if (newPassword.value.length < 8) {
+        notifyError('La nueva contraseña debe tener al menos 8 caracteres');
         return;
     }
 
@@ -143,6 +143,7 @@ defineExpose({ showError });
                         v-model="newPassword"
                         :type="showNewPassword ? 'text' : 'password'"
                         placeholder="Ingresá tu nueva contraseña"
+                        minlength="8"
                         class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
                         :disabled="loading"
                         @keyup.enter="handleSave"
@@ -163,7 +164,7 @@ defineExpose({ showError });
                     </button>
                 </div>
                 <p class="text-xs text-gray-500">
-                    La contraseña debe tener al menos 6 caracteres
+                    La contraseña debe tener al menos 8 caracteres
                 </p>
             </div>
 

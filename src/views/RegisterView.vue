@@ -7,8 +7,10 @@ import {
     type RegisterData,
 } from "@/api";
 import VerificationModal from "@/components/VerificationModal.vue";
+import { useNotifications } from "@/composables/notifications";
 
 const router = useRouter();
+const { error: notifyError, success: notifySuccess } = useNotifications();
 
 // Form fields
 const name = ref("");
@@ -19,7 +21,6 @@ const confirmPassword = ref("");
 
 // UI state
 const loading = ref(false);
-const error = ref("");
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const showVerificationModal =
@@ -38,43 +39,40 @@ const goToLogin = () => {
 };
 
 const validateForm = (): boolean => {
-    error.value = "";
-
     if (!name.value.trim()) {
-        error.value =
-            "El nombre es requerido";
+        notifyError("El nombre es requerido");
         return false;
     }
 
     if (!surname.value.trim()) {
-        error.value =
-            "El apellido es requerido";
+        notifyError("El apellido es requerido");
         return false;
     }
 
     if (!email.value.trim()) {
-        error.value =
-            "El email es requerido";
+        notifyError("El email es requerido");
         return false;
     }
 
     const emailRegex =
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.value)) {
-        error.value =
-            "El email no es válido";
+        notifyError("El email no es válido");
         return false;
     }
 
-    if (!password.value) {
-        error.value =
-            "La contraseña es requerida";
+    if (!password.value.trim()) {
+        notifyError("La contraseña es requerida");
         return false;
     }
 
-    if (password.value.length < 6) {
-        error.value =
-            "La contraseña debe tener al menos 6 caracteres";
+    if (password.value.length < 8) {
+        notifyError("La contraseña debe tener al menos 8 caracteres");
+        return false;
+    }
+
+    if (!confirmPassword.value.trim()) {
+        notifyError("Por favor confirma tu contraseña");
         return false;
     }
 
@@ -82,8 +80,7 @@ const validateForm = (): boolean => {
         password.value !==
         confirmPassword.value
     ) {
-        error.value =
-            "Las contraseñas no coinciden";
+        notifyError("Las contraseñas no coinciden");
         return false;
     }
 
@@ -94,7 +91,6 @@ const handleRegister = async () => {
     if (!validateForm()) return;
 
     loading.value = true;
-    error.value = "";
 
     try {
         const registerData: RegisterData =
@@ -125,9 +121,10 @@ const handleRegister = async () => {
             "Register error:",
             e,
         );
-        error.value =
+        notifyError(
             e.message ||
-            "Error al registrarse. Por favor, intentá de nuevo.";
+            "Error al registrarse. Por favor, intentá de nuevo."
+        );
     } finally {
         loading.value = false;
     }
@@ -193,8 +190,9 @@ const autoLogin = async () => {
             "Auto-login error:",
             e,
         );
-        error.value =
-            "Cuenta verificada pero hubo un error al iniciar sesión. Por favor, iniciá sesión manualmente.";
+        notifyError(
+            "Cuenta verificada pero hubo un error al iniciar sesión. Por favor, iniciá sesión manualmente."
+        );
 
         // Redirect to login after a moment
         setTimeout(() => {
@@ -294,18 +292,6 @@ const closeVerificationModal = () => {
                         </h1>
                     </div>
 
-                    <!-- Error message -->
-                    <div
-                        v-if="error"
-                        class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg"
-                    >
-                        <p
-                            class="text-sm text-red-600 text-center"
-                        >
-                            {{ error }}
-                        </p>
-                    </div>
-
                     <div
                         class="space-y-3 sm:space-y-4"
                     >
@@ -355,6 +341,7 @@ const closeVerificationModal = () => {
                                         : 'password'
                                 "
                                 placeholder="Contraseña"
+                                minlength="8"
                                 :disabled="
                                     loading
                                 "
@@ -422,6 +409,7 @@ const closeVerificationModal = () => {
                                         : 'password'
                                 "
                                 placeholder="Confirmar Contraseña"
+                                minlength="8"
                                 :disabled="
                                     loading
                                 "
