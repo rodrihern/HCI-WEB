@@ -199,17 +199,17 @@ onMounted(() => {
             route.path ===
                 '/forgot-password'
         "
-        class="min-h-screen bg-color-fondo"
+        class="min-h-screen bg-fondo"
     >
         <RouterView />
     </div>
     <div
         v-else
-        class="flex flex-col h-screen bg-color-fondo relative"
+        class="flex flex-col h-screen bg-fondo relative"
     >
         <!-- Top Header - por encima de todo -->
         <header
-            class="bg-color-fondo border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-30"
+            class="bg-fondo border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-30"
             style="height: 72px"
         >
             <!-- Left side: Burger menu -->
@@ -366,7 +366,7 @@ onMounted(() => {
         >
             <!-- Navbar lateral - debajo del header -->
             <nav
-                class="bg-color-fondo flex flex-col fixed left-0 z-10 overflow-hidden"
+                class="bg-fondo flex flex-col fixed left-0 z-10 overflow-hidden"
                 style="
                     transition:
                         width 300ms

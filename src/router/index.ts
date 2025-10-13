@@ -4,7 +4,7 @@ import {
 } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import ListasView from "../views/ListsView.vue";
-import ProductosView from "../views/ProductosView.vue";
+import ProductosView from "../views/ProductsView.vue";
 import DespensaView from "../views/PantryView.vue";
 import HistorialView from "../views/HistoryView.vue";
 import LoginView from "../views/LoginView.vue";

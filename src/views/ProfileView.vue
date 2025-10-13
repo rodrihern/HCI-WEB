@@ -328,7 +328,7 @@ const initials = computed(() => {
 
 <template>
     <div
-        class="min-h-screen bg-color-fondo flex justify-center px-8 py-12"
+        class="min-h-screen bg-fondo flex justify-center px-8 py-12"
     >
         <div
             class="max-w-4xl w-full flex flex-col gap-10"
