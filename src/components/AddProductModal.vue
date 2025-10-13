@@ -14,20 +14,15 @@ type DestinationType = 'pantry' | 'list'
 
 interface Props {
   show: boolean
-  // Mode: select-product shows product list, select-destination shows lists/pantries, enter-details shows quantity/unit form
   mode?: Mode
-  // Type: pantry or list
   type?: DestinationType
-  // If mode is 'enter-details' or 'select-destination', provide the product info
   productId?: number
   productName?: string
   productImage?: string
   productIcon?: string
   productCategory?: string
-  // If mode is 'select-product' and type is 'pantry', provide pantry/section ID
   pantryId?: number
   sectionId?: string
-  // If mode is 'select-product' and type is 'list', provide list ID
   listId?: number
 }
 
@@ -144,11 +139,6 @@ const handleClose = () => {
 
 const selectProduct = (product: ProductData) => {
   selectedProduct.value = product
-  
-  // If we have a direct destination (pantryId or listId), go to details
-  if (props.pantryId || props.listId) {
-    // Mode will remain 'select-product' but we'll show details section
-  }
 }
 
 const selectDestination = (destinationId: number) => {
@@ -475,7 +465,7 @@ watch(() => props.show, async (show) => {
       <!-- Product info -->
       <div v-if="currentProduct" class="mb-6">
         <div class="flex items-center gap-4 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm">
-          <!-- Imagen del producto -->
+          <!-- Product's image -->
           <div class="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
             <img 
               v-if="currentProduct.image" 

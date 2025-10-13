@@ -30,12 +30,10 @@ export const useProductStore =
       const result =
         await ProductApi.add(product);
 
-      // Forzar refresh completo para obtener producto con categoría populated
       await getAll(undefined, {
         limit: 100,
       });
 
-      // Buscar el producto recién creado en la lista actualizada
       const createdProduct =
         products.value.find(
           (p) => p.id === result.id,

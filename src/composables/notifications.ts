@@ -33,38 +33,12 @@ export const useNotifications = () => {
             type: "error",
         });
 
-    const info = (
-        message: string,
-        title?: string,
-        duration?: number,
-    ) =>
-        notify({
-            message,
-            title,
-            duration,
-            type: "info",
-        });
-
-    const warning = (
-        message: string,
-        title?: string,
-        duration?: number,
-    ) =>
-        notify({
-            message,
-            title,
-            duration,
-            type: "warning",
-        });
-
     const remove = (id: number) => store.remove(id);
 
     return {
         notify,
         success,
         error,
-        info,
-        warning,
         remove,
     };
 };

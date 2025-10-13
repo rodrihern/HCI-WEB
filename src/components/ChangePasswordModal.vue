@@ -25,7 +25,6 @@ const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const { error: notifyError } = useNotifications();
 
-// Watch para resetear el formulario cuando se abre/cierra el modal
 watch(() => props.show, (newVal) => {
     if (newVal) {
         resetForm();
@@ -47,7 +46,6 @@ const closeModal = () => {
 };
 
 const handleSave = () => {
-    // Validaciones
     if (!currentPassword.value.trim()) {
         notifyError('Por favor ingresa tu contraseña actual');
         return;
@@ -78,14 +76,13 @@ const handleSave = () => {
         return;
     }
 
-    // Si todas las validaciones pasan, emitir evento
     emit('save', {
         currentPassword: currentPassword.value,
         newPassword: newPassword.value
     });
 };
 
-// Función para mostrar error desde el componente padre
+// Function to display error from parent
 const showError = (message: string) => {
     notifyError(message);
 };

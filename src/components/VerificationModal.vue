@@ -88,7 +88,6 @@
                         </p>
                     </div>
 
-                    <!-- Success message -->
                     <div
                         v-if="success"
                         class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg"
@@ -102,7 +101,6 @@
                         </p>
                     </div>
 
-                    <!-- Code input -->
                     <div class="mb-6">
                         <label for="verification-code" class="sr-only">Código de verificación</label>
                         <input
@@ -122,7 +120,6 @@
                         />
                     </div>
 
-                    <!-- Actions -->
                     <div
                         class="space-y-3"
                     >

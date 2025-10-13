@@ -1,14 +1,9 @@
 <script setup lang="ts">
 interface Props {
-  /** Cantidad actual */
   quantity: number
-  /** Clases adicionales para el contenedor */
   class?: string
-  /** Mostrar fondo gris */
   showBackground?: boolean
-  /** Clases para los botones */
   buttonClass?: string
-  /** Clases para el texto de cantidad */
   quantityClass?: string
 }
 

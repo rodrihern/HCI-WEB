@@ -50,20 +50,16 @@ const isLoadingProducts = ref(false)
 const isAddingProduct = ref(false)
 const isLoadingItems = ref(false)
 const currentItemId = ref<number | null>(null)
-const selectedCategoryId = ref<number | null>(null) // For left side (items)
-const selectedCategoryIdRight = ref<number | null>(null) // For right side (available products)
+const selectedCategoryId = ref<number | null>(null) 
+const selectedCategoryIdRight = ref<number | null>(null) 
 
-// Items state (unified for both list and pantry)
 const listItems = ref<ListItemData[]>([])
 
-// Modal state for adding product details
 const showAddProductModal = ref(false)
 const selectedProductToAdd = ref<Product | null>(null)
 
-// Estado para descartar cambios
 const showDiscardConfirm = ref(false)
 
-// Track pending changes (changes not yet saved to server)
 interface PendingChange {
   type: 'add' | 'update' | 'delete'
   itemId?: number
@@ -100,11 +96,9 @@ const isCurrentUserOwner = computed(() => {
   return currentUserId === ownerId
 })
 
-// Items for display (unified) with category filter
 const displayItems = computed((): (ListItemData | PantryItem)[] => {
   const items = isListType.value ? listItems.value : pantryItems.value
   
-  // Apply category filter if selected
   if (selectedCategoryId.value !== null) {
     return items.filter(item => item.product.category?.id === selectedCategoryId.value)
   }
@@ -122,7 +116,6 @@ const existingProductIds = computed(() => {
   )
 })
 
-// Filter products based on search
 const filteredProducts = computed(() => {
   let available = availableProducts.value.filter(product => {
     const productId = product.id
@@ -132,12 +125,10 @@ const filteredProducts = computed(() => {
     return !existingProductIds.value.has(productId)
   })
 
-  // Apply category filter for right side
   if (selectedCategoryIdRight.value !== null) {
     available = available.filter(product => product.category?.id === selectedCategoryIdRight.value)
   }
 
-  // Apply search filter
   if (!searchProduct.value.trim()) {
     return available
   }
@@ -151,11 +142,9 @@ const filteredProducts = computed(() => {
 const itemTypeLabel = computed(() => isListType.value ? 'lista' : 'despensa')
 const itemTypeLabelCapitalized = computed(() => isListType.value ? 'Lista' : 'Despensa')
 
-// Load data on mount
 onMounted(async () => {
   await loadProducts()
   await loadItems()
-  // Load categories for both list and pantry
   await getAllCategories({ page: 1, limit: 100, orderBy: 'name', order: 'ASC' })
 })
 
@@ -183,7 +172,6 @@ const loadProducts = async () => {
 const loadItems = async () => {
   if (!props.itemId) return
   
-  // Prevent reloading if we're already loading the same item
   if (currentItemId.value === props.itemId && isLoadingItems.value) {
     return
   }
@@ -195,14 +183,11 @@ const loadItems = async () => {
     if (isListType.value) {
       const result = await getListItems(props.itemId, { limit: 100 })
       listItems.value = result.data || []
-      // Save original state for comparison
       originalItems.value = JSON.parse(JSON.stringify(listItems.value))
     } else {
       await getPantryItems(props.itemId, { page: 1, limit: 100, orderBy: 'createdAt', order: 'DESC' })
-      // Save original state for comparison
       originalItems.value = JSON.parse(JSON.stringify(pantryItems.value))
     }
-    // Reset pending changes when loading new data
     pendingChanges.value = []
   } catch (error) {
     console.error('Error loading items:', error)
@@ -219,7 +204,6 @@ const saveAllChanges = async () => {
   if (!props.itemId || pendingChanges.value.length === 0) return
 
   try {
-    // Process all pending changes
     for (const change of pendingChanges.value) {
       if (change.type === 'add') {
         if (isListType.value) {
@@ -229,10 +213,8 @@ const saveAllChanges = async () => {
         }
       } else if (change.type === 'update' && change.itemId) {
         if (change.data.purchased !== undefined) {
-          // Handle purchased toggle separately
           await toggleItemPurchased(props.itemId, change.itemId, change.data.purchased)
         } else {
-          // Handle quantity/unit updates
           if (isListType.value) {
             await updateListItem(props.itemId, change.itemId, change.data)
           } else {
@@ -248,10 +230,8 @@ const saveAllChanges = async () => {
       }
     }
 
-    // Clear pending changes after successful save
     pendingChanges.value = []
     
-    // Reload items to get fresh data from server
     await loadItems()
     notifySuccess(
       isListType.value
@@ -265,13 +245,11 @@ const saveAllChanges = async () => {
 }
 
 const closeModal = () => {
-  // Check if there are unsaved changes
   if (hasUnsavedChanges.value) {
     showDiscardConfirm.value = true
     return
   }
   
-  // Reset all state and close
   searchProduct.value = ''
   selectedCategoryId.value = null
   selectedCategoryIdRight.value = null
@@ -392,14 +370,12 @@ const removeProduct = (itemId: number | undefined) => {
     }
   }
   
-  // Track the change (only if it's a real item, not a temporary one)
   if (itemId < 1000000000000) { // Real IDs are smaller than our temporary timestamp IDs
     pendingChanges.value.push({
       type: 'delete',
       itemId: itemId
     })
   } else {
-    // If it's a temporary item (just added), remove the 'add' change
     const addIndex = pendingChanges.value.findIndex(
       c => c.type === 'add' && c.data?.product?.id === itemId
     )
@@ -425,7 +401,6 @@ const incrementQuantity = (item: ListItemData | PantryItem) => {
     }
   }
   
-  // Track the change (only for real items)
   if (item.id < 1000000000000) {
     pendingChanges.value.push({
       type: 'update',
@@ -455,7 +430,6 @@ const decrementQuantity = (item: ListItemData | PantryItem) => {
     }
   }
   
-  // Track the change (only for real items)
   if (item.id < 1000000000000) {
     pendingChanges.value.push({
       type: 'update',
@@ -478,7 +452,6 @@ const togglePurchased = (item: ListItemData) => {
     listItems.value[index] = { ...listItems.value[index], purchased: !item.purchased } as ListItemData
   }
   
-  // Track the change (only for real items)
   if (item.id < 1000000000000) {
     pendingChanges.value.push({
       type: 'update',
@@ -501,18 +474,14 @@ const togglePurchased = (item: ListItemData) => {
     :contentScrollable="false"
     @close="closeModal"
   >
-    <!-- Contenido del Modal - Dos columnas -->
     <div class="flex h-full overflow-hidden">
-      <!-- Columna Izquierda - Items -->
       <div class="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
         <div class="p-8 pb-4 flex-shrink-0">
-          <!-- Header -->
           <div class="flex items-center justify-between mb-8">
             <label class="text-2xl font-bold text-gray-800">Productos</label>
             <span class="text-sm text-gray-500">{{ displayItems.length }} productos</span>
           </div>
 
-          <!-- Filtros de categorías -->
           <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
               @click="selectedCategoryId = null"
@@ -543,20 +512,17 @@ const togglePurchased = (item: ListItemData) => {
           </div>
         </div>
 
-        <!-- Scrollable items area -->
         <div class="flex-1 min-h-0 overflow-y-auto px-8 py-4">
           <!-- Loading state -->
           <div v-if="isLoadingItems" class="text-center text-gray-400 py-12">
             <p class="text-lg">Cargando productos...</p>
           </div>
           
-          <!-- Empty state -->
           <div v-else-if="displayItems.length === 0" class="text-center text-gray-400 py-12">
             <p class="text-lg">No hay productos en la {{ itemTypeLabel }}</p>
             <p class="text-sm mt-2">Busca y agrega productos desde la derecha</p>
           </div>
           
-          <!-- Items -->
           <div v-else class="space-y-3">
             <ProductItemCard
               v-for="item in displayItems" 
@@ -570,7 +536,6 @@ const togglePurchased = (item: ListItemData) => {
           </div>
         </div>
 
-        <!-- Botones de acción en la columna izquierda - Fixed at bottom -->
         <div class="p-6 bg-gray-50 flex justify-center items-center border-t border-gray-200 flex-shrink-0">
           <button 
             @click="saveAndClose"
@@ -582,10 +547,8 @@ const togglePurchased = (item: ListItemData) => {
         </div>
       </div>
 
-      <!-- Columna Derecha - Buscar y Agregar Productos -->
       <div class="w-1/2 flex flex-col bg-white">
         <div class="p-4 flex-shrink-0">
-          <!-- Buscador de productos -->
           <div class="mb-4">
             <div class="relative">
               <label for="preview-search" class="sr-only">Buscar Productos</label>
@@ -602,7 +565,6 @@ const togglePurchased = (item: ListItemData) => {
             </div>
           </div>
 
-          <!-- Filtros de categorías -->
           <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
               @click="selectedCategoryIdRight = null"
@@ -633,19 +595,16 @@ const togglePurchased = (item: ListItemData) => {
           </div>
         </div>
 
-        <!-- Lista de productos disponibles (scroll) -->
         <div class="flex-1 min-h-0 overflow-y-auto px-8 py-4">
           <!-- Loading state -->
           <div v-if="isLoadingProducts" class="text-center text-gray-400 py-12">
             <p class="text-lg">Cargando productos...</p>
           </div>
 
-          <!-- Empty state when no products -->
           <div v-else-if="filteredProducts.length === 0" class="text-center text-gray-400 py-12">
             <p class="text-lg mt-30">No se encontraron productos</p>
           </div>
 
-          <!-- Products grid -->
           <div v-else class="grid grid-cols-1 gap-3">
             <ProductItemCard
               v-for="product in filteredProducts" 
@@ -660,7 +619,6 @@ const togglePurchased = (item: ListItemData) => {
     </div>
   </BaseModal>
 
-  <!-- Modal de confirmación para descartar cambios -->
   <ConfirmationModal
     :show="showDiscardConfirm"
     title="¿Descartar cambios?"
@@ -671,7 +629,6 @@ const togglePurchased = (item: ListItemData) => {
     @cancel="showDiscardConfirm = false"
   />
 
-  <!-- Modal para añadir producto con detalles -->
   <AddProductModal
     :show="showAddProductModal"
     mode="enter-details"

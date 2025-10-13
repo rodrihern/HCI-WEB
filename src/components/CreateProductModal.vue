@@ -64,19 +64,17 @@ const categoryToDelete = ref<{
 } | null>(null);
 const { error: notifyError } = useNotifications();
 
-// Modo edición
+// Editin mode 
 const isEditMode = computed(
     () => !!props.productToEdit,
 );
 
-// Imagen a mostrar (preview de nueva imagen o imagen existente)
 const displayImage = computed(
     () =>
         imagePreview.value ||
         existingImage.value,
 );
 
-// Categorías disponibles (usar las que vienen por props o las del composable)
 const availableCategories = computed(
     () =>
         props.categories ||
@@ -84,7 +82,6 @@ const availableCategories = computed(
         [],
 );
 
-// Nombre de la categoría seleccionada
 const selectedCategoryName = computed(
     () => {
         if (!selectedCategoryId.value)
@@ -99,7 +96,6 @@ const selectedCategoryName = computed(
     },
 );
 
-// Cargar datos del producto cuando se abre en modo edición
 watch(
     () => props.productToEdit,
     (product) => {
@@ -118,7 +114,6 @@ watch(
                 undefined;
             isCategoryOpen.value = false;
         } else {
-            // Limpiar todos los campos cuando no hay producto a editar
             productName.value = "";
             productDescription.value =
                 "";
@@ -174,8 +169,8 @@ const onFileChange = (e: Event) => {
     if (files && files[0]) {
         const file = files[0];
 
-        // Validar tamaño (máximo 2MB)
-        const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+        // Max size 2MB 
+        const maxSize = 2 * 1024 * 1024;
         if (file.size > maxSize) {
             notifyError(
                 "La imagen es demasiado grande. El tamaño máximo es 2MB.",
@@ -183,14 +178,12 @@ const onFileChange = (e: Event) => {
             selectedFile.value = null;
             imagePreview.value =
                 undefined;
-            // Limpiar el input
             (
                 e.target as HTMLInputElement
             ).value = "";
             return;
         }
 
-        // Validar tipo de archivo
         const validTypes = [
             "image/jpeg",
             "image/jpg",
@@ -216,7 +209,7 @@ const onFileChange = (e: Event) => {
         }
 
         selectedFile.value = file;
-        // Crear preview de la imagen
+
         const reader = new FileReader();
         reader.onload = (event) => {
             imagePreview.value = event
@@ -250,13 +243,11 @@ const addNewCategory = async () => {
     if (!name) return;
 
     try {
-        // Crear la categoría en la API y obtener el resultado directamente
         const newCategory =
             await createCategoryApi(
                 name,
             );
 
-        // Usar el ID de la categoría recién creada
         if (newCategory?.id) {
             selectedCategoryId.value =
                 newCategory.id;
@@ -280,11 +271,10 @@ const submitProduct = async () => {
     const description =
         productDescription.value.trim();
 
-    // Convertir imagen a base64 si hay una nueva seleccionada
     let imageBase64 =
         existingImage.value;
     if (selectedFile.value) {
-        // Convertir nueva imagen a base64
+        // Convert to base64
         const reader = new FileReader();
         imageBase64 =
             await new Promise<string>(
@@ -312,7 +302,6 @@ const submitProduct = async () => {
         image: imageBase64,
     });
 
-    // Limpiar campos después de guardar
     productName.value = "";
     productDescription.value = "";
     selectedCategoryId.value = undefined;
@@ -324,7 +313,6 @@ const submitProduct = async () => {
     isCategoryOpen.value = false;
 };
 
-// Función para mostrar error (llamada desde el padre)
 const showError = (message: string) => {
     notifyError(message);
 };
@@ -350,7 +338,7 @@ const confirmDeleteCategory =
                     categoryToDelete
                         .value.id,
                 );
-                // Si la categoría eliminada era la seleccionada, limpiar selección
+
                 if (
                     selectedCategoryId.value ===
                     categoryToDelete
@@ -359,7 +347,7 @@ const confirmDeleteCategory =
                     selectedCategoryId.value =
                         undefined;
                 }
-                // Emitir evento para que el padre refresque los productos
+
                 emit("categoryDeleted");
             } catch (error: any) {
                 notifyError(
@@ -377,7 +365,6 @@ const cancelDeleteCategory = () => {
     categoryToDelete.value = null;
 };
 
-// Exponer función para que el padre pueda llamarla
 defineExpose({
     showError,
 });
@@ -395,7 +382,6 @@ defineExpose({
         height="auto"
         @close="closeModal"
     >
-        <!-- Contenido del modal de producto -->
         <div
             class="p-8 space-y-4 bg-gray-50"
         >

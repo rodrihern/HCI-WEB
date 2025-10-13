@@ -16,7 +16,6 @@ defineProps<{
             {{ title }}
         </h1>
 
-        <!-- Botón de agregar o spacer para mantener altura consistente -->
         <button
             v-if="
                 showAddButton !==
@@ -31,7 +30,7 @@ defineProps<{
                 >add</span
             >
         </button>
-        <!-- Spacer invisible para mantener la altura cuando no hay botón -->
+
         <div
             v-else
             class="w-14 h-14"

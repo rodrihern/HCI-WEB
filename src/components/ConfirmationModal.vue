@@ -64,9 +64,8 @@ const variantStyles = {
     @close="handleCancel"
   >
     <div class="p-8">
-      <!-- Icono y mensaje -->
+      <!-- Icon and Message -->
       <div class="flex items-start gap-4 mb-6">
-        <!-- Icono -->
         <div :class="[variantStyles[variant].iconBg, 'rounded-full p-3 flex-shrink-0']">
           <svg 
             :class="[variantStyles[variant].iconColor, 'w-6 h-6']"
@@ -83,17 +82,15 @@ const variantStyles = {
           </svg>
         </div>
 
-        <!-- Mensaje -->
         <div class="flex-1 pt-1">
           <p class="text-gray-800 text-lg leading-relaxed">{{ message }}</p>
           <slot name="details"></slot>
         </div>
       </div>
 
-      <!-- Contenido adicional opcional -->
       <slot></slot>
 
-      <!-- Botones de acción -->
+      <!-- Action button -->
       <div class="flex justify-end gap-3 mt-6">
         <button 
           @click="handleCancel"

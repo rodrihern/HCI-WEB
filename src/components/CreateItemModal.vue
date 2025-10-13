@@ -72,7 +72,7 @@ watch(() => props.show, (newVal) => {
         />
       </div>
 
-      <!-- Botones de acción -->
+      <!-- Action buttons -->
       <div class="flex justify-end gap-3">
         <button
           @click="handleClose"

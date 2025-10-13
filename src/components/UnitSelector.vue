@@ -43,7 +43,6 @@ const updateCustomUnit = () => {
 
 <template>
   <div>
-    <!-- Predefined units as chips -->
     <div class="flex gap-2 flex-wrap">
       <button
         v-for="unit in predefinedUnits"
@@ -71,7 +70,6 @@ const updateCustomUnit = () => {
       </button>
     </div>
 
-    <!-- Custom unit input -->
     <div v-if="isCustom" class="mt-2">
       <label for="custom-unit" class="sr-only">Unidad personalizada</label>
       <input

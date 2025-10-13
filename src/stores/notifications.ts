@@ -81,6 +81,5 @@ export const useNotificationStore =
             notifications,
             add,
             remove,
-            clear,
         };
     });

@@ -3,19 +3,12 @@ import { ref } from 'vue'
 import QuantityControls from './QuantityControls.vue'
 
 interface Props {
-  /** Texto principal del item */
   title: string
-  /** Texto secundario (opcional) */
   subtitle?: string
-  /** Icono o emoji a mostrar a la izquierda (opcional) */
   icon?: string
-  /** Mostrar controles de cantidad */
   showQuantityControls?: boolean
-  /** Cantidad actual (si showQuantityControls es true) */
   quantity?: number
-  /** Clases adicionales para el contenedor */
   class?: string
-  /** Mostrar animación de escala */
   isAnimating?: boolean
 }
 
@@ -74,9 +67,7 @@ const handleMenuStateChange = (isOpen: boolean) => {
         </div>
       </div>
 
-      <!-- Lado derecho: Controles -->
       <div class="flex items-center gap-3" @click.stop>
-        <!-- Controles de cantidad (para DespensaView) -->
         <QuantityControls
           v-if="showQuantityControls"
           :quantity="quantity"
@@ -84,7 +75,6 @@ const handleMenuStateChange = (isOpen: boolean) => {
           @decrement="handleQuantityChange(-1)"
         />
 
-        <!-- Slot para acciones personalizadas (estrella, menú contextual, etc) -->
         <slot name="actions" :on-menu-state-change="handleMenuStateChange" />
       </div>
     </div>

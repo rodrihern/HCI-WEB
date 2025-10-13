@@ -58,7 +58,6 @@ export const usePantryStore = defineStore("pantry", () => {
         return result;
     }
 
-    // Pantry Items methods
     async function addItem(pantryId: number, item: any): Promise<PantryItem> {
         const result = await PantryApi.addItem(pantryId, item);
         await getItems(pantryId);

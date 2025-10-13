@@ -12,9 +12,7 @@ export interface ContextMenuItem {
 }
 
 interface Props {
-    /** Opciones del menú */
     items: ContextMenuItem[];
-    /** Color del ícono de tres puntos */
     iconColor?: string;
 }
 

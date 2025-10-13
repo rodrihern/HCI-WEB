@@ -22,7 +22,6 @@ const emit = defineEmits<{
 const isExpanded = ref(false);
 
 const toggleExpanded = () => {
-    // Toggle expandir/colapsar
     isExpanded.value =
         !isExpanded.value;
 };
@@ -67,18 +66,15 @@ const contextMenuItems = [
         }"
         @click="toggleExpanded"
     >
-        <!-- Borde cuando está expandido -->
         <div
             v-if="isExpanded"
             class="absolute inset-0 rounded-xl border-3 border-verde-contraste pointer-events-none"
         ></div>
 
         <div class="relative">
-            <!-- Contenido compacto -->
             <div
                 class="p-4 flex items-start gap-4"
             >
-                <!-- Imagen del producto (expandible) -->
                 <div
                     class="flex-shrink-0 rounded-lg overflow-hidden bg-white/90 flex items-center justify-center transition-all duration-300"
                     :class="
@@ -107,7 +103,6 @@ const contextMenuItems = [
                     >
                 </div>
 
-                <!-- Nombre y categoría -->
                 <div
                     class="flex-1 min-w-0 transition-transform duration-300"
                     :style="{
@@ -132,7 +127,6 @@ const contextMenuItems = [
                     </p>
                 </div>
 
-                <!-- Menú contextual -->
                 <ContextMenu
                     :items="
                         contextMenuItems
@@ -141,7 +135,6 @@ const contextMenuItems = [
                 />
             </div>
 
-            <!-- Contenido expandido (descripción) -->
             <div
                 class="grid transition-all duration-300 ease-in-out overflow-hidden"
                 :class="

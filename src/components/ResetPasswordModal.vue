@@ -53,7 +53,6 @@
                         </p>
                     </div>
 
-                    <!-- Error message -->
                     <div
                         v-if="error"
                         class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg"
@@ -65,7 +64,6 @@
                         </p>
                     </div>
 
-                    <!-- Success message -->
                     <div
                         v-if="success"
                         class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg"
@@ -79,7 +77,6 @@
                         </p>
                     </div>
 
-                    <!-- Code input -->
                     <div class="mb-4">
                         <label
                             class="block text-sm font-medium text-gray-700 mb-2"
@@ -103,7 +100,6 @@
                         />
                     </div>
 
-                    <!-- New Password input -->
                     <div class="mb-4">
                         <label
                             class="block text-sm font-medium text-gray-700 mb-2"
@@ -184,7 +180,6 @@
                         </div>
                     </div>
 
-                    <!-- Confirm Password input -->
                     <div class="mb-6">
                         <label
                             class="block text-sm font-medium text-gray-700 mb-2"
@@ -265,7 +260,6 @@
                         </div>
                     </div>
 
-                    <!-- Actions -->
                     <div
                         class="space-y-3"
                     >
