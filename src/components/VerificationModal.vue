@@ -104,7 +104,9 @@
 
                     <!-- Code input -->
                     <div class="mb-6">
+                        <label for="verification-code" class="sr-only">Código de verificación</label>
                         <input
+                            id="verification-code"
                             v-model="
                                 code
                             "
@@ -133,6 +135,7 @@
                                 loading
                             "
                             class="w-full bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Verificar código de verificación"
                         >
                             <span
                                 v-if="
@@ -178,6 +181,7 @@
                                 resendDisabled
                             "
                             class="w-full text-gray-700 hover:cursor-pointer hover:text-verde-sidebar font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Reenviar código de verificación"
                         >
                             <span
                                 v-if="
@@ -203,6 +207,7 @@
                                 loading
                             "
                             class="w-full text-gray-500 hover:cursor-pointer hover:text-gray-700 font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Cancelar verificación"
                         >
                             Cancelar
                         </button>

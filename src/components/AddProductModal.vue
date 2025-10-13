@@ -219,7 +219,9 @@ watch(() => props.show, async (show) => {
       <div class="px-8 py-6 border-b border-gray-200 space-y-4">
         <!-- Search bar -->
         <div class="relative">
+          <label for="product-search" class="sr-only">Buscar productos</label>
           <input
+            id="product-search"
             v-model="searchQuery"
             type="text"
             placeholder="Buscar productos..."
@@ -240,6 +242,7 @@ watch(() => props.show, async (show) => {
             :class="selectedCategoryId === category.id
               ? 'bg-verde-sidebar text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+            :aria-label="`Filtrar por categoría ${category.name}`"
           >
             {{ category.name }}
           </button>
@@ -264,6 +267,7 @@ watch(() => props.show, async (show) => {
             @click="selectProduct(product)"
             class="bg-verde-claro rounded-xl hover:cursor-pointer p-4 text-left transition-all duration-200 hover:shadow-md"
             :class="selectedProduct?.id === product.id ? 'ring-2 ring-verde-contraste shadow-md' : ''"
+            :aria-label="`Seleccionar producto ${product.name}`"
           >
             <div class="flex items-center gap-3">
               <div class="flex-1 min-w-0">
@@ -309,6 +313,7 @@ watch(() => props.show, async (show) => {
           <button
             @click="handleClose"
             class="px-6 py-2.5 rounded-xl bg-gray-200 hover:cursor-pointer hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+            aria-label="Cancelar selección de producto"
           >
             Cancelar
           </button>
@@ -316,6 +321,7 @@ watch(() => props.show, async (show) => {
             @click="handleAdd"
             :disabled="!selectedProduct || quantity < 1"
             class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Agregar producto seleccionado"
           >
             Agregar
           </button>
@@ -352,6 +358,7 @@ watch(() => props.show, async (show) => {
         <button 
           @click="backToDestinationList"
           class="flex items-center gap-2 text-verde-sidebar hover:cursor-pointer hover:text-verde-contraste font-medium mb-4 transition-colors"
+          aria-label="Volver a la lista de destinos"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -376,10 +383,12 @@ watch(() => props.show, async (show) => {
       <!-- Search bar (only show when not showing details) -->
       <div v-if="!showDestinationDetails" class="p-6 pb-4 bg-gray-50">
         <div class="relative">
+          <label for="list-search" class="sr-only">{{ type === 'pantry' ? 'Buscar Despensas' : 'Buscar Listas' }}</label>
           <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input 
+            id="list-search"
             v-model="searchQuery"
             type="text" 
             :placeholder="type === 'pantry' ? 'Buscar Despensas' : 'Buscar Listas'"
@@ -401,6 +410,7 @@ watch(() => props.show, async (show) => {
             @click="selectDestination(destination.id!)"
             class="bg-white rounded-2xl p-5 border-2 border-gray-200 hover:cursor-pointer hover:border-verde-sidebar transition-all text-left shadow-sm hover:shadow-md"
             :class="selectedDestinationId === destination.id ? 'ring-2 ring-verde-contraste border-verde-sidebar' : ''"
+            :aria-label="`Seleccionar ${type === 'pantry' ? 'despensa' : 'lista'} ${destination.name}`"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1">
@@ -444,6 +454,7 @@ watch(() => props.show, async (show) => {
           <button
             @click="handleClose"
             class="px-6 py-2.5 rounded-xl bg-gray-200 hover:cursor-pointer hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+            aria-label="Cancelar selección de destino"
           >
             Cancelar
           </button>
@@ -451,6 +462,7 @@ watch(() => props.show, async (show) => {
             @click="handleAdd"
             :disabled="!selectedDestinationId || quantity < 1"
             class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Agregar producto al destino seleccionado"
           >
             Agregar
           </button>
@@ -509,6 +521,7 @@ watch(() => props.show, async (show) => {
         <button
           @click="handleClose"
           class="px-6 py-2.5 rounded-xl hover:cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+          aria-label="Cancelar detalles del producto"
         >
           Cancelar
         </button>
@@ -516,6 +529,7 @@ watch(() => props.show, async (show) => {
           @click="handleAdd"
           :disabled="quantity < 1"
           class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer over:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Agregar producto con cantidad y unidad especificadas"
         >
           Agregar
         </button>

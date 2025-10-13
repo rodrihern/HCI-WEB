@@ -54,6 +54,7 @@ const updateCustomUnit = () => {
         :class="modelValue === unit && !isCustom
           ? 'bg-verde-sidebar text-white'
           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+        :aria-label="`Seleccionar unidad ${unit}`"
       >
         {{ unit }}
       </button>
@@ -64,6 +65,7 @@ const updateCustomUnit = () => {
         :class="isCustom
           ? 'bg-verde-sidebar text-white'
           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+        aria-label="Escribir unidad personalizada"
       >
         Otra...
       </button>
@@ -71,7 +73,9 @@ const updateCustomUnit = () => {
 
     <!-- Custom unit input -->
     <div v-if="isCustom" class="mt-2">
+      <label for="custom-unit" class="sr-only">Unidad personalizada</label>
       <input
+        id="custom-unit"
         v-model="customUnit"
         @blur="updateCustomUnit"
         @keyup.enter="updateCustomUnit"

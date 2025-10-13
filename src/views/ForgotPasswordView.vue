@@ -220,7 +220,9 @@ const closeResetModal = () => {
                         <div
                             class="space-y-3 sm:space-y-4"
                         >
+                            <label for="forgot-email" class="sr-only">Email</label>
                             <input
+                                id="forgot-email"
                                 v-model="
                                     email
                                 "

@@ -401,7 +401,9 @@ defineExpose({
         >
             <!-- Name input -->
             <div>
+                <label for="product-name" class="sr-only">Nombre del producto</label>
                 <input
+                    id="product-name"
                     v-model="
                         productName
                     "
@@ -464,7 +466,9 @@ defineExpose({
                             class="material-icons text-gray-500 text-xl"
                             >search</span
                         >
+                        <label for="category-search" class="sr-only">Buscar categoría</label>
                         <input
+                            id="category-search"
                             v-model="
                                 categorySearch
                             "
@@ -548,7 +552,9 @@ defineExpose({
                             class="material-icons text-gray-600 text-xl"
                             >add</span
                         >
+                        <label for="new-category" class="sr-only">Nueva categoría</label>
                         <input
+                            id="new-category"
                             v-model="
                                 newCategoryName
                             "
@@ -577,8 +583,10 @@ defineExpose({
 
             <!-- Description input -->
             <div>
+                <label for="product-description" class="sr-only">Descripción del producto</label>
                 <div class="relative">
                     <textarea
+                        id="product-description"
                         v-model="
                             productDescription
                         "

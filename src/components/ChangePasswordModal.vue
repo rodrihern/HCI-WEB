@@ -121,6 +121,7 @@ defineExpose({ showError });
                         @click="showCurrentPassword = !showCurrentPassword"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                         :disabled="loading"
+                        :aria-label="showCurrentPassword ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'"
                     >
                         <svg v-if="!showCurrentPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -153,6 +154,7 @@ defineExpose({ showError });
                         @click="showNewPassword = !showNewPassword"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                         :disabled="loading"
+                        :aria-label="showNewPassword ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña'"
                     >
                         <svg v-if="!showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -187,6 +189,7 @@ defineExpose({ showError });
                         @click="showConfirmPassword = !showConfirmPassword"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                         :disabled="loading"
+                        :aria-label="showConfirmPassword ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'"
                     >
                         <svg v-if="!showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -205,6 +208,7 @@ defineExpose({ showError });
                     @click="closeModal"
                     class="px-6 py-3 bg-gray-200 text-gray-700 hover:cursor-pointer font-semibold rounded-lg hover:bg-gray-300 transition-colors"
                     :disabled="loading"
+                    aria-label="Cancelar cambio de contraseña"
                 >
                     Cancelar
                 </button>
@@ -212,6 +216,7 @@ defineExpose({ showError });
                     @click="handleSave"
                     class="px-6 py-3 bg-verde-sidebar text-white hover:cursor-pointer font-semibold rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     :disabled="loading"
+                    aria-label="Cambiar contraseña"
                 >
                     <svg
                         v-if="loading"

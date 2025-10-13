@@ -111,6 +111,7 @@ const maxWidthClasses = {
                             closeModal
                         "
                         class="absolute left-8 hover:cursor-pointer text-gray-600 hover:bg-gray-200 rounded-full p-2 transition-colors"
+                        aria-label="Cerrar modal"
                     >
                         <svg
                             class="w-6 h-6"
@@ -157,7 +158,7 @@ const maxWidthClasses = {
 <style scoped>
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-    transition: opacity 0.02 ease;
+    transition: opacity 0.02s ease;
 }
 
 .modal-fade-enter-from,

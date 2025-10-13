@@ -24,6 +24,7 @@ defineProps<{
             "
             @click="onAddClick"
             class="bg-gradient-to-br hover:cursor-pointer from-[#68AE6F] to-[#5a9860] hover:from-[#5a9860] hover:to-[#4d8251] text-white rounded-full w-14 h-14 flex items-center justify-center transition-all duration-300 shadow-xl hover:cursor-pointer hover:shadow-2xl hover:scale-110"
+            aria-label="Agregar nuevo elemento"
         >
             <span
                 class="material-icons text-white text-4xl"

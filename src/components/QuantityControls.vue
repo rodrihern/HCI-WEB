@@ -38,6 +38,7 @@ const handleDecrement = () => {
     <button
       @click="handleDecrement"
       :class="buttonClass"
+      aria-label="Disminuir cantidad"
     >
       −
     </button>
@@ -45,6 +46,7 @@ const handleDecrement = () => {
     <button
       @click="handleIncrement"
       :class="buttonClass"
+      aria-label="Aumentar cantidad"
     >
       +
     </button>

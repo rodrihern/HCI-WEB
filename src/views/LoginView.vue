@@ -161,7 +161,9 @@ const handleForgotPassword = () => {
                     <div
                         class="space-y-3 sm:space-y-4"
                     >
+                        <label for="login-email" class="sr-only">Email</label>
                         <input
+                            id="login-email"
                             v-model="
                                 email
                             "
@@ -178,7 +180,9 @@ const handleForgotPassword = () => {
                         <div
                             class="relative"
                         >
+                            <label for="login-password" class="sr-only">Contraseña</label>
                             <input
+                                id="login-password"
                                 v-model="
                                     password
                                 "
@@ -206,6 +210,7 @@ const handleForgotPassword = () => {
                                 :disabled="
                                     loading
                                 "
+                                :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                             >
                                 <svg
                                     v-if="

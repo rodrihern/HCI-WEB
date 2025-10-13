@@ -112,6 +112,7 @@ const unit = computed(() => {
       @click="emit('delete')"
       class="flex-shrink-0 w-10 h-10 rounded-xl hover:cursor-pointer hover:bg-red-50 flex items-center justify-center transition-colors text-gray-400 hover:text-red-500 cursor-pointer"
       title="Eliminar producto"
+      aria-label="Eliminar producto"
     >
       <span class="material-icons text-2xl">delete</span>
     </button>
@@ -148,6 +149,7 @@ const unit = computed(() => {
     <button 
       @click.stop="emit('add')"
       class="flex-shrink-0 w-10 h-10 rounded-full bg-verde-sidebar hover:bg-verde-contraste hover:cursor-pointer text-white flex items-center justify-center transition-colors"
+      :aria-label="`Agregar ${productName} a la lista`"
     >
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />

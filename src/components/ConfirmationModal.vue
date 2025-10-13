@@ -98,6 +98,7 @@ const variantStyles = {
         <button 
           @click="handleCancel"
           class="px-6 py-2.5 rounded-xl bg-gray-200 hover:cursor-pointer hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+          aria-label="Cancelar acción"
         >
           {{ cancelText }}
         </button>
@@ -108,6 +109,7 @@ const variantStyles = {
             variantStyles[variant].confirmText,
             'px-6 py-2.5 rounded-xl hover:cursor-pointer font-medium transition-colors'
           ]"
+          aria-label="Confirmar acción"
         >
           {{ confirmText }}
         </button>

@@ -238,7 +238,9 @@ onMounted(() => {
                 class="flex-1 max-w-2xl mx-auto px-4"
             >
                 <div class="relative">
+                    <label for="global-search" class="sr-only">Buscar</label>
                     <input
+                        id="global-search"
                         v-model="
                             searchQuery
                         "
@@ -285,6 +287,7 @@ onMounted(() => {
                                 ? 'bg-transparent'
                                 : 'bg-verde-sidebar'
                         "
+                        aria-label="Abrir menú de perfil"
                     >
                         <!-- Avatar image if available -->
                         <div

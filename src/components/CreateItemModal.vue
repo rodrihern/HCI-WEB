@@ -77,6 +77,7 @@ watch(() => props.show, (newVal) => {
         <button
           @click="handleClose"
           class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+          aria-label="Cancelar creación de nueva lista"
         >
           Cancelar
         </button>
@@ -84,6 +85,7 @@ watch(() => props.show, (newVal) => {
           @click="handleCreate"
           :disabled="!itemName.trim()"
           class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          :aria-label="`Crear nueva ${itemTypeLabel}`"
         >
           Crear {{ itemTypeLabelCapitalized }}
         </button>

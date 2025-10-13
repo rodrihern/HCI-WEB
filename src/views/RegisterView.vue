@@ -295,7 +295,9 @@ const closeVerificationModal = () => {
                     <div
                         class="space-y-3 sm:space-y-4"
                     >
+                        <label for="register-name" class="sr-only">Nombre</label>
                         <input
+                            id="register-name"
                             v-model="
                                 name
                             "
@@ -306,7 +308,9 @@ const closeVerificationModal = () => {
                             "
                             class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         />
+                        <label for="register-surname" class="sr-only">Apellido</label>
                         <input
+                            id="register-surname"
                             v-model="
                                 surname
                             "
@@ -317,7 +321,9 @@ const closeVerificationModal = () => {
                             "
                             class="w-full px-4 sm:px-5 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         />
+                        <label for="register-email" class="sr-only">Email</label>
                         <input
+                            id="register-email"
                             v-model="
                                 email
                             "
@@ -331,7 +337,9 @@ const closeVerificationModal = () => {
                         <div
                             class="relative"
                         >
+                            <label for="register-password" class="sr-only">Contraseña</label>
                             <input
+                                id="register-password"
                                 v-model="
                                     password
                                 "
@@ -357,6 +365,7 @@ const closeVerificationModal = () => {
                                 :disabled="
                                     loading
                                 "
+                                :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                             >
                                 <svg
                                     v-if="
@@ -399,7 +408,9 @@ const closeVerificationModal = () => {
                         <div
                             class="relative"
                         >
+                            <label for="register-confirm-password" class="sr-only">Confirmar contraseña</label>
                             <input
+                                id="register-confirm-password"
                                 v-model="
                                     confirmPassword
                                 "
@@ -425,6 +436,7 @@ const closeVerificationModal = () => {
                                 :disabled="
                                     loading
                                 "
+                                :aria-label="showConfirmPassword ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'"
                             >
                                 <svg
                                     v-if="

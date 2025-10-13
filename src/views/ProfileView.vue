@@ -369,11 +369,12 @@ const initials = computed(() => {
                     <!-- Left column: Avatar -->
                     <div class="w-full md:w-auto flex flex-col items-center md:items-start flex-shrink-0">
                         <div class="w-[200px] h-[200px] rounded-full overflow-hidden shadow-lg">
-                            <div
+                            <button
                                 v-if="profileData.avatar"
                                 class="w-full h-full bg-cover bg-center"
                                 :style="{ backgroundImage: `url(${profileData.avatar})` }"
-                            ></div>
+                                aria-label="Foto de perfil del usuario"
+                            ></button>
                             <div
                                 v-else
                                 class="w-full h-full bg-verde-sidebar flex items-center justify-center"
@@ -384,7 +385,7 @@ const initials = computed(() => {
                                 </svg>
                             </div>
                         </div>
-                        <button @click="triggerFileInput" class="text-verde-sidebar hover:cursor-pointer text-lg font-semibold px-4 py-2 hover:opacity-70 transition-opacity mt-4">
+                        <button @click="triggerFileInput" class="text-verde-sidebar hover:cursor-pointer text-lg font-semibold px-4 py-2 hover:opacity-70 transition-opacity mt-4" aria-label="Cambiar foto de perfil">
                             Cambiar foto de perfil
                         </button>
                         <input id="avatar-input" type="file" accept="image/*" @change="handleFileChange" class="hidden" />
@@ -398,17 +399,17 @@ const initials = computed(() => {
                             <div class="bg-white rounded-lg p-4 shadow-sm">
                                 <div v-if="!isEditingName" class="flex items-center justify-between">
                                     <span class="text-lg text-gray-500">{{ profileData.name }}</span>
-                                    <button @click="startEditingName" class="text-verde-sidebar p-1 hover:cursor-pointer hover:opacity-70 transition-opacity">
+                                    <button @click="startEditingName" class="text-verde-sidebar p-1 hover:cursor-pointer hover:opacity-70 transition-opacity" aria-label="Editar nombre">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </button>
                                 </div>
                                 <div v-else class="flex flex-col gap-4">
-                                    <input v-model="tempName" type="text" maxlength="25" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveName" @keyup.esc="cancelEditName" />
+                                    <input v-model="tempName" type="text" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveName" @keyup.esc="cancelEditName" />
                                     <div class="flex gap-3 justify-end">
-                                        <button @click="saveName" class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity">Guardar</button>
-                                        <button @click="cancelEditName" class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity">Cancelar</button>
+                                        <button @click="saveName" class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity" aria-label="Guardar cambios del nombre">Guardar</button>
+                                        <button @click="cancelEditName" class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity" aria-label="Cancelar edición del nombre">Cancelar</button>
                                     </div>
                                 </div>
                             </div>
@@ -420,17 +421,17 @@ const initials = computed(() => {
                             <div class="bg-white rounded-lg p-4 shadow-sm">
                                 <div v-if="!isEditingSurname" class="flex items-center justify-between">
                                     <span class="text-lg text-gray-500">{{ profileData.surname }}</span>
-                                    <button @click="startEditingSurname" class="text-verde-sidebar p-1 hover:cursor-pointer hover:opacity-70 transition-opacity">
+                                    <button @click="startEditingSurname" class="text-verde-sidebar p-1 hover:cursor-pointer hover:opacity-70 transition-opacity" aria-label="Editar apellido">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </button>
                                 </div>
                                 <div v-else class="flex flex-col gap-4">
-                                    <input v-model="tempSurname" type="text" maxlength="25" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveSurname" @keyup.esc="cancelEditSurname" />
+                                    <input v-model="tempSurname" type="text" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveSurname" @keyup.esc="cancelEditSurname" />
                                     <div class="flex gap-3 justify-end">
-                                        <button @click="saveSurname" class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity">Guardar</button>
-                                        <button @click="cancelEditSurname" class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity">Cancelar</button>
+                                        <button @click="saveSurname" class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity" aria-label="Guardar cambios del apellido">Guardar</button>
+                                        <button @click="cancelEditSurname" class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity" aria-label="Cancelar edición del apellido">Cancelar</button>
                                     </div>
                                 </div>
                             </div>
@@ -447,7 +448,9 @@ const initials = computed(() => {
                         <!-- Change Password Button -->
                         <div class="flex justify-center">
                             <button @click="openChangePasswordModal" class="bg-verde-sidebar hover:cursor-pointer text-white text-lg font-semibold px-8 py-3 rounded-xl flex items-center shadow-lg hover:bg-verde-contraste hover:-translate-y-0.5 transition-all">
-                                <span class="material-icons mr-2">key</span>
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
+                                </svg>
                                 Cambiar contraseña
                             </button>
                         </div>
