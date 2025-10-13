@@ -65,6 +65,7 @@ watch(() => props.show, (newVal) => {
           v-model="itemName"
           type="text"
           :placeholder="placeholderText"
+          maxlength="25"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
           @keyup.enter="handleCreate"
           autofocus

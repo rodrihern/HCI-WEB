@@ -405,7 +405,7 @@ const initials = computed(() => {
                                     </button>
                                 </div>
                                 <div v-else class="flex flex-col gap-4">
-                                    <input v-model="tempName" type="text" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveName" @keyup.esc="cancelEditName" />
+                                    <input v-model="tempName" type="text" maxlength="25" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveName" @keyup.esc="cancelEditName" />
                                     <div class="flex gap-3 justify-end">
                                         <button @click="saveName" class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity">Guardar</button>
                                         <button @click="cancelEditName" class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity">Cancelar</button>
@@ -427,7 +427,7 @@ const initials = computed(() => {
                                     </button>
                                 </div>
                                 <div v-else class="flex flex-col gap-4">
-                                    <input v-model="tempSurname" type="text" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveSurname" @keyup.esc="cancelEditSurname" />
+                                    <input v-model="tempSurname" type="text" maxlength="25" class="w-full px-2 py-2 text-lg border-2 border-verde-sidebar rounded-md outline-none" @keyup.enter="saveSurname" @keyup.esc="cancelEditSurname" />
                                     <div class="flex gap-3 justify-end">
                                         <button @click="saveSurname" class="px-5 py-2 bg-verde-sidebar text-white font-semibold rounded-md hover:opacity-80 transition-opacity">Guardar</button>
                                         <button @click="cancelEditSurname" class="px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md hover:opacity-80 transition-opacity">Cancelar</button>

@@ -407,6 +407,7 @@ defineExpose({
                     "
                     type="text"
                     placeholder="Nombre del producto"
+                    maxlength="25"
                     class="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-2xl focus:border-verde-sidebar focus:outline-none transition-colors text-gray-800 bg-white"
                 />
             </div>
@@ -553,6 +554,7 @@ defineExpose({
                             "
                             type="text"
                             placeholder="Nueva categoría"
+                            maxlength="25"
                             class="flex-1 bg-transparent placeholder-gray-500 text-gray-800 outline-none"
                             @keyup.enter="
                                 addNewCategory

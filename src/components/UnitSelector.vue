@@ -77,6 +77,7 @@ const updateCustomUnit = () => {
         @keyup.enter="updateCustomUnit"
         type="text"
         placeholder="Escribe la unidad"
+        maxlength="10"
         class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl hover:border-verde-sidebar focus:outline-none focus:ring-2 focus:ring-verde-sidebar transition-colors"
       />
     </div>

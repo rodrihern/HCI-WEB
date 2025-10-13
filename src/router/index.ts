@@ -5,8 +5,8 @@ import {
 import { useUserStore } from "@/stores/user";
 import ListasView from "../views/ListsView.vue";
 import ProductosView from "../views/ProductosView.vue";
-import DespensaView from "../views/PantryVIew.vue";
-import HistorialView from "../views/HistorialView.vue";
+import DespensaView from "../views/PantryView.vue";
+import HistorialView from "../views/HistoryView.vue";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import ProfileView from "../views/ProfileView.vue";
