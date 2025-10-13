@@ -129,7 +129,7 @@ onBeforeUnmount(() => {
         <button
             :class="[
                 iconColor,
-                'hover:bg-verde-contraste/60 rounded-lg transition-colors p-2 cursor-pointer flex items-center justify-center',
+                'hover:bg-verde-contraste/60 rounded-lg transition-colors p-2 hover:cursor-pointer flex items-center justify-center',
             ]"
             @click="toggleMenu"
             aria-haspopup="menu"

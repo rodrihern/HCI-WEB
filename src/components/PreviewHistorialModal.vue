@@ -139,7 +139,7 @@ const formattedDate = computed(() => {
       <div class="p-6 border-t border-gray-200 bg-gray-50 flex justify-center">
         <button 
           @click="closeModal"
-          class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors" 
+          class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-medium transition-colors" 
         >
           Cerrar
         </button>

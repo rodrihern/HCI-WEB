@@ -236,7 +236,7 @@ watch(() => props.show, async (show) => {
             v-for="category in categories"
             :key="category.id ?? 'all'"
             @click="selectedCategoryId = category.id ?? null"
-            class="px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors"
+            class="px-4 py-2 rounded-full hover:cursor-pointer font-medium whitespace-nowrap transition-colors"
             :class="selectedCategoryId === category.id
               ? 'bg-verde-sidebar text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
@@ -262,7 +262,7 @@ watch(() => props.show, async (show) => {
             v-for="product in filteredProducts"
             :key="product.id"
             @click="selectProduct(product)"
-            class="bg-verde-claro rounded-xl p-4 text-left transition-all duration-200 hover:shadow-md"
+            class="bg-verde-claro rounded-xl hover:cursor-pointer p-4 text-left transition-all duration-200 hover:shadow-md"
             :class="selectedProduct?.id === product.id ? 'ring-2 ring-verde-contraste shadow-md' : ''"
           >
             <div class="flex items-center gap-3">
@@ -308,14 +308,14 @@ watch(() => props.show, async (show) => {
         <div class="flex justify-end gap-3">
           <button
             @click="handleClose"
-            class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+            class="px-6 py-2.5 rounded-xl bg-gray-200 hover:cursor-pointer hover:bg-gray-300 text-gray-800 font-medium transition-colors"
           >
             Cancelar
           </button>
           <button
             @click="handleAdd"
             :disabled="!selectedProduct || quantity < 1"
-            class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Agregar
           </button>
@@ -351,7 +351,7 @@ watch(() => props.show, async (show) => {
       <div v-if="showDestinationDetails && selectedDestination" class="p-6 pb-4 bg-gray-50 border-b border-gray-200">
         <button 
           @click="backToDestinationList"
-          class="flex items-center gap-2 text-verde-sidebar hover:text-verde-contraste font-medium mb-4 transition-colors"
+          class="flex items-center gap-2 text-verde-sidebar hover:cursor-pointer hover:text-verde-contraste font-medium mb-4 transition-colors"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -399,7 +399,7 @@ watch(() => props.show, async (show) => {
             v-for="destination in filteredDestinations"
             :key="destination.id"
             @click="selectDestination(destination.id!)"
-            class="bg-white rounded-2xl p-5 border-2 border-gray-200 hover:border-verde-sidebar transition-all text-left shadow-sm hover:shadow-md"
+            class="bg-white rounded-2xl p-5 border-2 border-gray-200 hover:cursor-pointer hover:border-verde-sidebar transition-all text-left shadow-sm hover:shadow-md"
             :class="selectedDestinationId === destination.id ? 'ring-2 ring-verde-contraste border-verde-sidebar' : ''"
           >
             <div class="flex items-center justify-between">
@@ -443,14 +443,14 @@ watch(() => props.show, async (show) => {
         <div class="flex justify-end gap-3">
           <button
             @click="handleClose"
-            class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+            class="px-6 py-2.5 rounded-xl bg-gray-200 hover:cursor-pointer hover:bg-gray-300 text-gray-800 font-medium transition-colors"
           >
             Cancelar
           </button>
           <button
             @click="handleAdd"
             :disabled="!selectedDestinationId || quantity < 1"
-            class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-6 py-2.5 rounded-xl bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Agregar
           </button>

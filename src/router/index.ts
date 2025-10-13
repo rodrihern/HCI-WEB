@@ -3,9 +3,9 @@ import {
   createWebHistory,
 } from "vue-router";
 import { useUserStore } from "@/stores/user";
-import ListasView from "../views/ListasView.vue";
+import ListasView from "../views/ListsView.vue";
 import ProductosView from "../views/ProductosView.vue";
-import DespensaView from "../views/DespensaView.vue";
+import DespensaView from "../views/PantryVIew.vue";
 import HistorialView from "../views/HistorialView.vue";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";

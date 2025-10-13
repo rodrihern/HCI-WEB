@@ -97,7 +97,7 @@ const variantStyles = {
       <div class="flex justify-end gap-3 mt-6">
         <button 
           @click="handleCancel"
-          class="px-6 py-2.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+          class="px-6 py-2.5 rounded-xl bg-gray-200 hover:cursor-pointer hover:bg-gray-300 text-gray-800 font-medium transition-colors"
         >
           {{ cancelText }}
         </button>
@@ -106,7 +106,7 @@ const variantStyles = {
           :class="[
             variantStyles[variant].confirmBg,
             variantStyles[variant].confirmText,
-            'px-6 py-2.5 rounded-xl font-medium transition-colors'
+            'px-6 py-2.5 rounded-xl hover:cursor-pointer font-medium transition-colors'
           ]"
         >
           {{ confirmText }}

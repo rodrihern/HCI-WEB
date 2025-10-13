@@ -510,7 +510,7 @@ defineExpose({
                                 c.name
                             }}</span>
                             <button
-                                class="p-1 opacity-0 group-hover:opacity-100 rounded transition-all cursor-pointer"
+                                class="p-1 opacity-0 group-hover:opacity-100 rounded transition-all hover:cursor-pointer"
                                 @click="
                                     handleDeleteCategory(
                                         c.id!,
@@ -559,7 +559,7 @@ defineExpose({
                             "
                         />
                         <button
-                            class="px-4 py-2 bg-verde-sidebar text-white rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="px-4 py-2 bg-verde-sidebar hover:cursor-pointer text-white rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             :disabled="
                                 !newCategoryName.trim()
                             "
@@ -619,7 +619,7 @@ defineExpose({
                             @click.stop="
                                 removeImage
                             "
-                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors z-20"
+                            class="absolute top-2 right-2 bg-red-500 hover:cursor-pointer hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors z-20"
                             type="button"
                             aria-label="Eliminar imagen"
                         >
@@ -727,7 +727,7 @@ defineExpose({
                     Cancelar
                 </button>
                 <button
-                    class="px-6 py-2.5 rhover:cursor-pointe rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-6 py-2.5 hover:cursor-pointer rounded-xl bg-verde-sidebar hover:bg-verde-contraste text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="
                         !productName.trim()
                     "

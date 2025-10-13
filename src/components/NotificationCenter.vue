@@ -112,7 +112,7 @@ const close = (id: number) => {
                     </div>
                     <button
                         type="button"
-                        class="text-gray-400 hover:text-gray-600 transition-colors"
+                        class="text-gray-400 hover:cursor-pointer hover:text-gray-600 transition-colors"
                         @click="close(item.id)"
                     >
                         <svg

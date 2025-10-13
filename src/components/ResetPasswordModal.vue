@@ -139,7 +139,7 @@
                                     showNewPassword =
                                         !showNewPassword
                                 "
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                                 :disabled="
                                     loading
                                 "
@@ -220,7 +220,7 @@
                                     showConfirmPassword =
                                         !showConfirmPassword
                                 "
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                                 :disabled="
                                     loading
                                 "
@@ -277,7 +277,7 @@
                                 !isFormValid ||
                                 loading
                             "
-                            class="w-full bg-verde-sidebar hover:bg-verde-contraste text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="w-full bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span
                                 v-if="
@@ -322,7 +322,7 @@
                                 loading ||
                                 resendDisabled
                             "
-                            class="w-full text-gray-700 hover:text-verde-sidebar font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="w-full text-gray-700 hover:cursor-pointer hover:text-verde-sidebar font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span
                                 v-if="
@@ -347,7 +347,7 @@
                             :disabled="
                                 loading
                             "
-                            class="w-full text-gray-500 hover:text-gray-700 font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="w-full text-gray-500 hover:cursor-pointer hover:text-gray-700 font-medium py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Cancelar
                         </button>

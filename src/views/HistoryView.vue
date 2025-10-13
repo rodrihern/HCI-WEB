@@ -126,7 +126,7 @@ const onRestore = async (id: number) => {
                 <template #actions>
                     <button
                         @click.stop="onRestore(item.id!)"
-                        class="text-white hover:bg-verde-contraste/60 rounded-lg transition-colors p-2 cursor-pointer flex items-center justify-center"
+                        class="text-white hover:cursor-pointer hover:bg-verde-contraste/60 rounded-lg transition-colors p-2 cursor-pointer flex items-center justify-center"
                         title="Restaurar compra"
                     >
                         <span class="material-icons text-xl">

@@ -602,7 +602,7 @@ const togglePurchased = (item: ListItemData) => {
             <button
               @click="selectedCategoryIdRight = null"
               :class="[
-                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                'px-4 py-2 rounded-full hover:cursor-pointer font-medium transition-all whitespace-nowrap',
                 selectedCategoryIdRight === null
                   ? 'bg-verde-sidebar text-white shadow-md' 
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -615,7 +615,7 @@ const togglePurchased = (item: ListItemData) => {
               :key="category.id"
               @click="selectedCategoryIdRight = category.id || null"
               :class="[
-                'px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap',
+                'px-4 py-2 hover:cursor-pointer rounded-full font-medium transition-all whitespace-nowrap',
                 selectedCategoryIdRight === category.id
                   ? 'bg-verde-sidebar text-white shadow-md' 
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -635,8 +635,7 @@ const togglePurchased = (item: ListItemData) => {
 
           <!-- Empty state when no products -->
           <div v-else-if="filteredProducts.length === 0" class="text-center text-gray-400 py-12">
-            <p class="text-lg">No se encontraron productos</p>
-            <p class="text-sm mt-2">{{ searchProduct ? 'Intenta con otra búsqueda' : 'No hay productos disponibles' }}</p>
+            <p class="text-lg mt-30">No se encontraron productos</p>
           </div>
 
           <!-- Products grid -->

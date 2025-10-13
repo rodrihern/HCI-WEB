@@ -119,7 +119,7 @@ defineExpose({ showError });
                     <button
                         type="button"
                         @click="showCurrentPassword = !showCurrentPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                         :disabled="loading"
                     >
                         <svg v-if="!showCurrentPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +151,7 @@ defineExpose({ showError });
                     <button
                         type="button"
                         @click="showNewPassword = !showNewPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                         :disabled="loading"
                     >
                         <svg v-if="!showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,14 +178,14 @@ defineExpose({ showError });
                         v-model="confirmPassword"
                         :type="showConfirmPassword ? 'text' : 'password'"
                         placeholder="Confirmá tu nueva contraseña"
-                        class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
+                        class="w-full px-4 py-3 pr-12 border border-gray-300 hover:cursor-pointer rounded-lg focus:outline-none focus:ring-2 focus:ring-verde-sidebar focus:border-transparent"
                         :disabled="loading"
                         @keyup.enter="handleSave"
                     />
                     <button
                         type="button"
                         @click="showConfirmPassword = !showConfirmPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                         :disabled="loading"
                     >
                         <svg v-if="!showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,14 +203,14 @@ defineExpose({ showError });
             <div class="flex gap-3 justify-end pt-4">
                 <button
                     @click="closeModal"
-                    class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                    class="px-6 py-3 bg-gray-200 text-gray-700 hover:cursor-pointer font-semibold rounded-lg hover:bg-gray-300 transition-colors"
                     :disabled="loading"
                 >
                     Cancelar
                 </button>
                 <button
                     @click="handleSave"
-                    class="px-6 py-3 bg-verde-sidebar text-white font-semibold rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    class="px-6 py-3 bg-verde-sidebar text-white hover:cursor-pointer font-semibold rounded-lg hover:bg-verde-contraste transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     :disabled="loading"
                 >
                     <svg

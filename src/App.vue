@@ -330,14 +330,13 @@ onMounted(() => {
                                 @click="
                                     goToProfile
                                 "
-                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                                class="w-full text-left px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors flex items-center gap-2"
                             >
                                 <span
-                                    class="material-icons text-base"
+                                    class="material-icons hover:cursor-pointer text-base"
                                     >account_circle</span
                                 >
-                                Mi
-                                Perfil
+                                Mi Perfil
                             </button>
                             <hr
                                 class="my-1 border-gray-200"
@@ -346,14 +345,13 @@ onMounted(() => {
                                 @click="
                                     handleLogout
                                 "
-                                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                class="w-full text-left px-4 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50 transition-colors flex items-center gap-2"
                             >
                                 <span
                                     class="material-icons text-base"
                                     >logout</span
                                 >
-                                Cerrar
-                                Sesión
+                                Cerrar Sesión
                             </button>
                         </div>
                     </Transition>
@@ -415,8 +413,7 @@ onMounted(() => {
                                 : 'hover:bg-gray-200'
                         "
                     >   
-                        <!-- format_list_bulleted la opción anterior-->
-                        <span class="material-icons text-gray-700 text-2xl">view_list</span>
+                        <span class="material-icons text-gray-700 text-2xl">format_list_bulleted</span>
                         <span
                             class="text-gray-700 font-medium transition-opacity duration-300 whitespace-nowrap"
                             :class="

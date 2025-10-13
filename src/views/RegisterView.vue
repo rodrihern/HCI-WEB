@@ -353,7 +353,7 @@ const closeVerificationModal = () => {
                                     showPassword =
                                         !showPassword
                                 "
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                                 :disabled="
                                     loading
                                 "
@@ -421,7 +421,7 @@ const closeVerificationModal = () => {
                                     showConfirmPassword =
                                         !showConfirmPassword
                                 "
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:cursor-pointer hover:text-gray-600"
                                 :disabled="
                                     loading
                                 "
@@ -472,7 +472,7 @@ const closeVerificationModal = () => {
                             :disabled="
                                 loading
                             "
-                            class="w-full bg-verde-sidebar hover:bg-verde-contraste text-white font-semibold py-2.5 sm:py-3 lg:py-3.5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="w-full bg-verde-sidebar hover:cursor-pointer hover:bg-verde-contraste text-white font-semibold py-2.5 sm:py-3 lg:py-3.5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span
                                 v-if="

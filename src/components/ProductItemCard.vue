@@ -44,7 +44,7 @@ const productImage = computed(() => {
 })
 
 const productIcon = computed(() => {
-  return displayProduct.value?.metadata?.icon || '📦'
+  return displayProduct.value?.metadata?.icon || '🛒'
 })
 
 const productName = computed(() => {
@@ -110,7 +110,7 @@ const unit = computed(() => {
     <!-- Botón eliminar -->
     <button 
       @click="emit('delete')"
-      class="flex-shrink-0 w-10 h-10 rounded-xl hover:bg-red-50 flex items-center justify-center transition-colors text-gray-400 hover:text-red-500 cursor-pointer"
+      class="flex-shrink-0 w-10 h-10 rounded-xl hover:cursor-pointer hover:bg-red-50 flex items-center justify-center transition-colors text-gray-400 hover:text-red-500 cursor-pointer"
       title="Eliminar producto"
     >
       <span class="material-icons text-2xl">delete</span>
