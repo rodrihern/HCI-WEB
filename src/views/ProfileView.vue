@@ -376,7 +376,7 @@ const initials = computed(() => {
                             ></div>
                             <div
                                 v-else
-                                class="w-full h-full bg-gradient-to-br from-[#6B9BD1] to-[#4A7AB8] flex items-center justify-center"
+                                class="w-full h-full bg-verde-sidebar flex items-center justify-center"
                             >
                                 <span v-if="initials" class="text-6xl font-bold text-white">{{ initials }}</span>
                                 <svg v-else class="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 24 24">
